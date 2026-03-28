@@ -8,8 +8,52 @@
     <div class="panel-body">
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="button">Enregistrer</button>
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    {# تنسيق خاص لمربعات الاختيار (Staff/Superuser) #}
+                    <div class="form-check mb-3">
+                        {{ field }}
+                        <label class="form-check-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="text-danger" style="font-size: 0.8rem;">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {% if field.help_text %}
+                            <div class="form-text" style="font-size: 0.75rem; color: #666;">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    {# تنسيق الحقول النصية العادية #}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="text-danger" style="font-size: 0.8rem;">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if field.help_text %}
+                            <div class="form-text" style="font-size: 0.75rem; color: #666;">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Enregistrer</button>
         </form>
     </div>
 </div>
@@ -19,20 +63,30 @@
     <div class="panel-body">
         <table class="table">
             <thead>
-                <tr><th>Nom</th><th>Email</th><th>Staff</th><th>Superuser</th><th>Action</th></tr>
+                <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Staff</th>
+                    <th>Superuser</th>
+                    <th>Action</th>
+                </tr>
             </thead>
             <tbody>
                 {% for u in users %}
                     <tr>
                         <td>{{ u.username }}</td>
                         <td>{{ u.email }}</td>
-                        <td>{{ u.is_staff }}</td>
-                        <td>{{ u.is_superuser }}</td>
+                        <td>
+                            {% if u.is_staff %} ✅ {% else %} ❌ {% endif %}
+                        </td>
+                        <td>
+                            {% if u.is_superuser %} ✅ {% else %} ❌ {% endif %}
+                        </td>
                         <td>
                             {% if not u.is_superuser %}
                                 <a class="button danger" href="{% url 'delete_user' u.pk %}">Supprimer</a>
                             {% else %}
-                                -
+                                <span class="text-muted">Admin</span>
                             {% endif %}
                         </td>
                     </tr>

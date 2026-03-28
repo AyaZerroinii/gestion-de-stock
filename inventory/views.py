@@ -1,8 +1,9 @@
 import json
-
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.http import HttpResponseRedirect, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -117,14 +118,19 @@ def user_management(request):
     if request.method == 'POST':
         form = AdminUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.save()
-
-            # Save role to Utilisateur table for business role tracking
-            role = form.cleaned_data.get('role', '')
-            Utilisateur.objects.create(username=user.username, tel='', role=role)
-
-            return redirect('user_management')
+            try:
+                with transaction.atomic():
+                    user = form.save()
+                    role = form.cleaned_data.get('role', '').strip()
+                    tel = form.cleaned_data.get('tel', '').strip()
+                    Utilisateur.objects.create(username=user.username, password=user.password, tel=tel, role=role)
+                messages.success(request, f"Utilisateur '{user.username}' créé avec succès.")
+                return redirect('user_management')
+            except IntegrityError:
+                messages.error(request, "Impossible de créer le compte utilisateur. Veuillez vérifier les informations et réessayer.")
+                form.add_error(None, "Échec de l'enregistrement du profil utilisateur.")
+        else:
+            messages.error(request, "Veuillez corriger les erreurs du formulaire avant de soumettre.")
     else:
         form = AdminUserCreationForm()
 

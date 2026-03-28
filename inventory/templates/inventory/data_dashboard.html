@@ -1,0 +1,37 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h1>Data Grid / Tables</h1>
+<p class="lead">كل البيانات الجدولية هنا، مع الروابط للتفاعل CRUD.</p>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">Statistiques</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Entreprises: {{ stats.entreprises }}</li>
+                <li class="list-group-item">Fournisseurs: {{ stats.fournisseurs }}</li>
+                <li class="list-group-item">Clients: {{ stats.clients }}</li>
+                <li class="list-group-item">Produits: {{ stats.produits }}</li>
+                <li class="list-group-item">Bons Entrée: {{ stats.bons_entree }}</li>
+                <li class="list-group-item">Bons Sortie: {{ stats.bons_sortie }}</li>
+                <li class="list-group-item">Utilisateurs: {{ stats.utilisateurs }}</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">Table Management</div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a class="btn btn-outline-primary" href="{% url 'entreprise_list' %}">Entreprises</a>
+                    <a class="btn btn-outline-primary" href="{% url 'fournisseur_list' %}">Fournisseurs</a>
+                    <a class="btn btn-outline-primary" href="{% url 'client_list' %}">Clients</a>
+                    <a class="btn btn-outline-primary" href="{% url 'produit_list' %}">Produits</a>
+                    <a class="btn btn-outline-primary" href="{% url 'bon_entree_list' %}">Bons Entrée</a>
+                    <a class="btn btn-outline-primary" href="{% url 'bon_sortie_list' %}">Bons Sortie</a>
+                    <a class="btn btn-outline-primary" href="{% url 'user_management' %}">Utilisateurs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

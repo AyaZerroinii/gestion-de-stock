@@ -1,0 +1,25 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>Fournisseurs</h2>
+<p><a class="btn btn-primary" href="{% url 'fournisseur_create' %}">Ajouter un fournisseur</a></p>
+<table class="table table-striped">
+    <thead>
+        <tr><th>ID</th><th>Nom</th><th>Téléphone</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for f in fournisseurs %}
+            <tr>
+                <td>{{ f.num_f }}</td>
+                <td>{{ f.designation }}</td>
+                <td>{{ f.tel }}</td>
+                <td>
+                    <a class="btn btn-sm btn-warning" href="{% url 'fournisseur_edit' f.pk %}">Modifier</a>
+                    <a class="btn btn-sm btn-danger" href="{% url 'fournisseur_delete' f.pk %}">Supprimer</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">Aucun fournisseur.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

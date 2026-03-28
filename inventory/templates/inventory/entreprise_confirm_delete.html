@@ -1,0 +1,10 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>Supprimer Entreprise</h2>
+<p>Voulez-vous supprimer {{ entreprise.nom }} ?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Supprimer</button>
+    <a class="btn btn-secondary" href="{% url 'entreprise_list' %}">Annuler</a>
+</form>
+{% endblock %}

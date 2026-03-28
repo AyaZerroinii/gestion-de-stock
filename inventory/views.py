@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from .models import Produit, Utilisateur, Fournisseur, Client, BonEntree, LigneEntree, BonSortie, LigneSortie
+from .models import Entreprise, Produit, Utilisateur, Fournisseur, Client, BonEntree, LigneEntree, BonSortie, LigneSortie
 from .forms import ProduitForm, AdminUserCreationForm
 
 
@@ -146,6 +146,20 @@ def delete_user(request, pk):
 
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
+def data_dashboard(request):
+    stats = {
+        'entreprises': Entreprise.objects.count(),
+        'fournisseurs': Fournisseur.objects.count(),
+        'clients': Client.objects.count(),
+        'produits': Produit.objects.count(),
+        'bons_entree': BonEntree.objects.count(),
+        'bons_sortie': BonSortie.objects.count(),
+        'utilisateurs': Utilisateur.objects.count(),
+    }
+    return render(request, 'inventory/data_dashboard.html', {'stats': stats})
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
 def client_list(request):
     clients = Client.objects.all().order_by('designation')
     return render(request, 'inventory/client_list.html', {'clients': clients})
@@ -187,6 +201,93 @@ def client_delete(request, pk):
         client.delete()
         return redirect('client_list')
     return render(request, 'inventory/client_confirm_delete.html', {'client': client})
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def fournisseur_list(request):
+    fournisseurs = Fournisseur.objects.all().order_by('designation')
+    return render(request, 'inventory/fournisseur_list.html', {'fournisseurs': fournisseurs})
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def fournisseur_create(request):
+    if request.method == 'POST':
+        designation = request.POST.get('designation', '').strip()
+        tel = request.POST.get('tel', '').strip()
+        if designation:
+            Fournisseur.objects.create(designation=designation, tel=tel)
+            return redirect('fournisseur_list')
+        return render(request, 'inventory/fournisseur_form.html', {'error': 'Veuillez saisir le nom du fournisseur.', 'designation': designation, 'tel': tel})
+    return render(request, 'inventory/fournisseur_form.html')
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def fournisseur_edit(request, pk):
+    fournisseur = get_object_or_404(Fournisseur, pk=pk)
+    if request.method == 'POST':
+        designation = request.POST.get('designation', '').strip()
+        tel = request.POST.get('tel', '').strip()
+        if designation:
+            fournisseur.designation = designation
+            fournisseur.tel = tel
+            fournisseur.save()
+            return redirect('fournisseur_list')
+        return render(request, 'inventory/fournisseur_form.html', {'fournisseur': fournisseur, 'error': 'Veuillez saisir le nom du fournisseur.'})
+    return render(request, 'inventory/fournisseur_form.html', {'fournisseur': fournisseur})
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def fournisseur_delete(request, pk):
+    fournisseur = get_object_or_404(Fournisseur, pk=pk)
+    if request.method == 'POST':
+        fournisseur.delete()
+        return redirect('fournisseur_list')
+    return render(request, 'inventory/fournisseur_confirm_delete.html', {'fournisseur': fournisseur})
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def entreprise_list(request):
+    entreprises = Entreprise.objects.all().order_by('nom')
+    return render(request, 'inventory/entreprise_list.html', {'entreprises': entreprises})
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def entreprise_create(request):
+    if request.method == 'POST':
+        nom = request.POST.get('nom', '').strip()
+        adresse = request.POST.get('adresse', '').strip()
+        tel = request.POST.get('tel', '').strip()
+        if nom:
+            Entreprise.objects.create(nom=nom, adresse=adresse, tel=tel)
+            return redirect('entreprise_list')
+        return render(request, 'inventory/entreprise_form.html', {'error': 'Veuillez saisir le nom de l\'entreprise.', 'nom': nom, 'adresse': adresse, 'tel': tel})
+    return render(request, 'inventory/entreprise_form.html')
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def entreprise_edit(request, pk):
+    entreprise = get_object_or_404(Entreprise, pk=pk)
+    if request.method == 'POST':
+        nom = request.POST.get('nom', '').strip()
+        adresse = request.POST.get('adresse', '').strip()
+        tel = request.POST.get('tel', '').strip()
+        if nom:
+            entreprise.nom = nom
+            entreprise.adresse = adresse
+            entreprise.tel = tel
+            entreprise.save()
+            return redirect('entreprise_list')
+        return render(request, 'inventory/entreprise_form.html', {'entreprise': entreprise, 'error': 'Veuillez saisir le nom de l\'entreprise.'})
+    return render(request, 'inventory/entreprise_form.html', {'entreprise': entreprise})
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def entreprise_delete(request, pk):
+    entreprise = get_object_or_404(Entreprise, pk=pk)
+    if request.method == 'POST':
+        entreprise.delete()
+        return redirect('entreprise_list')
+    return render(request, 'inventory/entreprise_confirm_delete.html', {'entreprise': entreprise})
 
 
 @login_required(login_url='login')

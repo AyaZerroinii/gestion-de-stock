@@ -1,0 +1,18 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>{% if fournisseur %}Modifier Fournisseur{% else %}Ajouter Fournisseur{% endif %}</h2>
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Nom</label>
+        <input type="text" name="designation" class="form-control" value="{{ fournisseur.designation|default:'' }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Téléphone</label>
+        <input type="text" name="tel" class="form-control" value="{{ fournisseur.tel|default:'' }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+    <a class="btn btn-secondary" href="{% url 'fournisseur_list' %}">Annuler</a>
+</form>
+{% endblock %}

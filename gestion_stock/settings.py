@@ -47,10 +47,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gestion_stock.wsgi.application'
 
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/accounts/login/'
+
+# if you want logout via GET instead of POST (not secure if CSRF is not enforced),
+# the custom_logout view in urls.py allows both GET and POST.
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': r'C:\\tmp\\gestion_stock_db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'gestion_stock',
+        'USER': 'postgres',
+        'PASSWORD': 'feratferat2005/',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

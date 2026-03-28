@@ -59,7 +59,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gestion_stock',
         'USER': 'postgres',
-        'PASSWORD': 'feratferat2005/',
+        'PASSWORD': 'motedepasse',
         'HOST': 'localhost',
         'PORT': '5432',
     }

@@ -1,0 +1,162 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <h2>Application Web Gestion de Stock</h2>
+        <p>SPA : Création, lecture, modification, suppression via API</p>
+    </div>
+    <div class="panel-body">
+        <div class="form-row">
+            <input id="designation" type="text" placeholder="Nom du produit" />
+            <input id="qte_stock" type="number" min="0" placeholder="Quantité" />
+            <input id="stock_alerte" type="number" min="0" placeholder="Seuil alerte" />
+            <button id="createBtn" class="button">Ajouter</button>
+            <button id="refreshBtn" class="button secondary">Actualiser</button>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Produit</th>
+                    <th>Stock</th>
+                    <th>Alerte</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const apiUrl = '/api/produits/';
+
+function showMessage(text, type='info') {
+    const msg = document.getElementById('message');
+    msg.textContent = text;
+    msg.className = 'message ' + type;
+}
+
+async function fetchProducts() {
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('API erreur ' + response.status);
+        const data = await response.json();
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+
+        data.produits.forEach((p) => {
+            const tr = document.createElement('tr');
+            const dangerClass = p.qte_stock <= p.stock_alerte ? 'low-stock' : '';
+            tr.innerHTML = `
+                <td>${p.code_p}</td>
+                <td>${p.designation}</td>
+                <td class="${dangerClass}">${p.qte_stock}</td>
+                <td>${p.stock_alerte}</td>
+                <td>
+                    <button class="button" onclick="onEdit(${p.code_p}, '${p.designation}', ${p.qte_stock}, ${p.stock_alerte})">Modifier</button>
+                    <button class="button danger" onclick="onDelete(${p.code_p})">Supprimer</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        showMessage('Liste chargée: ' + data.produits.length + ' produits.', 'success');
+    } catch (err) {
+        showMessage('Erreur API: ' + err.message, 'error');
+    }
+}
+
+function getCsrfToken() {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; csrftoken=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+}
+
+async function onCreate() {
+    const designation = document.getElementById('designation').value.trim();
+    const qte_stock = Number(document.getElementById('qte_stock').value);
+    const stock_alerte = Number(document.getElementById('stock_alerte').value);
+
+    if (!designation) return showMessage('Désignation requise.', 'warning');
+
+    const body = { designation, qte_stock, stock_alerte };
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) throw new Error('API erreur ' + response.status);
+
+        await fetchProducts();
+        document.getElementById('designation').value = '';
+        document.getElementById('qte_stock').value = '';
+        document.getElementById('stock_alerte').value = '';
+
+        showMessage('Produit ajouté avec succès!', 'success');
+    } catch (err) {
+        showMessage('Erreur création: ' + err.message, 'error');
+    }
+}
+
+async function onDelete(pk) {
+    if (!confirm('Confirmer la suppression?')) return;
+    try {
+        const response = await fetch(`${apiUrl}${pk}/`, {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+        });
+        if (!response.ok) throw new Error('API erreur ' + response.status);
+        await fetchProducts();
+        showMessage('Produit supprimé.', 'success');
+    } catch (err) {
+        showMessage('Erreur suppression: ' + err.message, 'error');
+    }
+}
+
+async function onEdit(pk, oldDesignation, oldQte, oldAlerte) {
+    const designation = prompt('Désignation :', oldDesignation);
+    if (designation === null) return;
+    const qte_stock = parseInt(prompt('Quantité :', oldQte), 10);
+    const stock_alerte = parseInt(prompt('Seuil alerte :', oldAlerte), 10);
+    if (!designation || Number.isNaN(qte_stock) || Number.isNaN(stock_alerte)) {
+        showMessage('Valeurs invalides.', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${apiUrl}${pk}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({ designation, qte_stock, stock_alerte }),
+        });
+        if (!response.ok) throw new Error('API erreur ' + response.status);
+        await fetchProducts();
+        showMessage('Produit mis à jour.', 'success');
+    } catch (err) {
+        showMessage('Erreur mise à jour: ' + err.message, 'error');
+    }
+}
+
+window.onload = function() {
+    fetchProducts();
+    document.getElementById('refreshBtn').addEventListener('click', fetchProducts);
+    document.getElementById('createBtn').addEventListener('click', onCreate);
+};
+</script>
+
+<p style="margin-top: 16px;"><a href="{% url 'produit_list' %}">Mode admin classique</a> | <a href="{% url 'user_management' %}">Gestion utilisateurs</a> | <a href="{% url 'bon_entree_list' %}">Bons Entrée</a> | <a href="{% url 'bon_sortie_list' %}">Bons Sortie</a></p>
+{% endblock %}

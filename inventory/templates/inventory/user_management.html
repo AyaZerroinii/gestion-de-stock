@@ -1,0 +1,45 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>Administration des utilisateurs</h2>
+<p>Uniquement accessible au superutilisateur.</p>
+
+<div class="panel">
+    <div class="panel-header"><strong>Créer un nouvel utilisateur</strong></div>
+    <div class="panel-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="button">Enregistrer</button>
+        </form>
+    </div>
+</div>
+
+<div class="panel" style="margin-top: 16px;">
+    <div class="panel-header"><strong>Liste des utilisateurs</strong></div>
+    <div class="panel-body">
+        <table class="table">
+            <thead>
+                <tr><th>Nom</th><th>Email</th><th>Staff</th><th>Superuser</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                    <tr>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>{{ u.is_staff }}</td>
+                        <td>{{ u.is_superuser }}</td>
+                        <td>
+                            {% if not u.is_superuser %}
+                                <a class="button danger" href="{% url 'delete_user' u.pk %}">Supprimer</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

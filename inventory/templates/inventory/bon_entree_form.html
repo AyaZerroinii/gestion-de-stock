@@ -1,0 +1,30 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>Créer Bon d'Entrée</h2>
+{% if error %}<p style="color:red;">{{ error }}</p>{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <div class="form-field">
+        <label>Fournisseur</label>
+        <select name="fournisseur">
+            {% for f in fournisseurs %}
+                <option value="{{ f.pk }}">{{ f.designation }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-field">
+        <label>Produit</label>
+        <select name="produit">
+            {% for p in produits %}
+                <option value="{{ p.pk }}">{{ p.designation }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-field">
+        <label>Quantité</label>
+        <input name="qte" type="number" min="1" value="1" />
+    </div>
+    <button class="button" type="submit">Sauvegarder</button>
+    <a class="button" href="{% url 'bon_entree_list' %}">Annuler</a>
+</form>
+{% endblock %}

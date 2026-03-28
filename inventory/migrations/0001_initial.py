@@ -1,0 +1,90 @@
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = []
+
+    operations = [
+        migrations.CreateModel(
+            name='Entreprise',
+            fields=[
+                ('id_ent', models.AutoField(primary_key=True, serialize=False)),
+                ('nom', models.CharField(max_length=255)),
+                ('adresse', models.CharField(blank=True, max_length=255, null=True)),
+                ('tel', models.CharField(blank=True, max_length=50, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Utilisateur',
+            fields=[
+                ('id_user', models.AutoField(primary_key=True, serialize=False)),
+                ('username', models.CharField(max_length=150, unique=True)),
+                ('password', models.CharField(max_length=128)),
+                ('role', models.CharField(max_length=50)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Client',
+            fields=[
+                ('code_cl', models.AutoField(primary_key=True, serialize=False)),
+                ('designation', models.CharField(max_length=255)),
+                ('tel', models.CharField(blank=True, max_length=50, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Fournisseur',
+            fields=[
+                ('num_f', models.AutoField(primary_key=True, serialize=False)),
+                ('designation', models.CharField(max_length=255)),
+                ('tel', models.CharField(blank=True, max_length=50, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Produit',
+            fields=[
+                ('code_p', models.AutoField(primary_key=True, serialize=False)),
+                ('designation', models.CharField(max_length=255)),
+                ('qte_stock', models.IntegerField(default=0)),
+                ('stock_alerte', models.IntegerField(default=0)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='BonEntree',
+            fields=[
+                ('num_e', models.AutoField(primary_key=True, serialize=False)),
+                ('date_e', models.DateTimeField()),
+                ('fournisseur', models.ForeignKey(on_delete=models.PROTECT, related_name='bons_entree', to='inventory.fournisseur')),
+                ('utilisateur', models.ForeignKey(on_delete=models.PROTECT, related_name='bons_entree', to='inventory.utilisateur')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='LigneEntree',
+            fields=[
+                ('id_le', models.AutoField(primary_key=True, serialize=False)),
+                ('qte_e', models.IntegerField()),
+                ('bon', models.ForeignKey(on_delete=models.CASCADE, related_name='lignes', to='inventory.bonentree')),
+                ('produit', models.ForeignKey(on_delete=models.PROTECT, related_name='lignes_entree', to='inventory.produit')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='BonSortie',
+            fields=[
+                ('num_s', models.AutoField(primary_key=True, serialize=False)),
+                ('date_s', models.DateTimeField()),
+                ('client', models.ForeignKey(on_delete=models.PROTECT, related_name='bons_sortie', to='inventory.client')),
+                ('utilisateur', models.ForeignKey(on_delete=models.PROTECT, related_name='bons_sortie', to='inventory.utilisateur')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='LigneSortie',
+            fields=[
+                ('id_ls', models.AutoField(primary_key=True, serialize=False)),
+                ('qte_s', models.IntegerField()),
+                ('bon', models.ForeignKey(on_delete=models.CASCADE, related_name='lignes', to='inventory.bonsortie')),
+                ('produit', models.ForeignKey(on_delete=models.PROTECT, related_name='lignes_sortie', to='inventory.produit')),
+            ],
+        ),
+    ]

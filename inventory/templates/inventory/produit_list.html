@@ -1,0 +1,39 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+{% if user.is_superuser %}
+<p>
+    <a class="btn btn-primary" href="{% url 'produit_create' %}">Ajouter produit</a>
+    <a class="btn btn-secondary" href="{% url 'app_home' %}">Front-end SPA</a>
+</p>
+{% endif %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>code_p</th>
+            <th>designation</th>
+            <th>qte_stock</th>
+            <th>stock_alerte</th>
+            {% if user.is_superuser %}<th>Actions</th>{% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for produit in produits %}
+            <tr {% if produit.qte_stock <= produit.stock_alerte %}class="table-danger"{% endif %}>
+                <td>{{ produit.code_p }}</td>
+                <td>{{ produit.designation }}</td>
+                <td>{{ produit.qte_stock }}</td>
+                <td>{{ produit.stock_alerte }}</td>
+                {% if user.is_superuser %}
+                <td>
+                    <a class="btn btn-warning btn-sm" href="{% url 'produit_edit' produit.pk %}">Modifier</a>
+                    <a class="btn btn-danger btn-sm" href="{% url 'produit_delete' produit.pk %}">Supprimer</a>
+                </td>
+                {% endif %}
+            </tr>
+        {% empty %}
+            <tr><td colspan="{% if user.is_superuser %}5{% else %}4{% endif %}">Aucun produit.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p>API JSON : <a href="{% url 'produit_api' %}">/api/produits/</a></p>
+{% endblock %}

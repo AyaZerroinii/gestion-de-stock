@@ -1,0 +1,42 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h1 class="mb-4">Tableau de Bord Utilisateur</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Mes Dernières Entrées</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for bon in recent_entrees %}
+                        <li class="list-group-item"><a href="{% url 'bon_entree_detail' bon.pk %}">{{ bon.fournisseur.designation }} - {{ bon.date_e }}</a></li>
+                    {% empty %}
+                        <li class="list-group-item">Aucune entrée</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Mes Dernières Sorties</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for bon in recent_sorties %}
+                        <li class="list-group-item"><a href="{% url 'bon_sortie_detail' bon.pk %}">{{ bon.client.designation }} - {{ bon.date_s }}</a></li>
+                    {% empty %}
+                        <li class="list-group-item">Aucune sortie</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'bon_entree_create' %}" class="btn btn-success">Nouvelle Entrée</a>
+    <a href="{% url 'bon_sortie_create' %}" class="btn btn-danger">Nouvelle Sortie</a>
+    <a href="{% url 'bon_entree_list' %}" class="btn btn-info">Mes Bons Entrée</a>
+    <a href="{% url 'bon_sortie_list' %}" class="btn btn-warning">Mes Bons Sortie</a>
+</div>
+{% endblock %}

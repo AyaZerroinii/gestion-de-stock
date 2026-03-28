@@ -1,0 +1,30 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3>Bon de Sortie #{{ bon.num_s }}</h3>
+        <button class="btn btn-primary no-print" onclick="window.print()">Imprimer</button>
+    </div>
+    <div class="card-body">
+        <p><strong>Client:</strong> {{ bon.client.designation }}</p>
+        <p><strong>Utilisateur:</strong> {{ bon.utilisateur.username }}</p>
+        <p><strong>Date:</strong> {{ bon.date_s }}</p>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in lignes %}
+                    <tr>
+                        <td>{{ ligne.produit.designation }}</td>
+                        <td>{{ ligne.qte_s }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

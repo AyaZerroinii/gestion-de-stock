@@ -1,0 +1,22 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>Liste des Bons d'Entrée</h2>
+<p><a class="btn btn-primary" href="{% url 'bon_entree_create' %}">Créer nouveau Bon d'Entrée</a></p>
+<table class="table table-striped">
+    <thead>
+        <tr><th>ID</th><th>Fournisseur</th><th>Date</th><th>Utilisateur</th><th>Lignes</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for bon in bons %}
+            <tr>
+                <td>{{ bon.num_e }}</td>
+                <td>{{ bon.fournisseur.designation }}</td>
+                <td>{{ bon.date_e }}</td>
+                <td>{{ bon.utilisateur.username }}</td>
+                <td>{{ bon.lignes.all|length }}</td>
+                <td><a class="btn btn-info btn-sm" href="{% url 'bon_entree_detail' bon.pk %}">Voir Détails</a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

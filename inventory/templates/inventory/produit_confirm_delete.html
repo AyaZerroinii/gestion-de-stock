@@ -1,0 +1,10 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>Supprimer produit</h2>
+<p>Êtes-vous sûr de vouloir supprimer : <strong>{{ produit.designation }}</strong> ?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="danger">Supprimer définitivement</button>
+    <a class="button" href="{% url 'produit_list' %}">Annuler</a>
+</form>
+{% endblock %}

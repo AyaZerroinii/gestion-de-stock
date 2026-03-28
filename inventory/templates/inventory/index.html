@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion de Stock - Frontend</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 16px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .status { margin-top: 8px; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>Gestion de stock</h1>
+    <p>Vue dynamique des produits via l'API Django.</p>
+
+    <button id="refresh">Actualiser</button>
+    <div id="status" class="status"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>code_p</th>
+                <th>designation</th>
+                <th>qte_stock</th>
+                <th>stock_alerte</th>
+            </tr>
+        </thead>
+        <tbody id="produit-list"></tbody>
+    </table>
+
+    <script>
+        async function fetchProducts() {
+            const status = document.getElementById('status');
+            status.textContent = 'Chargement...';
+            try {
+                const res = await fetch('/api/produits/');
+                if (!res.ok) throw new Error('Erreur HTTP ' + res.status);
+                const data = await res.json();
+                const tbody = document.getElementById('produit-list');
+                tbody.innerHTML = '';
+                data.produits.forEach(p => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${p.code_p}</td>
+                        <td>${p.designation}</td>
+                        <td>${p.qte_stock}</td>
+                        <td>${p.stock_alerte}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                status.textContent = `Produits affichés: ${data.produits.length}`;
+            } catch (err) {
+                status.textContent = 'Erreur: ' + err.message;
+            }
+        }
+
+        document.getElementById('refresh').addEventListener('click', fetchProducts);
+        fetchProducts();
+    </script>
+</body>
+</html>

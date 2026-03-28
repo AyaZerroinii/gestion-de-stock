@@ -1,0 +1,18 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+        <div class="form-field">
+            <label for="id_{{ field.name }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <div style="color:red;">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <button type="submit">Enregistrer</button>
+    <a class="button" href="{% url 'produit_list' %}">Annuler</a>
+</form>
+{% endblock %}

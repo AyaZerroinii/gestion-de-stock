@@ -1,19 +1,33 @@
 {% extends 'inventory/base.html' %}
 {% block content %}
+<style>
+@media print {
+    .print-container {
+        direction: rtl;
+        text-align: right;
+        font-family: 'Arial', sans-serif;
+    }
+    .print-container table th,
+    .print-container table td {
+        text-align: right !important;
+    }
+}
+</style>
+<div class="print-container">
 <div class="card">
     <div class="card-header">
-        <h3>Bon d'Entrée #{{ bon.num_e }}</h3>
-        <button class="btn btn-primary no-print" onclick="window.print()">Imprimer</button>
+        <h3>وصل إدخال #{{ bon.num_e }}</h3>
+        <button class="btn btn-primary no-print" onclick="window.print()">طباعة</button>
     </div>
     <div class="card-body">
-        <p><strong>Fournisseur:</strong> {{ bon.fournisseur.designation }}</p>
-        <p><strong>Utilisateur:</strong> {{ bon.utilisateur.username }}</p>
-        <p><strong>Date:</strong> {{ bon.date_e }}</p>
+        <p><strong>المورد:</strong> {{ bon.fournisseur.designation }}</p>
+        <p><strong>المستخدم:</strong> {{ bon.utilisateur.username }}</p>
+        <p><strong>التاريخ:</strong> {{ bon.date_e }}</p>
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>Produit</th>
-                    <th>Quantité</th>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,5 +40,6 @@
             </tbody>
         </table>
     </div>
+</div>
 </div>
 {% endblock %}

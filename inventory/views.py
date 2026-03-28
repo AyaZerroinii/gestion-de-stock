@@ -37,6 +37,9 @@ def dashboard_admin(request):
 def dashboard_user(request):
     if request.user.is_superuser:
         return redirect('dashboard_admin')
+
+    if not request.user.is_staff:
+        return redirect('waiting_room')
     
     utilisateur_obj = Utilisateur.objects.filter(username=request.user.username).first()
     if not utilisateur_obj:
@@ -52,11 +55,19 @@ def dashboard_user(request):
 
 
 @login_required(login_url='login')
+def waiting_room(request):
+    return render(request, 'inventory/waiting_room.html')
+
+
+@login_required(login_url='login')
 def home(request):
     if request.user.is_superuser:
         return HttpResponseRedirect(reverse('dashboard_admin'))
-    else:
-        return HttpResponseRedirect(reverse('dashboard_user'))
+
+    if not request.user.is_staff:
+        return HttpResponseRedirect(reverse('waiting_room'))
+
+    return HttpResponseRedirect(reverse('dashboard_user'))
 
 
 @login_required(login_url='login')
@@ -115,28 +126,62 @@ def product_list_api(request):
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def user_management(request):
     users = User.objects.all().order_by('username')
-    if request.method == 'POST':
-        form = AdminUserCreationForm(request.POST)
+    edit_user = None
+    is_editing = False
+
+    if request.method == 'GET' and request.GET.get('edit'):
+        edit_user = get_object_or_404(User, pk=request.GET.get('edit'))
+        utilisateur_obj = Utilisateur.objects.filter(username=edit_user.username).first()
+        initial = {}
+        if utilisateur_obj:
+            initial = {'role': utilisateur_obj.role, 'tel': utilisateur_obj.tel}
+        form = AdminUserCreationForm(instance=edit_user, initial=initial)
+        is_editing = True
+    elif request.method == 'POST':
+        edit_user_id = request.POST.get('edit_user_id')
+        if edit_user_id:
+            edit_user = get_object_or_404(User, pk=edit_user_id)
+            old_username = edit_user.username
+            form = AdminUserCreationForm(request.POST, instance=edit_user)
+        else:
+            old_username = None
+            form = AdminUserCreationForm(request.POST)
+
         if form.is_valid():
             try:
                 with transaction.atomic():
                     user = form.save()
                     role = form.cleaned_data.get('role', '').strip()
                     tel = form.cleaned_data.get('tel', '').strip()
-                    Utilisateur.objects.create(username=user.username, password=user.password, tel=tel, role=role)
-                messages.success(request, f"Utilisateur '{user.username}' créé avec succès.")
+                    if edit_user:
+                        utilisateur_obj = Utilisateur.objects.filter(username=old_username).first()
+                        if utilisateur_obj:
+                            utilisateur_obj.username = user.username
+                            utilisateur_obj.password = user.password
+                            utilisateur_obj.role = role
+                            utilisateur_obj.tel = tel
+                            utilisateur_obj.save()
+                        else:
+                            Utilisateur.objects.create(username=user.username, password=user.password, tel=tel, role=role)
+                        messages.success(request, f"Utilisateur '{user.username}' mis à jour avec succès.")
+                    else:
+                        Utilisateur.objects.create(username=user.username, password=user.password, tel=tel, role=role)
+                        messages.success(request, f"Utilisateur '{user.username}' créé avec succès.")
                 return redirect('user_management')
             except IntegrityError:
-                messages.error(request, "Impossible de créer le compte utilisateur. Veuillez vérifier les informations et réessayer.")
+                messages.error(request, "Impossible de sauvegarder le compte utilisateur. Veuillez vérifier les informations et réessayer.")
                 form.add_error(None, "Échec de l'enregistrement du profil utilisateur.")
         else:
             messages.error(request, "Veuillez corriger les erreurs du formulaire avant de soumettre.")
+            is_editing = bool(edit_user)
     else:
         form = AdminUserCreationForm()
 
     return render(request, 'inventory/user_management.html', {
         'users': users,
         'form': form,
+        'edit_user': edit_user,
+        'is_editing': is_editing,
     })
 
 

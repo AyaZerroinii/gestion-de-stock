@@ -2,44 +2,101 @@
 {% block content %}
 <style>
 @media print {
-    .print-container {
-        direction: rtl;
-        text-align: right;
-        font-family: 'Arial', sans-serif;
+    body * {
+        visibility: hidden;
     }
-    .print-container table th,
-    .print-container table td {
-        text-align: right !important;
+    .print-container, .print-container * {
+        visibility: visible;
+    }
+    .print-container {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        direction: rtl;
+        font-family: 'Arial', 'Tahoma', sans-serif;
+        padding: 20px;
+    }
+    .no-print {
+        display: none;
+    }
+    .signature {
+        margin-top: 40px;
+        text-align: left;
+    }
+    hr {
+        border-top: 1px solid #000;
     }
 }
 </style>
+
 <div class="print-container">
-<div class="card">
-    <div class="card-header">
-        <h3>وصل خروج #{{ bon.num_s }}</h3>
-        <button class="btn btn-primary no-print" onclick="window.print()">طباعة</button>
-    </div>
-    <div class="card-body">
-        <p><strong>الزبون:</strong> {{ bon.client.designation }}</p>
-        <p><strong>المستخدم:</strong> {{ bon.utilisateur.username }}</p>
-        <p><strong>التاريخ:</strong> {{ bon.date_s }}</p>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>المنتج</th>
-                    <th>الكمية</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ligne in lignes %}
-                    <tr>
-                        <td>{{ ligne.produit.designation }}</td>
-                        <td>{{ ligne.qte_s }}</td>
+    <div class="card">
+        <div class="card-header text-center bg-light">
+            <button class="btn btn-primary no-print" onclick="window.print()">طباعة</button>
+        </div>
+        <div class="card-body">
+            <!-- الترويسة الرسمية -->
+            <div class="text-center mb-4">
+                <h3>الجمهورية الجزائرية الديمقراطية الشعبية</h3>
+                <h4>وزارة التربية الوطنية</h4>
+                <h5>مصلحة المستخدمين</h5>
+                <br>
+                <br>
+                <h2>وصل خروج من المخزن</h2>
+            </div>
+
+            <!-- معلومات أساسية -->
+            <div class="row mb-4">
+                <div class="col-6">
+                    <p><strong>رقم الوصل:</strong> {{ bon.num_s }}</p>
+                    <p><strong>التاريخ:</strong> {{ bon.date_s|date:"Y-m-d H:i" }}</p>
+                </div>
+                <div class="col-6">
+                    <p><strong>الزبون:</strong> {{ bon.client.designation }}</p>
+                    <p><strong>المستخدم المسؤول:</strong> {{ bon.utilisateur.username }}</p>
+                </div>
+            </div>
+
+            <!-- جدول المنتجات -->
+            <table class="table table-bordered">
+                <thead>
+                    <tr class="text-center">
+                        <th>#</th>
+                        <th>اسم المنتج</th>
+                        <th>الكمية</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for ligne in lignes %}
+                    <tr>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td>{{ ligne.produit.designation }}</td>
+                        <td class="text-center">{{ ligne.qte_s }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+           
+            <div class="signature mt-5">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>مدير مصلحة المستخدمين</strong></p>
+                        
+                        <p>التوقيع:        </p>
+                    </div>
+                    <div class="col-6 text-left">
+                        <p><strong>ختم المؤسسة</strong></p>
+                      
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 text-muted text-center small">
+                هذا الوصل يُعتبر سنداً رسمياً للخروج.
+            </div>
+        </div>
     </div>
-</div>
 </div>
 {% endblock %}

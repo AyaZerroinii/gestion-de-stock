@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from .models import Entreprise, Produit, Utilisateur, Fournisseur, Client, BonEntree, LigneEntree, BonSortie, LigneSortie
 from .forms import ProduitForm, AdminUserCreationForm
+LOW_STOCK = 50 
 
 
 @login_required(login_url='login')
@@ -48,9 +49,16 @@ def dashboard_user(request):
     recent_entrees = BonEntree.objects.filter(utilisateur=utilisateur_obj).order_by('-date_e')[:5]
     recent_sorties = BonSortie.objects.filter(utilisateur=utilisateur_obj).order_by('-date_s')[:5]
     
+    # إضافة المتغيرات الجديدة
+    all_products = Produit.objects.all().order_by('designation')
+    low_stock_count = Produit.objects.filter(qte_stock__lte=models.F('stock_alerte')).count()
+    
     return render(request, 'inventory/dashboard_user.html', {
         'recent_entrees': recent_entrees,
         'recent_sorties': recent_sorties,
+        'all_products': all_products,
+        'total_produits': all_products.count(),
+        'low_stock_count': low_stock_count,
     })
 
 
@@ -361,7 +369,7 @@ def bon_sortie_list(request):
     return render(request, 'inventory/bon_sortie_list.html', {'bons': bons})
 
 
-@login_required(login_url='login')
+
 @login_required(login_url='login')
 def bon_entree_create(request):
     fournisseurs = Fournisseur.objects.all()
@@ -369,9 +377,10 @@ def bon_entree_create(request):
 
     if request.method == 'POST':
         fournisseur_id = request.POST.get('fournisseur')
-        produit_id = request.POST.get('produit')
-        qte = int(request.POST.get('qte', 0) or 0)
+        produits_ids = request.POST.getlist('produit[]')
+        qtes = request.POST.getlist('qte[]')
 
+        # التحقق من صحة البيانات
         if not fournisseur_id:
             return render(request, 'inventory/bon_entree_form.html', {
                 'fournisseurs': fournisseurs,
@@ -379,16 +388,7 @@ def bon_entree_create(request):
                 'error': 'Veuillez sélectionner un fournisseur.',
             })
 
-        if not produit_id:
-            return render(request, 'inventory/bon_entree_form.html', {
-                'fournisseurs': fournisseurs,
-                'produits': produits,
-                'error': 'Veuillez sélectionner un produit.',
-            })
-
         fournisseur = Fournisseur.objects.filter(pk=fournisseur_id).first()
-        produit = Produit.objects.filter(pk=produit_id).first()
-
         if not fournisseur:
             return render(request, 'inventory/bon_entree_form.html', {
                 'fournisseurs': fournisseurs,
@@ -396,33 +396,66 @@ def bon_entree_create(request):
                 'error': 'Fournisseur introuvable.',
             })
 
-        if not produit:
+        # التحقق من وجود منتجات
+        if not produits_ids or not qtes or len(produits_ids) != len(qtes):
             return render(request, 'inventory/bon_entree_form.html', {
                 'fournisseurs': fournisseurs,
                 'produits': produits,
-                'error': 'Produit introuvable.',
-            })
-
-        if qte <= 0:
-            return render(request, 'inventory/bon_entree_form.html', {
-                'fournisseurs': fournisseurs,
-                'produits': produits,
-                'error': 'Quantité doit être supérieure à zéro.',
+                'error': 'Veuillez ajouter au moins un produit avec sa quantité.',
             })
 
         utilisateur_obj = Utilisateur.objects.filter(username=request.user.username).first()
         if not utilisateur_obj:
             utilisateur_obj = Utilisateur.objects.create(username=request.user.username, password='', role='')
 
-        bon = BonEntree.objects.create(fournisseur=fournisseur, utilisateur=utilisateur_obj, date_e=timezone.now())
-        LigneEntree.objects.create(bon=bon, produit=produit, qte_e=qte)
-        produit.qte_stock += qte
-        produit.save()
+        # التحقق من صحة كل منتج وكميته
+        lignes_data = []
+        for i in range(len(produits_ids)):
+            prod_id = produits_ids[i]
+            qte_str = qtes[i]
+            if not prod_id or not qte_str:
+                continue
+            try:
+                qte = int(qte_str)
+            except ValueError:
+                return render(request, 'inventory/bon_entree_form.html', {
+                    'fournisseurs': fournisseurs,
+                    'produits': produits,
+                    'error': f'Quantité invalide pour le produit n°{i+1}.',
+                })
+
+            produit = Produit.objects.filter(pk=prod_id).first()
+            if not produit:
+                return render(request, 'inventory/bon_entree_form.html', {
+                    'fournisseurs': fournisseurs,
+                    'produits': produits,
+                    'error': f'Produit n°{i+1} introuvable.',
+                })
+
+            if qte <= 0:
+                return render(request, 'inventory/bon_entree_form.html', {
+                    'fournisseurs': fournisseurs,
+                    'produits': produits,
+                    'error': f'La quantité du produit "{produit.designation}" doit être supérieure à zéro.',
+                })
+
+            lignes_data.append((produit, qte))
+
+        # إنشاء الفاتورة والسطور
+        bon = BonEntree.objects.create(
+            fournisseur=fournisseur,
+            utilisateur=utilisateur_obj,
+            date_e=timezone.now()
+        )
+
+        for produit, qte in lignes_data:
+            LigneEntree.objects.create(bon=bon, produit=produit, qte_e=qte)
+            produit.qte_stock += qte
+            produit.save()
 
         return redirect('bon_entree_list')
 
     return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
-
 
 @login_required(login_url='login')
 def bon_entree_detail(request, pk):
@@ -434,75 +467,99 @@ def bon_entree_detail(request, pk):
 
 
 @login_required(login_url='login')
-@login_required(login_url='login')
 def bon_sortie_create(request):
     clients = Client.objects.all()
     produits = Produit.objects.all()
 
     if request.method == 'POST':
         client_id = request.POST.get('client')
-        produit_id = request.POST.get('produit')
-        qte = int(request.POST.get('qte', 0) or 0)
+        produits_ids = request.POST.getlist('produit[]')
+        qtes = request.POST.getlist('qte[]')
 
+        # التحقق من صحة البيانات
         if not client_id:
             return render(request, 'inventory/bon_sortie_form.html', {
                 'clients': clients,
                 'produits': produits,
                 'error': 'Veuillez sélectionner un client.',
             })
-
-        if not produit_id:
-            return render(request, 'inventory/bon_sortie_form.html', {
-                'clients': clients,
-                'produits': produits,
-                'error': 'Veuillez sélectionner un produit.',
-            })
-
         client = Client.objects.filter(pk=client_id).first()
-        produit = Produit.objects.filter(pk=produit_id).first()
-
         if not client:
             return render(request, 'inventory/bon_sortie_form.html', {
                 'clients': clients,
                 'produits': produits,
                 'error': 'Client introuvable.',
             })
-
-        if not produit:
+        if not produits_ids or not qtes or len(produits_ids) != len(qtes):
             return render(request, 'inventory/bon_sortie_form.html', {
                 'clients': clients,
                 'produits': produits,
-                'error': 'Produit introuvable.',
+                'error': 'Veuillez ajouter au moins un produit avec sa quantité.',
             })
 
         utilisateur_obj = Utilisateur.objects.filter(username=request.user.username).first()
         if not utilisateur_obj:
-            utilisateur_obj = Utilisateur.objects.create(username=request.user.username, password='', role='')
+            utilisateur_obj = Utilisateur.objects.create(username=request.user.username, password='', role='user')
 
-        if qte <= 0:
-            return render(request, 'inventory/bon_sortie_form.html', {
-                'clients': clients,
-                'produits': produits,
-                'error': 'Quantité doit être supérieure à zéro.',
-            })
+        # تجميع المنتجات التي ستصبح منخفضة
+        low_stock_products_names = []
+        lignes_data = []
 
-        if qte > produit.qte_stock:
-            return render(request, 'inventory/bon_sortie_form.html', {
-                'clients': clients,
-                'produits': produits,
-                'error': 'Quantité supérieure au stock disponible.',
-            })
+        for i in range(len(produits_ids)):
+            prod_id = produits_ids[i]
+            qte_str = qtes[i]
+            if not prod_id or not qte_str:
+                continue
+            try:
+                qte = int(qte_str)
+            except ValueError:
+                return render(request, 'inventory/bon_sortie_form.html', {
+                    'clients': clients,
+                    'produits': produits,
+                    'error': f'Quantité invalide pour le produit n°{i+1}.',
+                })
+            produit = Produit.objects.filter(pk=prod_id).first()
+            if not produit:
+                return render(request, 'inventory/bon_sortie_form.html', {
+                    'clients': clients,
+                    'produits': produits,
+                    'error': f'Produit n°{i+1} introuvable.',
+                })
+            if qte <= 0:
+                return render(request, 'inventory/bon_sortie_form.html', {
+                    'clients': clients,
+                    'produits': produits,
+                    'error': f'La quantité du produit "{produit.designation}" doit être supérieure à zéro.',
+                })
+            if qte > produit.qte_stock:
+                return render(request, 'inventory/bon_sortie_form.html', {
+                    'clients': clients,
+                    'produits': produits,
+                    'error': f'Quantité insuffisante pour "{produit.designation}". Stock disponible: {produit.qte_stock}.',
+                })
+            lignes_data.append((produit, qte))
 
-        bon = BonSortie.objects.create(client=client, utilisateur=utilisateur_obj, date_s=timezone.now())
-        LigneSortie.objects.create(bon=bon, produit=produit, qte_s=qte)
-        produit.qte_stock -= qte
-        produit.save()
+        # إنشاء الفاتورة وتحديث المخزون
+        bon = BonSortie.objects.create(
+            client=client,
+            utilisateur=utilisateur_obj,
+            date_s=timezone.now()
+        )
+        for produit, qte in lignes_data:
+            LigneSortie.objects.create(bon=bon, produit=produit, qte_s=qte)
+            produit.qte_stock -= qte
+            produit.save()
+            if produit.qte_stock <= produit.stock_alerte:
+                low_stock_products_names.append(produit.designation)
+
+        # إضافة رسالة Toast إذا وجد منتج منخفض
+        if low_stock_products_names:
+            message = f"⚠️ Stock faible pour : {', '.join(low_stock_products_names)}"
+            messages.add_message(request, LOW_STOCK, message)
 
         return redirect('bon_sortie_detail', pk=bon.pk)
 
     return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
-
-
 @login_required(login_url='login')
 def bon_sortie_detail(request, pk):
     bon = get_object_or_404(BonSortie, pk=pk)

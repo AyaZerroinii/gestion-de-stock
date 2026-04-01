@@ -13,7 +13,8 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from .forms import AdminUserCreationForm
 from .models import Utilisateur
-
+from django.db.models import ProtectedError
+from django.contrib import messages
 from .models import Entreprise, Produit, Utilisateur, Fournisseur, Client, BonEntree, LigneEntree, BonSortie, LigneSortie
 from .forms import ProduitForm, AdminUserCreationForm
 LOW_STOCK = 50 
@@ -181,8 +182,13 @@ def produit_edit(request, pk):
 def produit_delete(request, pk):
     produit = get_object_or_404(Produit, pk=pk)
     if request.method == 'POST':
-        produit.delete()
-        return HttpResponseRedirect(reverse('produit_list'))
+        try:
+            produit.delete()
+            messages.success(request, f"Produit '{produit.designation}' supprimé avec succès.")
+            return redirect('produit_list')
+        except ProtectedError:
+            messages.error(request, f"Impossible de supprimer '{produit.designation}' car il est référencé dans des lignes d'entrée ou de sortie. Veuillez d'abord supprimer ces lignes.")
+            return redirect('produit_list')
     return render(request, 'inventory/produit_confirm_delete.html', {'produit': produit})
 
 
@@ -317,10 +323,14 @@ def client_edit(request, pk):
 def client_delete(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':
-        client.delete()
-        return redirect('client_list')
+        try:
+            client.delete()
+            messages.success(request, f"Client '{client.designation}' supprimé avec succès.")
+            return redirect('client_list')
+        except ProtectedError:
+            messages.error(request, f"Impossible de supprimer '{client.designation}' car il est référencé dans des bons de sortie. Veuillez d'abord supprimer ou modifier ces bons.")
+            return redirect('client_list')
     return render(request, 'inventory/client_confirm_delete.html', {'client': client})
-
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def fournisseur_list(request):
@@ -359,8 +369,13 @@ def fournisseur_edit(request, pk):
 def fournisseur_delete(request, pk):
     fournisseur = get_object_or_404(Fournisseur, pk=pk)
     if request.method == 'POST':
-        fournisseur.delete()
-        return redirect('fournisseur_list')
+        try:
+            fournisseur.delete()
+            messages.success(request, f"Fournisseur '{fournisseur.designation}' supprimé avec succès.")
+            return redirect('fournisseur_list')
+        except ProtectedError:
+            messages.error(request, f"Impossible de supprimer '{fournisseur.designation}' car il est référencé dans des bons d'entrée. Veuillez d'abord supprimer ou modifier ces bons.")
+            return redirect('fournisseur_list')
     return render(request, 'inventory/fournisseur_confirm_delete.html', {'fournisseur': fournisseur})
 
 

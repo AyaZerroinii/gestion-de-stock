@@ -1,4 +1,6 @@
 from django.contrib import admin
+from .models import NotificationStatus
+
 from .models import (
     Entreprise,
     Utilisateur,
@@ -11,6 +13,8 @@ from .models import (
     LigneSortie,
 )
 
+
+admin.site.register(NotificationStatus)
 admin.site.register(Entreprise)
 admin.site.register(Utilisateur)
 admin.site.register(Client)

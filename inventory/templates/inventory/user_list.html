@@ -1,0 +1,39 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>Utilisateurs</h2>
+<p>
+    <a class="btn btn-primary rounded-pill px-4" href="{% url 'user_create' %}">
+        Ajouter un utilisateur
+    </a>
+</p>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Staff</th>
+            <th>Superuser</th>
+            <th>Actions</th>
+        </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{% if u.is_staff %}Oui{% else %}Non{% endif %}</td>
+            <td>{% if u.is_superuser %}Oui{% else %}Non{% endif %}</td>
+            <td>
+                {% if not u.is_superuser %}
+                    <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'user_edit' u.pk %}">Modifier</a>
+                    <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'delete_user' u.pk %}">Supprimer</a>
+                {% else %}
+                    <span class="text-muted">Admin</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">Aucun utilisateur trouvé.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

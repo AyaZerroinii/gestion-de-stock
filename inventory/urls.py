@@ -11,7 +11,7 @@ urlpatterns = [
     path('produits/new/', views.produit_create, name='produit_create'),
     path('produits/<int:pk>/edit/', views.produit_edit, name='produit_edit'),
     path('produits/<int:pk>/delete/', views.produit_delete, name='produit_delete'),
-    path('users/', views.user_management, name='user_management'),
+   # path('users/', views.user_management, name='user_management'),
     path('users/<int:pk>/delete/', views.delete_user, name='delete_user'),
     path('bon-entrees/', views.bon_entree_list, name='bon_entree_list'),
     path('bon-entrees/new/', views.bon_entree_create, name='bon_entree_create'),
@@ -34,4 +34,13 @@ urlpatterns = [
     path('data-dashboard/', views.data_dashboard, name='data_dashboard'),
     path('api/produits/', views.produit_api, name='produit_api'),
     path('api/produits/<int:pk>/', views.produit_api_detail, name='produit_api_detail'),
+  path('api/notifications/<int:product_id>/read/', views.notification_mark_read, name='notification_mark_read'),
+path('api/notifications/<int:product_id>/delete/', views.notification_mark_deleted, name='notification_mark_deleted'),
+
+path('users/', views.user_list, name='user_list'),
+path('users/create/', views.user_create, name='user_create'),
+path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
+path('users/<int:pk>/delete/', views.delete_user, name='delete_user'),
+
+
 ]

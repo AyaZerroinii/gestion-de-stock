@@ -8,11 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha512-pc6Lb5VqByUyqJfEe7cCxv+m9FgCQyH9vql4lKvJ35Iahl8IyzWoAcY8VjHgiILVjvP0qbV5tbvVXf6p0hGIw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        /* All your CSS styles remain exactly as before */
         body {
             background-color: #f0f2f5;
             font-family: 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
         }
-        /* Navbar personnalisée */
         .navbar-custom {
             background-color: #ffffff;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -59,26 +59,61 @@
         .navbar-toggler:focus {
             box-shadow: none;
         }
-        
+
+        /* Notification badge */
+        .notification-badge {
+            position: relative;
+            display: inline-block;
+        }
+        .notification-badge .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+        }
+        .notification-dropdown {
+            min-width: 280px;
+        }
+        .notification-dropdown .dropdown-header {
+            background-color: #f8fafc;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .notification-dropdown .dropdown-item {
+            white-space: normal;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .notification-dropdown .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .notification-dropdown .no-stock {
+            text-align: center;
+            color: #64748b;
+            padding: 1rem;
+        }
+
         .sidebar-toggle {
-    color: #1e3a8a !important; 
-    background: #f8fafc !important; 
-    border: 1px solid #e2e8f0 !important; 
-    border-radius: 8px;
-    padding: 0.4rem 0.6rem;
-    transition: all 0.3s ease;
-}
+            color: #1e3a8a !important;
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px;
+            padding: 0.4rem 0.6rem;
+            transition: all 0.3s ease;
+        }
 
-.sidebar-toggle:hover {
-    color: #1e3a8a !important;
-    background-color: #4c72a0 !important; 
-    transform: translateY(-1px); 
-}
+        .sidebar-toggle:hover {
+            color: #1e3a8a !important;
+            background-color: #4c72a0 !important;
+            transform: translateY(-1px);
+        }
 
-.sidebar-toggle i {
-    font-weight: 800; 
-}
-
+        .sidebar-toggle i {
+            font-weight: 800;
+        }
 
         .card {
             margin-bottom: 20px;
@@ -351,13 +386,41 @@
 <body class="{% block body_class %}{% endblock %}">
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top no-print">
         <div class="container-fluid">
-            <button class="btn sidebar-toggle me-2" id="sidebarToggle" type="button" aria-label="Toggle navigation">
-                <i class="bi bi-list fs-3"></i>
-            </button>
+            <!-- Sidebar toggle button – hidden on login/register pages -->
+            {% if '/accounts/login' not in request.path and '/login' not in request.path and '/accounts/register' not in request.path and '/register' not in request.path %}
+                <button class="btn sidebar-toggle me-2" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+                    <i class="bi bi-list fs-3"></i>
+                </button>
+            {% endif %}
             <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="bi bi-box-seam"></i> Gestion de Stock
             </a>
             <div class="d-flex align-items-center ms-auto">
+                <!-- Notification bell with badge -->
+                <div class="dropdown me-3">
+                    <button class="btn btn-light position-relative dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell fs-5"></i>
+                        {% if low_stock_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ low_stock_count }}
+                                <span class="visually-hidden">notifications</span>
+                            </span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown">
+                        <li class="dropdown-header">Produits en stock faible</li>
+                        {% if low_stock_products %}
+                            {% for produit in low_stock_products %}
+                                <li><a class="dropdown-item" href="{% url 'produit_list' %}">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                                    {{ produit.designation }} - {{ produit.qte_stock }} unités
+                                </a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="no-stock">Aucun produit en stock faible.</li>
+                        {% endif %}
+                    </ul>
+                </div>
                 <span class="navbar-text me-3">
                     <i class="bi bi-person-circle me-1"></i>{{ user.username }}
                 </span>
@@ -367,49 +430,55 @@
     </nav>
 
     <div class="app-layout">
-        <aside class="sidebar" id="sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link mb-2 d-flex align-items-center" href="/dashboard-admin/">
-                    <i class="fas fa-house fa-fw me-2"></i>
-                    Accueil
-                </a>
-                <a class="nav-link mb-2 d-flex align-items-center" href="/produits/">
-                    <i class="fas fa-box fa-fw me-2"></i>
-                    Produits
-                </a>
-                <button class="btn btn-toggle mb-2 d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#bonsMenu" aria-expanded="false">
-                    <i class="fas fa-file-invoice fa-fw me-2"></i>
-                    Bons
-                </button>
-                <div class="collapse submenu mb-3" id="bonsMenu">
-                    <a class="nav-link mb-1" href="/bon-entrees">Bons d'Entrée</a>
-                    <a class="nav-link mb-1" href="/bon-sorties">Bons de Sortie</a>
-                </div>
-                <button class="btn btn-toggle mb-2 d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#adminMenu" aria-expanded="false">
-                    <i class="fas fa-user-gear fa-fw me-2"></i>
-                    Administration
-                </button>
-                <div class="collapse submenu mb-3" id="adminMenu">
-                    <a class="nav-link mb-1" href="/users/">Utilisateurs</a>
-                    <a class="nav-link mb-1" href="/clients/">Clients</a>
-                    <a class="nav-link mb-1" href="/fournisseurs/">Fournisseurs</a>
-                    <a class="nav-link mb-1" href="/entreprises/">Entreprises</a>
-                </div>
-            </nav>
-        </aside>
+        <!-- Sidebar – hidden on login/register pages -->
+        {% if '/accounts/login' not in request.path and '/login' not in request.path and '/accounts/register' not in request.path and '/register' not in request.path %}
+            <aside class="sidebar" id="sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link mb-2 d-flex align-items-center" href="{% url 'home' %}">
+                        <i class="fas fa-house fa-fw me-2"></i>
+                        Accueil
+                    </a>
+                    <a class="nav-link mb-2 d-flex align-items-center" href="{% url 'produit_list' %}">
+                        <i class="fas fa-box fa-fw me-2"></i>
+                        Produits
+                    </a>
+                    <button class="btn btn-toggle mb-2 d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#bonsMenu" aria-expanded="false">
+                        <i class="fas fa-file-invoice fa-fw me-2"></i>
+                        Bons
+                    </button>
+                    <div class="collapse submenu mb-3" id="bonsMenu">
+                        <a class="nav-link mb-1" href="{% url 'bon_entree_list' %}">Bons d'Entrée</a>
+                        <a class="nav-link mb-1" href="{% url 'bon_sortie_list' %}">Bons de Sortie</a>
+                    </div>
+                    {% if user.is_superuser %}
+                    <button class="btn btn-toggle mb-2 d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#adminMenu" aria-expanded="false">
+                        <i class="fas fa-user-gear fa-fw me-2"></i>
+                        Administration
+                    </button>
+                    <div class="collapse submenu mb-3" id="adminMenu">
+                        <a class="nav-link mb-1" href="{% url 'user_management' %}">Utilisateurs</a>
+                        <a class="nav-link mb-1" href="{% url 'client_list' %}">Clients</a>
+                        <a class="nav-link mb-1" href="{% url 'fournisseur_list' %}">Fournisseurs</a>
+                        <a class="nav-link mb-1" href="{% url 'entreprise_list' %}">Entreprises</a>
+                    </div>
+                    {% endif %}
+                </nav>
+            </aside>
+        {% endif %}
+
         <main class="content-area">
             <div class="container mt-4">
-        {% if messages %}
-            <div class="mb-3">
-                {% for message in messages %}
-                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% block content %}{% endblock %}
+                {% endif %}
+                {% block content %}{% endblock %}
             </div>
         </main>
     </div>

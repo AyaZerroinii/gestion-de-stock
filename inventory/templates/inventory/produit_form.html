@@ -1,18 +1,27 @@
 {% extends 'inventory/base.html' %}
 {% block content %}
-<h2>{{ title }}</h2>
-<form method="post">
-    {% csrf_token %}
-    {% for field in form %}
-        <div class="form-field">
-            <label for="id_{{ field.name }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-                <div style="color:red;">{{ field.errors }}</div>
-            {% endif %}
+<div class="card form-card border-0 shadow-sm mx-auto" style="max-width: 760px;">
+    <div class="card-body">
+        <div class="mb-4">
+            <h2 class="mb-1">{{ title }}</h2>
+            <p class="text-muted mb-0">Formulaire produit adapté au style du tableau de bord.</p>
         </div>
-    {% endfor %}
-    <button type="submit">Enregistrer</button>
-    <a class="button" href="{% url 'produit_list' %}">Annuler</a>
-</form>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="id_{{ field.name }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger" style="font-size: 0.85rem;">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <div class="d-flex flex-wrap gap-3 mt-4">
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Enregistrer</button>
+                <a class="btn btn-outline-secondary rounded-pill px-4" href="{% url 'produit_list' %}">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

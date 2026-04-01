@@ -6,6 +6,7 @@
     <title>Gestion de Stock</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha512-pc6Lb5VqByUyqJfEe7cCxv+m9FgCQyH9vql4lKvJ35Iahl8IyzWoAcY8VjHgiILVjvP0qbV5tbvVXf6p0hGIw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             background-color: #f0f2f5;
@@ -58,12 +59,272 @@
         .navbar-toggler:focus {
             box-shadow: none;
         }
+        
+        .sidebar-toggle {
+    color: #1e3a8a !important; 
+    background: #f8fafc !important; 
+    border: 1px solid #e2e8f0 !important; 
+    border-radius: 8px;
+    padding: 0.4rem 0.6rem;
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    color: #1e3a8a !important;
+    background-color: #4c72a0 !important; 
+    transform: translateY(-1px); 
+}
+
+.sidebar-toggle i {
+    font-weight: 800; 
+}
+
+
         .card {
             margin-bottom: 20px;
             border-radius: 1rem;
         }
         .low-stock {
             background-color: #f8d7da;
+        }
+        .dashboard-wrapper {
+            background-color: #b0c8f0;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+        .header-glow {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .text-primary-dark {
+            color: #1e3a8a;
+        }
+        .stat-card, .action-card {
+            background: #ffffff;
+            transition: all 0.25s ease;
+            border-radius: 1.25rem;
+        }
+        .stat-card:hover, .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important;
+        }
+        .stat-icon, .action-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.04);
+            border-radius: 1rem;
+        }
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+        }
+        .action-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 1.25rem;
+        }
+        .bg-primary-soft { background-color: rgba(13,110,253,0.1); }
+        .bg-danger-soft  { background-color: rgba(220,53,69,0.1); }
+        .bg-success-soft { background-color: rgba(25,135,84,0.1); }
+        .bg-warning-soft { background-color: rgba(255,193,7,0.1); }
+        .badge.bg-light {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+            font-weight: 500;
+        }
+        .display-4, .display-6 {
+            font-weight: 700;
+        }
+        .btn-primary {
+            background-color: #1e3a8a;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+            filter: brightness(1.05);
+        }
+        .btn-outline-secondary {
+            border-color: #cbd5e1;
+            color: #334155;
+            border-width: 1px;
+        }
+        .btn-outline-secondary:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .btn {
+            border-radius: 1.25rem;
+            transition: all 0.2s ease;
+            padding: 0.5rem 1.25rem;
+            font-weight: 500;
+        }
+        .btn-sm {
+            padding: 0.35rem 0.85rem;
+            font-size: 0.85rem;
+        }
+        .btn-secondary {
+            background-color: #f8fafc;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-secondary:hover {
+            background-color: #eef2ff;
+            border-color: #94a3b8;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            filter: brightness(1.05);
+        }
+        .form-card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+        .form-card .card-body {
+            padding: 2rem;
+        }
+        .form-card label,
+        .form-card .form-label {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .form-card input,
+        .form-card textarea,
+        .form-card select {
+            width: 100%;
+            border-radius: 0.85rem;
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+            padding: 0.85rem 1rem;
+            color: #1f2937;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+        }
+        .form-card input:focus,
+        .form-card textarea:focus,
+        .form-card select:focus {
+            border-color: #1e3a8a;
+            outline: none;
+            box-shadow: 0 0 0 0.15rem rgba(59, 130, 246, 0.18);
+        }
+        .form-card .form-check-input {
+            width: auto;
+        }
+        .form-card .form-text {
+            color: #64748b;
+        }
+        .table thead th {
+            background-color: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            color: #1e293b;
+        }
+        .app-layout {
+            display: flex;
+            min-height: calc(100vh - 72px);
+        }
+        .sidebar {
+            position: fixed;
+            top: 72px;
+            left: 0;
+            bottom: 0;
+            width: 260px;
+            padding: 1.5rem 1rem;
+            background: #1e3a8a;
+            color: #ffffff;
+            transition: transform 0.3s ease, background 0.3s ease;
+            transform: translateX(-100%);
+            z-index: 1055;
+            overflow-y: auto;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+            height: calc(100vh - 72px);
+        }
+        .sidebar-open .sidebar {
+            transform: translateX(0);
+        }
+        .sidebar-collapsed .sidebar {
+            transform: translateX(-100%);
+        }
+        .content-area {
+            flex: 1;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+        .sidebar-brand {
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(148,163,184,0.25);
+        }
+        .sidebar .nav-link,
+        .sidebar .btn-toggle {
+            width: 100%;
+            text-align: left;
+            color: #ffffff;
+            background: transparent;
+            border: none;
+            padding: 0.85rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-radius: 0.95rem;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .btn-toggle:hover {
+            background: rgba(255,255,255,0.16);
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.18);
+            color: #b51f1f;
+        }
+        .sidebar .submenu {
+            padding-left: 0.5rem;
+        }
+        .sidebar .submenu .nav-link {
+            padding-left: 2.5rem;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.85);
+        }
+        .btn-toggle {
+            font-weight: 600;
+        }
+        @media (min-width: 992px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            .sidebar-collapsed .sidebar {
+                transform: translateX(-100%);
+            }
+            .content-area {
+                margin-left: 260px;
+            }
+            .sidebar-collapsed .content-area {
+                margin-left: 0;
+            }
+        }
+        @media (max-width: 991.98px) {
+            .sidebar {
+                position: fixed;
+                width: 260px;
+                transform: translateX(-100%);
+            }
+            .sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+            .content-area {
+                margin-left: 0;
+            }
         }
         @media print {
             .no-print, .btn, button {
@@ -90,108 +351,54 @@
 <body class="{% block body_class %}{% endblock %}">
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top no-print">
         <div class="container-fluid">
+            <button class="btn sidebar-toggle me-2" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-3"></i>
+            </button>
             <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="bi bi-box-seam"></i> Gestion de Stock
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarMain">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'home' %}">
-                                <i class="bi bi-house-door me-1"></i>Accueil
-                            </a>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="produitsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Produits
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="produitsDropdown">
-                                <li><a class="dropdown-item" href="{% url 'produit_list' %}"><i class="bi bi-list-ul me-2"></i>Liste des produits</a></li>
-                                {% if user.is_superuser %}
-                                    <li><a class="dropdown-item" href="{% url 'produit_create' %}"><i class="bi bi-plus-circle me-2"></i>Ajouter un produit</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'app_home' %}"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Interface SPA</a></li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'produit_api' %}" target="_blank"><i class="bi bi-filetype-json me-2"></i>API JSON</a></li>
-                            </ul>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="bonsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-receipt me-1"></i>Bons
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bonsDropdown">
-                                <li><a class="dropdown-item" href="{% url 'bon_entree_list' %}"><i class="bi bi-arrow-down-circle me-2"></i>Bons d'entrée</a></li>
-                                <li><a class="dropdown-item" href="{% url 'bon_sortie_list' %}"><i class="bi bi-arrow-up-circle me-2"></i>Bons de sortie</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'bon_entree_create' %}"><i class="bi bi-plus-circle me-2"></i>Nouvelle entrée</a></li>
-                                <li><a class="dropdown-item" href="{% url 'bon_sortie_create' %}"><i class="bi bi-plus-circle me-2"></i>Nouvelle sortie</a></li>
-                            </ul>
-                        </li>
-
-                        {% if user.is_superuser %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-gear me-1"></i>Administration
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                <li><a class="dropdown-item" href="{% url 'client_list' %}"><i class="bi bi-people me-2"></i>Clients</a></li>
-                                <li><a class="dropdown-item" href="{% url 'fournisseur_list' %}"><i class="bi bi-truck me-2"></i>Fournisseurs</a></li>
-                                <li><a class="dropdown-item" href="{% url 'entreprise_list' %}"><i class="bi bi-building me-2"></i>Entreprises</a></li>
-                                <li><a class="dropdown-item" href="{% url 'user_management' %}"><i class="bi bi-person-badge me-2"></i>Utilisateurs</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'data_dashboard' %}"><i class="bi bi-grid me-2"></i>Data Grid</a></li>
-                            </ul>
-                        </li>
-                        {% endif %}
-
-                        <li class="nav-item dropdown me-2">
-                            <a class="nav-link position-relative" href="#" id="lowStockDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-bell" style="font-size: 1.2rem;"></i>
-                                {% if low_stock_count > 0 %}
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        {{ low_stock_count }}
-                                    </span>
-                                {% endif %}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="lowStockDropdown" style="min-width: 240px;">
-                                <li><h6 class="dropdown-header">Alertes stock faible</h6></li>
-                                {% if low_stock_count > 0 %}
-                                    {% for product in low_stock_products %}
-                                        <li><a class="dropdown-item" href="{% url 'produit_list' %}">{{ product.designation }}</a></li>
-                                    {% endfor %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-end" href="{% url 'produit_list' %}">Voir tous les produits</a></li>
-                                {% else %}
-                                    <li><span class="dropdown-item-text">Tous les produits sont suffisamment approvisionnés.</span></li>
-                                {% endif %}
-                            </ul>
-                        </li>
-
-                        <li class="nav-item">
-                            <span class="navbar-text me-2">
-                                <i class="bi bi-person-circle me-1"></i>{{ user.username }}
-                            </span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</a>
-                        </li>
-
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>Connexion</a>
-                        </li>
-                    {% endif %}
-                </ul>
+            <div class="d-flex align-items-center ms-auto">
+                <span class="navbar-text me-3">
+                    <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+                </span>
+                <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</a>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link mb-2 d-flex align-items-center" href="/dashboard-admin/">
+                    <i class="fas fa-house fa-fw me-2"></i>
+                    Accueil
+                </a>
+                <a class="nav-link mb-2 d-flex align-items-center" href="/produits/">
+                    <i class="fas fa-box fa-fw me-2"></i>
+                    Produits
+                </a>
+                <button class="btn btn-toggle mb-2 d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#bonsMenu" aria-expanded="false">
+                    <i class="fas fa-file-invoice fa-fw me-2"></i>
+                    Bons
+                </button>
+                <div class="collapse submenu mb-3" id="bonsMenu">
+                    <a class="nav-link mb-1" href="/bon-entrees">Bons d'Entrée</a>
+                    <a class="nav-link mb-1" href="/bon-sorties">Bons de Sortie</a>
+                </div>
+                <button class="btn btn-toggle mb-2 d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#adminMenu" aria-expanded="false">
+                    <i class="fas fa-user-gear fa-fw me-2"></i>
+                    Administration
+                </button>
+                <div class="collapse submenu mb-3" id="adminMenu">
+                    <a class="nav-link mb-1" href="/users/">Utilisateurs</a>
+                    <a class="nav-link mb-1" href="/clients/">Clients</a>
+                    <a class="nav-link mb-1" href="/fournisseurs/">Fournisseurs</a>
+                    <a class="nav-link mb-1" href="/entreprises/">Entreprises</a>
+                </div>
+            </nav>
+        </aside>
+        <main class="content-area">
+            <div class="container mt-4">
         {% if messages %}
             <div class="mb-3">
                 {% for message in messages %}
@@ -203,6 +410,8 @@
             </div>
         {% endif %}
         {% block content %}{% endblock %}
+            </div>
+        </main>
     </div>
 
     <!-- Conteneur des toasts (notifications) en haut à droite -->
@@ -232,6 +441,22 @@
                 });
                 toast.show();
             });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sidebarToggle = document.getElementById('sidebarToggle');
+            var body = document.body;
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    if (window.innerWidth >= 992) {
+                        body.classList.toggle('sidebar-collapsed');
+                    } else {
+                        body.classList.toggle('sidebar-open');
+                    }
+                });
+            }
         });
     </script>
 </body>

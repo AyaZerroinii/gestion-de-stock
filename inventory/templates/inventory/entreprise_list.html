@@ -1,7 +1,7 @@
 {% extends 'inventory/base.html' %}
 {% block content %}
 <h2>Entreprises</h2>
-<p><a class="btn btn-primary" href="{% url 'entreprise_create' %}">Ajouter une entreprise</a></p>
+<p><a class="btn btn-primary rounded-pill px-4" href="{% url 'entreprise_create' %}">Ajouter une entreprise</a></p>
 <table class="table table-striped">
     <thead>
         <tr><th>ID</th><th>Nom</th><th>Adresse</th><th>Téléphone</th><th>Actions</th></tr>
@@ -14,8 +14,8 @@
                 <td>{{ e.adresse }}</td>
                 <td>{{ e.tel }}</td>
                 <td>
-                    <a class="btn btn-sm btn-warning" href="{% url 'entreprise_edit' e.pk %}">Modifier</a>
-                    <a class="btn btn-sm btn-danger" href="{% url 'entreprise_delete' e.pk %}">Supprimer</a>
+                    <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'entreprise_edit' e.pk %}">Modifier</a>
+                    <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'entreprise_delete' e.pk %}">Supprimer</a>
                 </td>
             </tr>
         {% empty %}

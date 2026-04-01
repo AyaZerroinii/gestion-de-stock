@@ -4,7 +4,7 @@
 <p>Voulez-vous vraiment supprimer l'utilisateur <strong>{{ user_obj.username }}</strong> ?</p>
 <form method="post">
     {% csrf_token %}
-    <button type="submit" class="button danger">Supprimer</button>
-    <a class="button" href="{% url 'user_management' %}">Annuler</a>
+    <button type="submit" class="btn btn-danger rounded-pill px-4">Supprimer</button>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="{% url 'user_management' %}">Annuler</a>
 </form>
 {% endblock %}

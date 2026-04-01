@@ -4,7 +4,7 @@
 <p>Êtes-vous sûr de vouloir supprimer : <strong>{{ produit.designation }}</strong> ?</p>
 <form method="post">
     {% csrf_token %}
-    <button type="submit" class="danger">Supprimer définitivement</button>
-    <a class="button" href="{% url 'produit_list' %}">Annuler</a>
+    <button type="submit" class="btn btn-danger rounded-pill px-4">Supprimer définitivement</button>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="{% url 'produit_list' %}">Annuler</a>
 </form>
 {% endblock %}

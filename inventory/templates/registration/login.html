@@ -1,20 +1,185 @@
 {% extends 'inventory/base.html' %}
+
 {% block content %}
-<h2>Connexion</h2>
-<form method="post">
-    {% csrf_token %}
-    {% if form.errors %}
-        <p style="color:red;">Nom d'utilisateur ou mot de passe incorrect.</p>
-    {% endif %}
-    <div class="form-field">
-        <label for="id_username">Nom d'utilisateur</label>
-        {{ form.username }}
+<style>
+    /* CSS - Design Moderne et Épuré */
+    :root {
+        --primary-color: #4f46e5;
+        --primary-hover: #4338ca;
+        --bg-card: #ffffff;
+        --text-main: #111827;
+        --text-muted: #6b7280;
+        --error-bg: #fef2f2;
+        --error-text: #b91c1c;
+    }
+
+    .login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 20px;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .login-card {
+        background: var(--bg-card);
+        width: 100%;
+        max-width: 400px;
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .login-card h2 {
+        margin-bottom: 0.5rem;
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: var(--text-main);
+        text-align: center;
+    }
+
+    .login-card p.subtitle {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+
+    .form-field {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-field label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+
+    /* Style des inputs générés par Django */
+    .form-field input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .form-field input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+
+    /* Alertes d'erreurs */
+    .error-container {
+        background-color: var(--error-bg);
+        color: var(--error-text);
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #fecaca;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        text-align: center;
+    }
+
+    /* Bouton de connexion */
+    .btn-submit {
+        width: 100%;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.8rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+        margin-top: 1rem;
+    }
+
+    .btn-submit:hover {
+        background-color: var(--primary-hover);
+    }
+
+    .btn-submit:active {
+        transform: scale(0.98);
+    }
+
+    /* Option Afficher le mot de passe */
+    .show-password {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.6rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .show-password input {
+        width: auto;
+        cursor: pointer;
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <h2>Connexion</h2>
+        <p class="subtitle">Veuillez vous connecter à votre compte</p>
+
+        <form method="post" id="loginForm">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="error-container">
+                    Nom d'utilisateur ou mot de passe incorrect.
+                </div>
+            {% endif %}
+
+            <div class="form-field">
+                <label for="id_username">Nom d'utilisateur</label>
+                {{ form.username }}
+            </div>
+
+            <div class="form-field">
+                <label for="id_password">Mot de passe</label>
+                {{ form.password }}
+                <label class="show-password">
+                    <input type="checkbox" id="checkToggle">
+                    <span>Afficher le mot de passe</span>
+                </label>
+            </div>
+
+            <input type="hidden" name="next" value="{{ next }}" />
+            <button type="submit" class="btn-submit">Se connecter</button>
+        </form>
     </div>
-    <div class="form-field">
-        <label for="id_password">Mot de passe</label>
-        {{ form.password }}
-    </div>
-    <input type="hidden" name="next" value="{{ next }}" />
-    <button type="submit">Se connecter</button>
-</form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkToggle = document.getElementById('checkToggle');
+        // On cible le champ password généré par Django
+        const passwordInput = document.querySelector('input[type="password"]');
+
+        if (checkToggle && passwordInput) {
+            checkToggle.addEventListener('change', function() {
+                passwordInput.type = this.checked ? 'text' : 'password';
+            });
+        }
+
+        // Animation simple sur le focus des champs
+        const inputs = document.querySelectorAll('.form-field input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.style.borderColor = 'var(--primary-color)';
+            });
+        });
+    });
+</script>
 {% endblock %}

@@ -4,6 +4,7 @@
 <p>Uniquement accessible au superutilisateur.</p>
 
 <div class="panel">
+<<<<<<< Updated upstream
     <div class="panel-header"><strong>{% if is_editing %}Modifier l'utilisateur{% else %}Créer un nouvel utilisateur{% endif %}</strong></div>
     <div class="panel-body">
         <form method="post">
@@ -57,6 +58,14 @@
             {% endfor %}
 
             <button type="submit" class="btn btn-primary" style="margin-top: 10px;">{% if is_editing %}Mettre à jour{% else %}Enregistrer{% endif %}</button>
+=======
+    <div class="panel-header"><strong>Créer un nouvel utilisateur</strong></div>
+    <div class="panel-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="button">Enregistrer</button>
+>>>>>>> Stashed changes
         </form>
     </div>
 </div>
@@ -66,6 +75,7 @@
     <div class="panel-body">
         <table class="table">
             <thead>
+<<<<<<< Updated upstream
                 <tr>
                     <th>Nom</th>
                     <th>Email</th>
@@ -73,12 +83,16 @@
                     <th>Superuser</th>
                     <th>Action</th>
                 </tr>
+=======
+                <tr><th>Nom</th><th>Email</th><th>Staff</th><th>Superuser</th><th>Action</th></tr>
+>>>>>>> Stashed changes
             </thead>
             <tbody>
                 {% for u in users %}
                     <tr>
                         <td>{{ u.username }}</td>
                         <td>{{ u.email }}</td>
+<<<<<<< Updated upstream
                         <td>
                             {% if u.is_staff %} ✅ {% else %} ❌ {% endif %}
                         </td>
@@ -91,6 +105,15 @@
                                 <a class="button danger" href="{% url 'delete_user' u.pk %}">Supprimer</a>
                             {% else %}
                                 <span class="text-muted">Admin</span>
+=======
+                        <td>{{ u.is_staff }}</td>
+                        <td>{{ u.is_superuser }}</td>
+                        <td>
+                            {% if not u.is_superuser %}
+                                <a class="button danger" href="{% url 'delete_user' u.pk %}">Supprimer</a>
+                            {% else %}
+                                -
+>>>>>>> Stashed changes
                             {% endif %}
                         </td>
                     </tr>
@@ -100,4 +123,8 @@
     </div>
 </div>
 
+<<<<<<< Updated upstream
 {% endblock %}
+=======
+{% endblock %}
+>>>>>>> Stashed changes

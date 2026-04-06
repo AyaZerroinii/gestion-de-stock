@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Entreprise(models.Model):
     id_ent = models.AutoField(primary_key=True)
     nom = models.CharField(max_length=255)
@@ -40,11 +39,53 @@ class Fournisseur(models.Model):
         return self.designation
 
 
+# NotificationStatus moved BEFORE Produit to avoid circular import.
+# ForeignKey to Produit uses a string reference ('Produit').
+class NotificationStatus(models.Model):
+    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='notification_statuses')
+    produit = models.ForeignKey('Produit', on_delete=models.CASCADE, related_name='notification_statuses')
+    read = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('utilisateur', 'produit')
+
+    def __str__(self):
+        return f"{self.utilisateur.username} - {self.produit.designation}"
+
+
 class Produit(models.Model):
     code_p = models.AutoField(primary_key=True)
     designation = models.CharField(max_length=255)
     qte_stock = models.IntegerField(default=0)
     stock_alerte = models.IntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        # Retrieve old state if the instance already exists in the database
+        old_qte = None
+        old_alerte = None
+        if self.pk:
+            try:
+                old = Produit.objects.get(pk=self.pk)
+                old_qte = old.qte_stock
+                old_alerte = old.stock_alerte
+            except Produit.DoesNotExist:
+                pass
+
+        # Save the current state
+        super().save(*args, **kwargs)
+
+        # Determine low‑stock status before and after save
+        old_low = (old_qte is not None and old_qte <= old_alerte) if old_qte is not None else False
+        new_low = (self.qte_stock <= self.stock_alerte)
+
+        # If the product becomes low after having been not low,
+        # delete all notification flags for this product.
+        # This ensures that every new low‑stock event appears as an unread notification.
+        if self.pk and not old_low and new_low:
+            NotificationStatus.objects.filter(produit=self).delete()
 
     def __str__(self):
         return self.designation
@@ -85,21 +126,6 @@ class LigneSortie(models.Model):
     bon = models.ForeignKey(BonSortie, on_delete=models.CASCADE, related_name='lignes')
     produit = models.ForeignKey(Produit, on_delete=models.PROTECT, related_name='lignes_sortie')
     qte_s = models.IntegerField()
-
-class NotificationStatus(models.Model):
-    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='notification_statuses')
-    produit = models.ForeignKey(Produit, on_delete=models.CASCADE, related_name='notification_statuses')
-    read = models.BooleanField(default=False)
-    deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('utilisateur', 'produit')
-
-    def __str__(self):
-        return f"{self.utilisateur.username} - {self.produit.designation}"
-
 
     def __str__(self):
         return f"{self.qte_s} x {self.produit}"

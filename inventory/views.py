@@ -10,10 +10,72 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-
+from django.contrib.auth.models import User
+from .forms import AdminUserCreationForm
+from .models import Utilisateur
+from django.db.models import ProtectedError
+from django.contrib import messages
 from .models import Entreprise, Produit, Utilisateur, Fournisseur, Client, BonEntree, LigneEntree, BonSortie, LigneSortie
 from .forms import ProduitForm, AdminUserCreationForm
 LOW_STOCK = 50 
+
+
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from .models import NotificationStatus, Produit, Utilisateur
+
+@login_required
+@csrf_exempt
+@require_POST
+def notification_mark_read(request, product_id):
+    """Mark a low‑stock notification as read for the current user."""
+    try:
+        produit = Produit.objects.get(pk=product_id)
+    except Produit.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
+    utilisateur = Utilisateur.objects.filter(username=request.user.username).first()
+    if not utilisateur:
+        return JsonResponse({'error': 'User profile not found'}, status=400)
+
+    status, created = NotificationStatus.objects.get_or_create(
+        utilisateur=utilisateur,
+        produit=produit,
+        defaults={'read': True}
+    )
+    if not created:
+        status.read = True
+        status.save()
+
+    return JsonResponse({'status': 'ok'})
+
+@login_required
+@csrf_exempt
+@require_POST
+def notification_mark_deleted(request, product_id):
+    """Mark a low‑stock notification as deleted for the current user."""
+    try:
+        produit = Produit.objects.get(pk=product_id)
+    except Produit.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
+    utilisateur = Utilisateur.objects.filter(username=request.user.username).first()
+    if not utilisateur:
+        return JsonResponse({'error': 'User profile not found'}, status=400)
+
+    status, created = NotificationStatus.objects.get_or_create(
+        utilisateur=utilisateur,
+        produit=produit,
+        defaults={'deleted': True}
+    )
+    if not created:
+        status.deleted = True
+        status.save()
+
+    return JsonResponse({'status': 'ok'})
+
 
 
 @login_required(login_url='login')
@@ -120,8 +182,13 @@ def produit_edit(request, pk):
 def produit_delete(request, pk):
     produit = get_object_or_404(Produit, pk=pk)
     if request.method == 'POST':
-        produit.delete()
-        return HttpResponseRedirect(reverse('produit_list'))
+        try:
+            produit.delete()
+            messages.success(request, f"Produit '{produit.designation}' supprimé avec succès.")
+            return redirect('produit_list')
+        except ProtectedError:
+            messages.error(request, f"Impossible de supprimer '{produit.designation}' car il est référencé dans des lignes d'entrée ou de sortie. Veuillez d'abord supprimer ces lignes.")
+            return redirect('produit_list')
     return render(request, 'inventory/produit_confirm_delete.html', {'produit': produit})
 
 
@@ -199,8 +266,7 @@ def delete_user(request, pk):
     if request.method == 'POST':
         Utilisateur.objects.filter(username=user.username).delete()
         user.delete()
-        return redirect('user_management')
-
+        return redirect('user_list')  # changed from 'user_management'
     return render(request, 'inventory/user_confirm_delete.html', {'user_obj': user})
 
 
@@ -257,10 +323,14 @@ def client_edit(request, pk):
 def client_delete(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':
-        client.delete()
-        return redirect('client_list')
+        try:
+            client.delete()
+            messages.success(request, f"Client '{client.designation}' supprimé avec succès.")
+            return redirect('client_list')
+        except ProtectedError:
+            messages.error(request, f"Impossible de supprimer '{client.designation}' car il est référencé dans des bons de sortie. Veuillez d'abord supprimer ou modifier ces bons.")
+            return redirect('client_list')
     return render(request, 'inventory/client_confirm_delete.html', {'client': client})
-
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def fournisseur_list(request):
@@ -299,8 +369,13 @@ def fournisseur_edit(request, pk):
 def fournisseur_delete(request, pk):
     fournisseur = get_object_or_404(Fournisseur, pk=pk)
     if request.method == 'POST':
-        fournisseur.delete()
-        return redirect('fournisseur_list')
+        try:
+            fournisseur.delete()
+            messages.success(request, f"Fournisseur '{fournisseur.designation}' supprimé avec succès.")
+            return redirect('fournisseur_list')
+        except ProtectedError:
+            messages.error(request, f"Impossible de supprimer '{fournisseur.designation}' car il est référencé dans des bons d'entrée. Veuillez d'abord supprimer ou modifier ces bons.")
+            return redirect('fournisseur_list')
     return render(request, 'inventory/fournisseur_confirm_delete.html', {'fournisseur': fournisseur})
 
 
@@ -591,6 +666,56 @@ def produit_api(request):
 
     produit = Produit.objects.create(designation=designation, qte_stock=qte_stock, stock_alerte=stock_alerte)
     return JsonResponse({'code_p': produit.code_p, 'designation': produit.designation, 'qte_stock': produit.qte_stock, 'stock_alerte': produit.stock_alerte}, status=201)
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def user_list(request):
+    users = User.objects.all().order_by('username')
+    return render(request, 'inventory/user_list.html', {'users': users})
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def user_create(request):
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Create the corresponding Utilisateur record
+            role = form.cleaned_data.get('role', '').strip()
+            tel = form.cleaned_data.get('tel', '').strip()
+            Utilisateur.objects.create(username=user.username, password=user.password, tel=tel, role=role)
+            messages.success(request, f"Utilisateur '{user.username}' créé avec succès.")
+            return redirect('user_list')
+    else:
+        form = AdminUserCreationForm()
+    return render(request, 'inventory/user_form.html', {'form': form, 'title': 'Ajouter un utilisateur'})
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def user_edit(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    # Retrieve the associated Utilisateur to pre‑fill role and tel
+    utilisateur_obj = Utilisateur.objects.filter(username=user.username).first()
+    initial = {}
+    if utilisateur_obj:
+        initial = {'role': utilisateur_obj.role, 'tel': utilisateur_obj.tel}
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST, instance=user, initial=initial)
+        if form.is_valid():
+            updated_user = form.save()
+            role = form.cleaned_data.get('role', '').strip()
+            tel = form.cleaned_data.get('tel', '').strip()
+            if utilisateur_obj:
+                utilisateur_obj.username = updated_user.username
+                utilisateur_obj.password = updated_user.password
+                utilisateur_obj.role = role
+                utilisateur_obj.tel = tel
+                utilisateur_obj.save()
+            else:
+                Utilisateur.objects.create(username=updated_user.username, password=updated_user.password, tel=tel, role=role)
+            messages.success(request, f"Utilisateur '{updated_user.username}' mis à jour avec succès.")
+            return redirect('user_list')
+    else:
+        form = AdminUserCreationForm(instance=user, initial=initial)
+    return render(request, 'inventory/user_form.html', {'form': form, 'title': 'Modifier l\'utilisateur'})
 
 
 @csrf_exempt

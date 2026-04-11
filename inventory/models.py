@@ -86,5 +86,20 @@ class LigneSortie(models.Model):
     produit = models.ForeignKey(Produit, on_delete=models.PROTECT, related_name='lignes_sortie')
     qte_s = models.IntegerField()
 
+class NotificationStatus(models.Model):
+    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='notification_statuses')
+    produit = models.ForeignKey(Produit, on_delete=models.CASCADE, related_name='notification_statuses')
+    read = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('utilisateur', 'produit')
+
+    def __str__(self):
+        return f"{self.utilisateur.username} - {self.produit.designation}"
+
+
     def __str__(self):
         return f"{self.qte_s} x {self.produit}"

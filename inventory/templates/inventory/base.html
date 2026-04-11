@@ -7,11 +7,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        /* ===== All existing CSS styles remain unchanged ===== */
         body {
             background-color: #f0f2f5;
             font-family: 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
         }
-        /* Navbar personnalisée */
         .navbar-custom {
             background-color: #ffffff;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -58,12 +58,359 @@
         .navbar-toggler:focus {
             box-shadow: none;
         }
+
+        /* Notification dropdown custom styles */
+        .notification-dropdown {
+            min-width: 320px;
+            max-width: 380px;
+        }
+        .notification-list {
+            max-height: 400px;
+            overflow-y: scroll;       /* always show scrollbar */
+            min-height: 100px;
+        }
+        /* Modern thin scrollbar */
+        .notification-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .notification-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .notification-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .notification-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .notification-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e9ecef;
+            transition: background 0.2s;
+        }
+        .notification-item.unread {
+            background-color: #e7f1ff;
+            font-weight: 500;
+        }
+        .notification-item.read {
+            background-color: #ffffff;
+            color: #6c757d;
+        }
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+        .notification-item .action-btn {
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: opacity 0.2s;
+        }
+        .notification-item .action-btn:hover {
+            opacity: 0.7;
+        }
+        .notification-footer {
+            border-top: 1px solid #e9ecef;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .sidebar-toggle {
+            color: #1e3a8a !important;
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px;
+            padding: 0.4rem 0.6rem;
+            transition: all 0.3s ease;
+        }
+        .sidebar-toggle:hover {
+            color: #1e3a8a !important;
+            background-color: #4c72a0 !important;
+            transform: translateY(-1px);
+        }
+        .sidebar-toggle i {
+            font-weight: 800;
+        }
+
         .card {
             margin-bottom: 20px;
             border-radius: 1rem;
         }
         .low-stock {
             background-color: #f8d7da;
+        }
+        .dashboard-wrapper {
+            background-color: #b0c8f0;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+        .header-glow {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .text-primary-dark {
+            color: #1e3a8a;
+        }
+        .stat-card, .action-card {
+            background: #ffffff;
+            transition: all 0.25s ease;
+            border-radius: 1.25rem;
+        }
+        .stat-card:hover, .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important;
+        }
+        .stat-icon, .action-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.04);
+            border-radius: 1rem;
+        }
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+        }
+        .action-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 1.25rem;
+        }
+        .bg-primary-soft { background-color: rgba(13,110,253,0.1); }
+        .bg-danger-soft  { background-color: rgba(220,53,69,0.1); }
+        .bg-success-soft { background-color: rgba(25,135,84,0.1); }
+        .bg-warning-soft { background-color: rgba(255,193,7,0.1); }
+        .badge.bg-light {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+            font-weight: 500;
+        }
+        .display-4, .display-6 {
+            font-weight: 700;
+        }
+        .btn-primary {
+            background-color: #1e3a8a;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+            filter: brightness(1.05);
+        }
+        .btn-outline-secondary {
+            border-color: #cbd5e1;
+            color: #334155;
+            border-width: 1px;
+        }
+        .btn-outline-secondary:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .btn {
+            border-radius: 1.25rem;
+            transition: all 0.2s ease;
+            padding: 0.5rem 1.25rem;
+            font-weight: 500;
+        }
+        .btn-sm {
+            padding: 0.35rem 0.85rem;
+            font-size: 0.85rem;
+        }
+        .btn-secondary {
+            background-color: #f8fafc;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-secondary:hover {
+            background-color: #eef2ff;
+            border-color: #94a3b8;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            filter: brightness(1.05);
+        }
+        .form-card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+        .form-card .card-body {
+            padding: 2rem;
+        }
+        .form-card label,
+        .form-card .form-label {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .form-card input,
+        .form-card textarea,
+        .form-card select {
+            width: 100%;
+            border-radius: 0.85rem;
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+            padding: 0.85rem 1rem;
+            color: #1f2937;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+        }
+        .form-card input:focus,
+        .form-card textarea:focus,
+        .form-card select:focus {
+            border-color: #1e3a8a;
+            outline: none;
+            box-shadow: 0 0 0 0.15rem rgba(59, 130, 246, 0.18);
+        }
+        .form-card .form-check-input {
+            width: auto;
+        }
+        .form-card .form-text {
+            color: #64748b;
+        }
+        .table thead th {
+            background-color: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            color: #1e293b;
+        }
+        .app-layout {
+            display: flex;
+            min-height: calc(100vh - 72px);
+        }
+        .sidebar {
+            position: fixed;
+            top: 72px;
+            left: 0;
+            bottom: 0;
+            width: 260px;
+            padding: 1.5rem 1rem;
+            background: #1e3a8a;
+            color: #ffffff;
+            transition: transform 0.3s ease, background 0.3s ease;
+            transform: translateX(-100%);
+            z-index: 1055;
+            overflow-y: auto;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+            height: calc(100vh - 72px);
+        }
+        .sidebar-open .sidebar {
+            transform: translateX(0);
+        }
+        .sidebar-collapsed .sidebar {
+            transform: translateX(-100%);
+        }
+        .content-area {
+            flex: 1;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+        .sidebar-brand {
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(148,163,184,0.25);
+        }
+        /* Sidebar links – white text & icons */
+        .sidebar .nav-link,
+        .sidebar .btn-toggle {
+            width: 100%;
+            text-align: left;
+            color: #ffffff !important;
+            background: transparent;
+            border: none;
+            padding: 0.85rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-radius: 0.95rem;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .sidebar .nav-link i,
+        .sidebar .btn-toggle i {
+            color: #ffffff !important;
+            width: 1.25rem;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .btn-toggle:hover {
+            background: rgba(255,255,255,0.16);
+            color: #ffffff !important;
+            text-decoration: none;
+        }
+        .sidebar .nav-link.active {
+            background: rgba(13, 110, 253, 0.25);
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+        .sidebar .nav-link.active i {
+            color: #ffffff !important;
+        }
+        .sidebar .submenu {
+            padding-left: 0.5rem;
+        }
+        .sidebar .submenu .nav-link {
+            padding-left: 2.5rem;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.85) !important;
+        }
+        .sidebar .submenu .nav-link i {
+            color: rgba(255,255,255,0.85) !important;
+        }
+        .sidebar .submenu .nav-link:hover {
+            background: rgba(255,255,255,0.12);
+            color: #ffffff !important;
+        }
+        .sidebar .submenu .nav-link.active {
+            background: rgba(13, 110, 253, 0.25);
+            color: #ffffff !important;
+        }
+        .btn-toggle {
+            font-weight: 600;
+        }
+        @media (min-width: 992px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            .sidebar-collapsed .sidebar {
+                transform: translateX(-100%);
+            }
+            .content-area {
+                margin-left: 260px;
+            }
+            .sidebar-collapsed .content-area {
+                margin-left: 0;
+            }
+        }
+        @media (max-width: 991.98px) {
+            .sidebar {
+                position: fixed;
+                width: 260px;
+                transform: translateX(-100%);
+            }
+            .sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+            .content-area {
+                margin-left: 0;
+            }
+            body.staff-view .sidebar-toggle {
+                display: none;
+            }
+        }
+        /* Staff view overrides */
+        body.staff-view .sidebar {
+            display: none;
+        }
+        body.staff-view .content-area {
+            margin-left: 0 !important;
+        }
+        body.staff-view .sidebar-toggle {
+            display: none;
         }
         @media print {
             .no-print, .btn, button {
@@ -73,7 +420,7 @@
                 background: white;
             }
         }
-        /* Suppression des marges pour les pages pleine largeur */
+        /* Full‑width pages */
         body.no-container-margins .container.mt-4 {
             width: 100% !important;
             max-width: 100% !important;
@@ -87,125 +434,145 @@
         }
     </style>
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% if user.is_staff and not user.is_superuser %}staff-view{% endif %}{% endblock %}">
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top no-print">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="bi bi-box-seam"></i> Gestion de Stock
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarMain">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
-                    {% if user.is_authenticated %}
+            <!-- Left side: toggle button + brand -->
+            <div class="d-flex align-items-center">
+                <!-- Sidebar toggle button: shown only for superusers or non‑staff users -->
+                {% if not user.is_staff or user.is_superuser %}
+                    {% if '/accounts/login' not in request.path and '/login' not in request.path and '/accounts/register' not in request.path and '/register' not in request.path %}
+                        <button class="btn sidebar-toggle me-2" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+                            <i class="bi bi-list fs-3"></i>
+                        </button>
+                    {% endif %}
+                {% endif %}
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <i class="bi bi-box-seam"></i> Gestion de Stock
+                </a>
+            </div>
+
+            <!-- Staff navbar items (only for non‑superuser staff) – positioned on the right -->
+            {% if user.is_staff and not user.is_superuser %}
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarStaff" aria-controls="navbarStaff" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarStaff">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'home' %}">
-                                <i class="bi bi-house-door me-1"></i>Accueil
+                                <i class="bi bi-house-door me-1"></i> Accueil
                             </a>
                         </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="produitsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Produits
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'produit_list' %}">
+                                <i class="bi bi-box me-1"></i> Produits
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="produitsDropdown">
-                                <li><a class="dropdown-item" href="{% url 'produit_list' %}"><i class="bi bi-list-ul me-2"></i>Liste des produits</a></li>
-                                {% if user.is_superuser %}
-                                    <li><a class="dropdown-item" href="{% url 'produit_create' %}"><i class="bi bi-plus-circle me-2"></i>Ajouter un produit</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'app_home' %}"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Interface SPA</a></li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'produit_api' %}" target="_blank"><i class="bi bi-filetype-json me-2"></i>API JSON</a></li>
-                            </ul>
                         </li>
-
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="bonsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-receipt me-1"></i>Bons
+                                <i class="bi bi-file-text me-1"></i> Bons
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bonsDropdown">
-                                <li><a class="dropdown-item" href="{% url 'bon_entree_list' %}"><i class="bi bi-arrow-down-circle me-2"></i>Bons d'entrée</a></li>
-                                <li><a class="dropdown-item" href="{% url 'bon_sortie_list' %}"><i class="bi bi-arrow-up-circle me-2"></i>Bons de sortie</a></li>
+                                <li><a class="dropdown-item" href="{% url 'bon_entree_list' %}"><i class="bi bi-box-arrow-in-down me-2"></i>Bon Entrée</a></li>
+                                <li><a class="dropdown-item" href="{% url 'bon_sortie_list' %}"><i class="bi bi-box-arrow-right me-2"></i>Bon Sortie</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'bon_entree_create' %}"><i class="bi bi-plus-circle me-2"></i>Nouvelle entrée</a></li>
-                                <li><a class="dropdown-item" href="{% url 'bon_sortie_create' %}"><i class="bi bi-plus-circle me-2"></i>Nouvelle sortie</a></li>
+                                <li><a class="dropdown-item" href="{% url 'bon_entree_create' %}"><i class="bi bi-plus-circle me-2"></i>Ajouter Bon Entrée</a></li>
+                                <li><a class="dropdown-item" href="{% url 'bon_sortie_create' %}"><i class="bi bi-plus-circle me-2"></i>Ajouter Bon Sortie</a></li>
                             </ul>
                         </li>
+                    </ul>
+                </div>
+            {% endif %}
 
-                        {% if user.is_superuser %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-gear me-1"></i>Administration
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                <li><a class="dropdown-item" href="{% url 'client_list' %}"><i class="bi bi-people me-2"></i>Clients</a></li>
-                                <li><a class="dropdown-item" href="{% url 'fournisseur_list' %}"><i class="bi bi-truck me-2"></i>Fournisseurs</a></li>
-                                <li><a class="dropdown-item" href="{% url 'entreprise_list' %}"><i class="bi bi-building me-2"></i>Entreprises</a></li>
-                                <li><a class="dropdown-item" href="{% url 'user_management' %}"><i class="bi bi-person-badge me-2"></i>Utilisateurs</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'data_dashboard' %}"><i class="bi bi-grid me-2"></i>Data Grid</a></li>
-                            </ul>
-                        </li>
-                        {% endif %}
-
-                        <li class="nav-item dropdown me-2">
-                            <a class="nav-link position-relative" href="#" id="lowStockDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-bell" style="font-size: 1.2rem;"></i>
-                                {% if low_stock_count > 0 %}
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        {{ low_stock_count }}
-                                    </span>
-                                {% endif %}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="lowStockDropdown" style="min-width: 240px;">
-                                <li><h6 class="dropdown-header">Alertes stock faible</h6></li>
-                                {% if low_stock_count > 0 %}
-                                    {% for product in low_stock_products %}
-                                        <li><a class="dropdown-item" href="{% url 'produit_list' %}">{{ product.designation }}</a></li>
-                                    {% endfor %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-end" href="{% url 'produit_list' %}">Voir tous les produits</a></li>
-                                {% else %}
-                                    <li><span class="dropdown-item-text">Tous les produits sont suffisamment approvisionnés.</span></li>
-                                {% endif %}
-                            </ul>
-                        </li>
-
-                        <li class="nav-item">
-                            <span class="navbar-text me-2">
-                                <i class="bi bi-person-circle me-1"></i>{{ user.username }}
-                            </span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</a>
-                        </li>
-
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>Connexion</a>
-                        </li>
-                    {% endif %}
-                </ul>
+            <div class="d-flex align-items-center">
+                <!-- Notification bell with badge -->
+                <div class="dropdown me-3">
+                    <button class="btn btn-light position-relative dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                            0
+                            <span class="visually-hidden">notifications</span>
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown p-0" aria-labelledby="notificationDropdown">
+                        <div class="notification-list" id="notificationList"></div>
+                        <div class="notification-footer text-muted">
+                            <small>Notifications de stock faible</small>
+                        </div>
+                    </div>
+                </div>
+                <span class="navbar-text me-3">
+                    <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+                </span>
+                <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</a>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        {% if messages %}
-            <div class="mb-3">
-                {% for message in messages %}
-                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            </div>
+    <div class="app-layout">
+        <!-- Sidebar: visible for superusers and non‑staff users -->
+        {% if user.is_superuser or not user.is_staff %}
+            {% if '/accounts/login' not in request.path and '/login' not in request.path and '/accounts/register' not in request.path and '/register' not in request.path %}
+                <aside class="sidebar" id="sidebar">
+                    <nav class="nav flex-column">
+                        <a class="nav-link mb-2 d-flex align-items-center {% if request.path == '/' or request.path == '/dashboard-admin/' or request.path == '/dashboard-user/' %}active{% endif %}" href="{% url 'home' %}">
+                            <i class="bi bi-house-door fa-fw me-2"></i> Accueil
+                        </a>
+                        <a class="nav-link mb-2 d-flex align-items-center {% if '/produits/' in request.path %}active{% endif %}" href="{% url 'produit_list' %}">
+                            <i class="bi bi-box fa-fw me-2"></i> Produits
+                        </a>
+                        <button class="btn btn-toggle mb-2 d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#bonsMenu" aria-expanded="false">
+                            <i class="bi bi-file-text fa-fw me-2"></i> Bons
+                        </button>
+                        <div class="collapse submenu mb-3" id="bonsMenu">
+                            <a class="nav-link mb-1 {% if '/bon-entrees/' in request.path and not '/new/' in request.path %}active{% endif %}" href="{% url 'bon_entree_list' %}">
+                                <i class="bi bi-box-arrow-in-down me-2"></i> Bons d'Entrée
+                            </a>
+                            <a class="nav-link mb-1 {% if '/bon-sorties/' in request.path and not '/new/' in request.path %}active{% endif %}" href="{% url 'bon_sortie_list' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i> Bons de Sortie
+                            </a>
+                            <a class="nav-link mb-1 {% if '/bon-entrees/new/' in request.path %}active{% endif %}" href="{% url 'bon_entree_create' %}">
+                                <i class="bi bi-plus-circle me-2"></i> Ajouter Bon Entrée
+                            </a>
+                            <a class="nav-link mb-1 {% if '/bon-sorties/new/' in request.path %}active{% endif %}" href="{% url 'bon_sortie_create' %}">
+                                <i class="bi bi-plus-circle me-2"></i> Ajouter Bon Sortie
+                            </a>
+                        </div>
+                        {% if user.is_superuser %}
+                        <button class="btn btn-toggle mb-2 d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#adminMenu" aria-expanded="false">
+                            <i class="bi bi-gear fa-fw me-2"></i> Administration
+                        </button>
+                        <div class="collapse submenu mb-3" id="adminMenu">
+                            <a class="nav-link mb-1 {% if '/users/' in request.path %}active{% endif %}" href="{% url 'user_list' %}"><i class="bi bi-people me-2"></i> Utilisateurs</a>
+                            <a class="nav-link mb-1 {% if '/clients/' in request.path %}active{% endif %}" href="{% url 'client_list' %}"><i class="bi bi-person-badge me-2"></i> Clients</a>
+                            <a class="nav-link mb-1 {% if '/fournisseurs/' in request.path %}active{% endif %}" href="{% url 'fournisseur_list' %}"><i class="bi bi-truck me-2"></i> Fournisseurs</a>
+                            <a class="nav-link mb-1 {% if '/entreprises/' in request.path %}active{% endif %}" href="{% url 'entreprise_list' %}"><i class="bi bi-building me-2"></i> Entreprises</a>
+                        </div>
+                        {% endif %}
+                    </nav>
+                </aside>
+            {% endif %}
         {% endif %}
-        {% block content %}{% endblock %}
+
+        <main class="content-area">
+            <div class="container mt-4">
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
     </div>
 
-    <!-- Conteneur des toasts (notifications) en haut à droite -->
+    <!-- Toast container for low‑stock alerts (optional) -->
     <div class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 1100;">
         {% for message in messages %}
             {% if message.level == 50 %}
@@ -221,18 +588,169 @@
         {% endfor %}
     </div>
 
+    <!-- Embed low‑stock data as JSON using the json_script filter -->
+    {{ low_stock_products|json_script:"low-stock-data" }}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-            toastElList.forEach(function(toastEl) {
-                var toast = new bootstrap.Toast(toastEl, {
-                    autohide: true,
-                    delay: 5000
-                });
-                toast.show();
+   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toast initialisation
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+        toastElList.forEach(function(toastEl) {
+            var toast = new bootstrap.Toast(toastEl, {
+                autohide: true,
+                delay: 5000
             });
+            toast.show();
         });
-    </script>
-</body>
-</html>
+
+        // Sidebar toggle
+        var sidebarToggle = document.getElementById('sidebarToggle');
+        var body = document.body;
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                if (window.innerWidth >= 992) {
+                    body.classList.toggle('sidebar-collapsed');
+                } else {
+                    body.classList.toggle('sidebar-open');
+                }
+            });
+        }
+    });
+
+    // ======================
+    // NOTIFICATION SYSTEM (per‑user, DB-backed, real‑time UI)
+    // ======================
+    (function() {
+        // Get low‑stock products with per‑user read status from the context processor
+        let lowStockProducts = JSON.parse(document.getElementById('low-stock-data').textContent);
+
+        function getCsrfToken() {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; csrftoken=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
+        }
+
+        async function markAsRead(productId) {
+            try {
+                const response = await fetch(`/api/notifications/${productId}/read/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                });
+                if (!response.ok) throw new Error('API error');
+                // Update local data: set read = true for that product
+                const product = lowStockProducts.find(p => p.code_p === productId);
+                if (product) {
+                    product.read = true;
+                }
+                renderNotifications();
+            } catch (err) {
+                console.error('Failed to mark as read:', err);
+            }
+        }
+
+        async function markAsDeleted(productId) {
+            try {
+                const response = await fetch(`/api/notifications/${productId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                });
+                if (!response.ok) throw new Error('API error');
+                // Remove product from local array
+                lowStockProducts = lowStockProducts.filter(p => p.code_p !== productId);
+                renderNotifications();
+            } catch (err) {
+                console.error('Failed to mark as deleted:', err);
+            }
+        }
+
+        function renderNotifications() {
+            const listContainer = document.getElementById('notificationList');
+            const badgeSpan = document.getElementById('notificationBadge');
+            if (!listContainer) return;
+
+            // Split into unread (read = false) and read
+            const unread = lowStockProducts.filter(p => !p.read);
+            const read = lowStockProducts.filter(p => p.read);
+
+            let html = '';
+            if (lowStockProducts.length === 0) {
+                html = '<div class="notification-item text-center text-muted">Aucun produit en stock faible.</div>';
+            } else {
+                // Unread first
+                unread.forEach(prod => {
+                    html += `
+                        <div class="notification-item unread d-flex justify-content-between align-items-center" data-id="${prod.code_p}">
+                            <div>
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                                <strong>${escapeHtml(prod.designation)}</strong>
+                                <span class="text-muted ms-2">${prod.qte_stock} unités</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary action-btn mark-read-btn" data-id="${prod.code_p}">
+                                <i class="bi bi-check2-circle"></i> Marquer lu
+                            </button>
+                        </div>
+                    `;
+                });
+                // Read after
+                read.forEach(prod => {
+                    html += `
+                        <div class="notification-item read d-flex justify-content-between align-items-center" data-id="${prod.code_p}">
+                            <div>
+                                <i class="bi bi-check2-circle text-success me-2"></i>
+                                <span>${escapeHtml(prod.designation)}</span>
+                                <span class="text-muted ms-2">${prod.qte_stock} unités</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger action-btn delete-btn" data-id="${prod.code_p}">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+            listContainer.innerHTML = html;
+
+            // Attach event listeners
+            document.querySelectorAll('.mark-read-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const prodId = parseInt(this.getAttribute('data-id'));
+                    markAsRead(prodId);
+                });
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const prodId = parseInt(this.getAttribute('data-id'));
+                    markAsDeleted(prodId);
+                });
+            });
+
+            // Update badge count
+            const unreadCount = unread.length;
+            if (unreadCount > 0) {
+                badgeSpan.style.display = 'inline-block';
+                badgeSpan.innerText = unreadCount;
+            } else {
+                badgeSpan.style.display = 'none';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        renderNotifications();
+    })();
+</script>

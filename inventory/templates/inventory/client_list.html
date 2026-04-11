@@ -1,7 +1,7 @@
 {% extends 'inventory/base.html' %}
 {% block content %}
 <h2>Clients</h2>
-<p><a class="btn btn-primary" href="{% url 'client_create' %}">Ajouter un client</a></p>
+<p><a class="btn btn-primary rounded-pill px-4" href="{% url 'client_create' %}">Ajouter un client</a></p>
 <table class="table table-striped">
     <thead>
         <tr><th>Code</th><th>Nom</th><th>Téléphone</th><th>Actions</th></tr>
@@ -13,8 +13,8 @@
                 <td>{{ client.designation }}</td>
                 <td>{{ client.tel }}</td>
                 <td>
-                    <a class="btn btn-sm btn-warning" href="{% url 'client_edit' client.pk %}">Modifier</a>
-                    <a class="btn btn-sm btn-danger" href="{% url 'client_delete' client.pk %}">Supprimer</a>
+                    <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'client_edit' client.pk %}">Modifier</a>
+                    <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'client_delete' client.pk %}">Supprimer</a>
                 </td>
             </tr>
         {% empty %}

@@ -4,7 +4,7 @@
 <p>Voulez-vous vraiment supprimer {{ client.designation }} ?</p>
 <form method="post">
     {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Supprimer</button>
-    <a class="btn btn-secondary" href="{% url 'client_list' %}">Annuler</a>
+    <button type="submit" class="btn btn-danger rounded-pill px-4">Supprimer</button>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="{% url 'client_list' %}">Annuler</a>
 </form>
 {% endblock %}

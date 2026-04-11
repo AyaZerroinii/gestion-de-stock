@@ -53,11 +53,12 @@ class AdminUserCreationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.help_text = ''
+
         if self.instance and self.instance.pk:
             self.fields['password1'].required = False
             self.fields['password2'].required = False
-            self.fields['password1'].help_text = 'Leave blank to keep current password.'
-            self.fields['password2'].help_text = 'Leave blank to keep current password.'
         else:
             self.fields['password1'].required = True
             self.fields['password2'].required = True

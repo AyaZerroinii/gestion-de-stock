@@ -1,0 +1,50 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="card form-card border-0 shadow-sm mx-auto" style="max-width: 760px;">
+    <div class="card-body">
+        <div class="mb-4">
+            <h2 class="mb-1">{{ title }}</h2>
+            <p class="text-muted mb-0">Formulaire utilisateur stylisé pour correspondre à l'interface du tableau de bord.</p>
+        </div>
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    <div class="form-check mb-3">
+                        {{ field }}
+                        <label class="form-check-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="text-danger" style="font-size: 0.8rem;">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="text-danger" style="font-size: 0.8rem;">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <div class="d-flex flex-wrap gap-3 mt-4">
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Enregistrer</button>
+                <a class="btn btn-outline-secondary rounded-pill px-4" href="{% url 'user_list' %}">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

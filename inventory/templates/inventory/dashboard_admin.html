@@ -1,61 +1,158 @@
-{% extends 'inventory/base.html' %}
+﻿{% extends 'inventory/base.html' %}
 {% block content %}
-<h1 class="mb-4">Tableau de Bord Administrateur</h1>
+<div class="dashboard-wrapper">
+    <div class="container py-5">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <div class="header-glow">
+                    <h1 class="display-4 fw-bold text-primary-dark">Administrateur</h1>
+                    <p class="lead text-secondary">Vue générale des utilisateurs, clients et fournisseurs</p>
+                </div>
+            </div>
+        </div>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title">Total Produits</h5>
-                <p class="card-text">{{ total_produits }}</p>
+        <div class="row g-4 mb-5">
+            <div class="col-md-6 col-sm-12">
+                <div class="card stat-card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="stat-icon bg-primary-soft">
+                                <i class="bi bi-box-seam fs-2 text-primary"></i>
+                            </div>
+                            <span class="badge bg-light text-primary rounded-pill px-3">Total</span>
+                        </div>
+                        <h2 class="mt-3 fw-bold display-6">{{ total_produits }}</h2>
+                        <p class="text-muted text-uppercase small mb-0">Total produits</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12">
+                <div class="card stat-card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="stat-icon bg-warning-soft">
+                                <i class="bi bi-exclamation-triangle fs-2 text-warning"></i>
+                            </div>
+                            <span class="badge bg-light text-warning rounded-pill px-3">Alerte</span>
+                        </div>
+                        <h2 class="mt-3 fw-bold display-6">{{ low_stock }}</h2>
+                        <p class="text-muted text-uppercase small mb-0">Stock faible</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <h5 class="card-title">Stock Faible</h5>
-                <p class="card-text">{{ low_stock }}</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">Dernières Entrées</div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    {% for bon in recent_entrees %}
-                        <li class="list-group-item"><a href="{% url 'bon_entree_detail' bon.pk %}">{{ bon.fournisseur.designation }} - {{ bon.date_e }}</a></li>
-                    {% empty %}
-                        <li class="list-group-item">Aucune entrée récente</li>
-                    {% endfor %}
-                </ul>
+        <div class="row g-4 mb-5">
+            <div class="col-lg-3 col-sm-6">
+                <a href="{% url 'user_list' %}" class="text-decoration-none">
+                    <div class="card stat-card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4 text-center">
+                            <div class="stat-icon bg-success-soft mx-auto mb-3">
+                                <i class="bi bi-people fs-2 text-success"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Utilisateurs</h5>
+                            <p class="text-muted small mb-0">Gérer les comptes</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <a href="{% url 'client_list' %}" class="text-decoration-none">
+                    <div class="card stat-card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4 text-center">
+                            <div class="stat-icon bg-primary-soft mx-auto mb-3">
+                                <i class="bi bi-people-fill fs-2 text-primary"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Clients</h5>
+                            <p class="text-muted small mb-0">Gérer les clients</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <a href="{% url 'fournisseur_list' %}" class="text-decoration-none">
+                    <div class="card stat-card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4 text-center">
+                            <div class="stat-icon bg-danger-soft mx-auto mb-3">
+                                <i class="bi bi-truck fs-2 text-danger"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Fournisseurs</h5>
+                            <p class="text-muted small mb-0">Gérer les fournisseurs</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <a href="{% url 'entreprise_list' %}" class="text-decoration-none">
+                    <div class="card stat-card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4 text-center">
+                            <div class="stat-icon bg-success-soft mx-auto mb-3">
+                                <i class="bi bi-building fs-2 text-primary"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Enterprise</h5>
+                            <p class="text-muted small mb-0">Gérer l'entreprise</p>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">Dernières Sorties</div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    {% for bon in recent_sorties %}
-                        <li class="list-group-item"><a href="{% url 'bon_sortie_detail' bon.pk %}">{{ bon.client.designation }} - {{ bon.date_s }}</a></li>
-                    {% empty %}
-                        <li class="list-group-item">Aucune sortie récente</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="mt-4">
-    <a href="{% url 'produit_list' %}" class="btn btn-primary">Gérer Produits</a>
-    <a href="{% url 'user_management' %}" class="btn btn-secondary">Gérer Utilisateurs</a>
-    <a href="{% url 'bon_entree_list' %}" class="btn btn-info">Voir Bons Entrée</a>
-    <a href="{% url 'bon_sortie_list' %}" class="btn btn-warning">Voir Bons Sortie</a>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card stat-card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <h5 class="mb-0">Dernières Entrées</h5>
+                        <p class="text-muted small mb-0">Fil d'activité des entrées récentes</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="overflow-auto" style="max-height: 420px;">
+                            {% for bon in recent_entrees %}
+                                <div class="bg-light border rounded-4 p-3 mb-3">
+                                    <a href="{% url 'bon_entree_detail' bon.pk %}" class="text-decoration-none text-dark">
+                                        <div class="d-flex justify-content-between align-items-start gap-3">
+                                            <div>
+                                                <h6 class="fw-semibold mb-1">{{ bon.fournisseur.designation }}</h6>
+                                                <p class="mb-0 text-muted small">Entrée enregistrée dans le stock</p>
+                                            </div>
+                                            <small class="text-muted">{{ bon.date_e }}</small>
+                                        </div>
+                                    </a>
+                                </div>
+                            {% empty %}
+                                <div class="text-muted">Aucune entrée récente</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card stat-card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <h5 class="mb-0">Dernières Sorties</h5>
+                        <p class="text-muted small mb-0">Fil d'activité des sorties récentes</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="overflow-auto" style="max-height: 420px;">
+                            {% for bon in recent_sorties %}
+                                <div class="bg-light border rounded-4 p-3 mb-3">
+                                    <a href="{% url 'bon_sortie_detail' bon.pk %}" class="text-decoration-none text-dark">
+                                        <div class="d-flex justify-content-between align-items-start gap-3">
+                                            <div>
+                                                <h6 class="fw-semibold mb-1">{{ bon.client.designation }}</h6>
+                                                <p class="mb-0 text-muted small">Sortie de stock enregistrée</p>
+                                            </div>
+                                            <small class="text-muted">{{ bon.date_s }}</small>
+                                        </div>
+                                    </a>
+                                </div>
+                            {% empty %}
+                                <div class="text-muted">Aucune sortie récente</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

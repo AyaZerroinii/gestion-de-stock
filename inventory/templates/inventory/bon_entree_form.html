@@ -109,61 +109,43 @@
 </script>
 
 <style>
-    /* إلغاء تأثيرات base.html */
-    body.no-container-margins .app-layout,
-    body.no-container-margins .content-area,
-    body.no-container-margins .content-area > .container,
-    body.no-container-margins .container.mt-4 {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-
+    /* جعل الخلفية الزرقاء تغطي كامل المساحة المتاحة */
     .fullscreen-blue {
         background-color: #b0c8f0;
-        min-height: 100vh;
+        min-height: calc(100vh - 72px); /* خصم ارتفاع النافبار */
         width: 100%;
         display: flex;
-        align-items: center;
-        margin: 0;
-        padding: 0;
-    }
-
-    /* التوسيط الأفقي حسب وجود القائمة الجانبية */
-    body:not(.has-sidebar) .fullscreen-blue {
-        justify-content: center;
-    }
-
-    body.has-sidebar .fullscreen-blue {
-        justify-content: center;
-        /* نضيف مسافة تعادل عرض القائمة الجانبية (260px) لتعويض انزياحها */
-        padding-left: 260px;
+        justify-content: center; /* توسيط أفقي */
+        align-items: center;     /* توسيط عمودي */
+        padding: 2rem 0;         /* مسافة بسيطة من الأعلى والأسفل */
     }
 
     .content-center {
         width: 100%;
-        max-width: 1200px;
+        max-width: 95%; /* جعل عرض البطاقة معقولاً (ليس 1200px) */
         padding: 0 1rem;
+        transition: all 0.3s ease;
+    }
+    .table {
+        font-size: 1.05rem;
     }
 
+    /* ضمان أن الـ Card تظهر بشكل صحيح */
     .card {
-        width: 100%;
-        border-radius: 1.25rem;
-        background-color: #ffffff;
+          width: 100%;
+       border-radius: 1.5rem;
         border: none;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .card-body {
+        padding: 3rem !important; /* زيادة الحشو الداخلي */
     }
 
-    /* باقي الأنماط تبقى كما هي */
-    @media (max-width: 768px) {
-        body.has-sidebar .fullscreen-blue {
-            padding-left: 0; /* على الجوال نلغي الإزاحة */
-        }
-        .content-center {
-            padding: 0 0.75rem;
-        }
+    /* إلغاء أي هوامش إضافية قد تأتي من الحاويات الأب */
+    body.no-container-margins .content-area > .container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
     }
 </style>
 {% endblock %}

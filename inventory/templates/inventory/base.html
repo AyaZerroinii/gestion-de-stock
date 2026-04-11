@@ -436,6 +436,7 @@
 </head>
 <body class="{% block body_class %}{% if user.is_staff and not user.is_superuser %}staff-view{% endif %}{% endblock %}">
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top no-print">
+         {% if '/login' not in request.path and '/accounts/login' not in request.path and '/register' not in request.path and '/accounts/register' not in request.path %}
         <div class="container-fluid">
             <!-- Left side: toggle button + brand -->
             <div class="d-flex align-items-center">
@@ -509,6 +510,7 @@
             </div>
         </div>
     </nav>
+     {% endif %}
 
     <div class="app-layout">
         <!-- Sidebar: visible for superusers and non‑staff users -->

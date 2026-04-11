@@ -1,0 +1,17 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="card mx-auto" style="max-width: 640px;">
+    <div class="card-body">
+        <h2 class="card-title">Espace en attente</h2>
+        <p class="card-text">Bonjour <strong>{{ user.get_full_name|default:user.username }}</strong>, voici les informations de votre compte :</p>
+        <ul class="list-group mb-4">
+            <li class="list-group-item"><strong>Nom d'utilisateur :</strong> {{ user.username }}</li>
+            <li class="list-group-item"><strong>Email :</strong> {{ user.email }}</li>
+        </ul>
+        <div class="alert alert-warning" role="alert">
+            Votre compte est en attente d'activation. Veuillez contacter l'administrateur pour obtenir des accès.
+        </div>
+        <p class="text-muted">Vous pouvez revenir ici une fois que votre compte est activé.</p>
+    </div>
+</div>
+{% endblock %}

@@ -41,6 +41,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'inventory.context_processors.low_stock_notifications',
             ],
         },
     },
@@ -58,11 +59,14 @@ LOGIN_URL = '/accounts/login/'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
+
         'NAME': os.environ.get('DB_NAME', 'gestion_stock'),
         'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'feratferat2005/'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '123'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '5432'),
+
+
     }
 }
 

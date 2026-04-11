@@ -1,22 +1,92 @@
 {% extends 'inventory/base.html' %}
+
 {% block content %}
-<h2>Liste des Bons d'Entrée</h2>
-<p><a class="btn btn-primary" href="{% url 'bon_entree_create' %}">Créer nouveau Bon d'Entrée</a></p>
-<table class="table table-striped">
-    <thead>
-        <tr><th>ID</th><th>Fournisseur</th><th>Date</th><th>Utilisateur</th><th>Lignes</th><th>Actions</th></tr>
-    </thead>
-    <tbody>
+
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold">Bons d'Entrée</h4>
+
+        <a href="{% url 'bon_entree_create' %}" class="btn btn-primary">
+            + Nouveau Bon
+        </a>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="row">
+
         {% for bon in bons %}
-            <tr>
-                <td>{{ bon.num_e }}</td>
-                <td>{{ bon.fournisseur.designation }}</td>
-                <td>{{ bon.date_e }}</td>
-                <td>{{ bon.utilisateur.username }}</td>
-                <td>{{ bon.lignes.all|length }}</td>
-                <td><a class="btn btn-info btn-sm" href="{% url 'bon_entree_detail' bon.pk %}">Voir Détails</a></td>
-            </tr>
+        <div class="col-md-6 col-lg-4 mb-4">
+
+            <div class="card shadow-sm h-100 border-0 bon-card">
+
+                <div class="card-body">
+
+                    <!-- Top -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">#{{ bon.num_e }}</span>
+                        <span class="badge bg-light text-dark">
+                            {{ bon.date_e|date:"d/m/Y" }}
+                        </span>
+                    </div>
+
+<!-- Fournisseur -->
+<p class="mb-1">
+    <strong>Fournisseur:</strong> {{ bon.fournisseur.designation }}
+</p>
+
+<!-- Utilisateur -->
+<p class="mb-2">
+    <strong>Utilisateur:</strong> {{ bon.utilisateur.username }}
+</p>
+
+<!-- Produits -->
+<div class="mb-2">
+    <strong>Produits:</strong>
+    <div class="mt-1">
+        {% for ligne in bon.lignes.all %}
+            <span class="badge bg-light text-dark border me-1 mb-1">
+                {{ ligne.produit.designation }} ({{ ligne.qte_e }})
+            </span>
+        {% empty %}
+            <span class="text-muted">Aucun produit</span>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+</div>
+
+                    <!-- Button -->
+                    <a href="{% url 'bon_entree_detail' bon.pk %}" 
+                       class="btn btn-outline-primary w-100">
+                        imprimer
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-muted">
+            Aucun bon trouvé
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+<style>
+.bon-card {
+    transition: 0.3s;
+    border-radius: 12px;
+}
+
+.bon-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+</style>
+
 {% endblock %}

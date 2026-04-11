@@ -15,7 +15,8 @@ class Utilisateur(models.Model):
     id_user = models.AutoField(primary_key=True)
     username = models.CharField(max_length=150, unique=True)
     password = models.CharField(max_length=128)
-    role = models.CharField(max_length=50)
+    tel = models.CharField(max_length=50, blank=True, null=True)
+    role = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
         return self.username

@@ -1,30 +1,163 @@
 {% extends 'inventory/base.html' %}
+{% block body_class %}no-container-margins{% endblock %}
 {% block content %}
-<h2>Créer Bon de Sortie</h2>
-{% if error %}<p style="color:red;">{{ error }}</p>{% endif %}
-<form method="post">
-    {% csrf_token %}
-    <div class="form-field">
-        <label>Client</label>
-        <select name="client">
-            {% for c in clients %}
-                <option value="{{ c.pk }}">{{ c.designation }}</option>
-            {% endfor %}
-        </select>
+<div class="fullscreen-blue">
+    <div class="content-center">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4 p-lg-5">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary-dark">
+                        <i class="bi bi-box-arrow-right"></i> Créer Bon de Sortie
+                    </h2>
+                    <p class="text-muted">Enregistrer la sortie de produits vers un client</p>
+                </div>
+
+                {% if error %}
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
+                    </div>
+                {% endif %}
+
+                <form method="post" id="bonSortieForm">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label for="client" class="form-label fw-semibold">
+                            <i class="bi bi-person"></i> Client
+                        </label>
+                        <select name="client" id="client" class="form-select" required>
+                            <option value="" disabled selected>-- Sélectionner un client --</option>
+                            {% for c in clients %}
+                                <option value="{{ c.pk }}">{{ c.designation }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-archive"></i> Produits et quantités
+                        </label>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Produit</th>
+                                        <th style="width: 140px;">Quantité</th>
+                                        <th style="width: 80px;">Action</th>
+                                    </thead>
+                                <tbody id="lignesContainer">
+                                    <tr class="ligne">
+                                        <td>
+                                            <select name="produit[]" class="form-select" required>
+                                                <option value="" disabled selected>-- Choisir --</option>
+                                                {% for p in produits %}
+                                                    <option value="{{ p.pk }}">{{ p.designation }} </option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="qte[]" class="form-control" min="1" value="1" required>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-outline-danger btn-sm removeRow" title="Supprimer">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="addRow">
+                            <i class="bi bi-plus-circle"></i> Ajouter un produit
+                        </button>
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-2">
+                        <button type="submit" class="btn btn-primary px-4 py-2">
+                            <i class="bi bi-save"></i> Enregistrer
+                        </button>
+                        <a href="{% url 'bon_sortie_list' %}" class="btn btn-outline-secondary px-4 py-2">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="form-field">
-        <label>Produit</label>
-        <select name="produit">
-            {% for p in produits %}
-                <option value="{{ p.pk }}">{{ p.designation }} (stock {{ p.qte_stock }})</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="form-field">
-        <label>Quantité Sortie</label>
-        <input name="qte" type="number" min="1" value="1" />
-    </div>
-    <button class="button" type="submit">Sauvegarder</button>
-    <a class="button" href="{% url 'bon_sortie_list' %}">Annuler</a>
-</form>
+</div>
+
+<script>
+    document.getElementById('addRow').addEventListener('click', function() {
+        const container = document.getElementById('lignesContainer');
+        const newRow = container.querySelector('.ligne').cloneNode(true);
+        newRow.querySelectorAll('input, select').forEach(field => field.value = '');
+        newRow.querySelector('select').selectedIndex = 0;
+        newRow.querySelector('input').value = 1;
+        container.appendChild(newRow);
+    });
+
+    document.getElementById('lignesContainer').addEventListener('click', function(e) {
+        if (e.target.closest('.removeRow')) {
+            const row = e.target.closest('.ligne');
+            if (document.querySelectorAll('.ligne').length > 1) {
+                row.remove();
+            } else {
+                alert("Il doit rester au moins une ligne de produit.");
+            }
+        }
+    });
+</script>
+
+<style>
+    /* الحاوية الرئيسية */
+    .fullscreen-blue {
+        background-color: #b0c8f0;
+        min-height: 100vh;
+        width: 100%;
+        margin: 0;
+        display: flex;
+        align-items: center;    /* توسيط عمودي */
+        justify-content: center; /* توسيط أفقي */
+        padding: 0;             /* إلغاء المسافات من الأعلى والأسفل والجوانب */
+    }
+
+    /* حاوية المحتوى - جعلناها كبيرة جداً */
+    .content-center {
+        width: 96%;            /* المسافة من الجانبين ستكون صغيرة جداً (2% من كل جانب) */
+        max-width: 1800px;     /* سقف العرض لضمان عدم تمددها بشكل مبالغ فيه على الشاشات الضخمة */
+        height: 100vh;         /* جعل الحاوية تأخذ كامل ارتفاع الشاشة */
+        display: flex;
+        align-items: center;
+    }
+
+    /* البطاقة البيضاء */
+    .card {
+        width: 100%;           /* تأخذ كامل عرض الحاوية الأب */
+        border-radius: 1.25rem;
+        background-color: #ffffff;
+        border: none;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        /* إذا أردت أن تلمس البطاقة الأعلى والأسفل تماماً، فكّر في إضافة height: 100% هنا */
+    }
+
+    
+    .table-responsive {
+        margin-top: 1rem;
+    }
+
+    
+    .text-primary-dark { color: #1e3a8a; }
+    .form-select, .form-control { border-radius: 0.75rem; border: 1px solid #dee2e6; }
+    .btn-primary { background-color: #1e3a8a; border: none; }
+    .btn-primary:hover { background-color: #2e4a9a; }
+
+    @media (max-width: 768px) {
+        .content-center {
+            width: 98%; 
+        }
+        .card-body {
+            padding: 1rem !important;
+        }
+    }
+</style>
 {% endblock %}

@@ -4,12 +4,68 @@
 <p>Uniquement accessible au superutilisateur.</p>
 
 <div class="panel">
+<<<<<<< Updated upstream
+    <div class="panel-header"><strong>{% if is_editing %}Modifier l'utilisateur{% else %}Créer un nouvel utilisateur{% endif %}</strong></div>
+    <div class="panel-body">
+        <form method="post">
+            {% csrf_token %}
+            {% if edit_user %}
+                <input type="hidden" name="edit_user_id" value="{{ edit_user.pk }}">
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    {# تنسيق خاص لمربعات الاختيار (Staff/Superuser) #}
+                    <div class="form-check mb-3">
+                        {{ field }}
+                        <label class="form-check-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="text-danger" style="font-size: 0.8rem;">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {% if field.help_text %}
+                            <div class="form-text" style="font-size: 0.75rem; color: #666;">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    {# تنسيق الحقول النصية العادية #}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="text-danger" style="font-size: 0.8rem;">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if field.help_text %}
+                            <div class="form-text" style="font-size: 0.75rem; color: #666;">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">{% if is_editing %}Mettre à jour{% else %}Enregistrer{% endif %}</button>
+=======
     <div class="panel-header"><strong>Créer un nouvel utilisateur</strong></div>
     <div class="panel-body">
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="button">Enregistrer</button>
+>>>>>>> Stashed changes
         </form>
     </div>
 </div>
@@ -19,13 +75,37 @@
     <div class="panel-body">
         <table class="table">
             <thead>
+<<<<<<< Updated upstream
+                <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Staff</th>
+                    <th>Superuser</th>
+                    <th>Action</th>
+                </tr>
+=======
                 <tr><th>Nom</th><th>Email</th><th>Staff</th><th>Superuser</th><th>Action</th></tr>
+>>>>>>> Stashed changes
             </thead>
             <tbody>
                 {% for u in users %}
                     <tr>
                         <td>{{ u.username }}</td>
                         <td>{{ u.email }}</td>
+<<<<<<< Updated upstream
+                        <td>
+                            {% if u.is_staff %} ✅ {% else %} ❌ {% endif %}
+                        </td>
+                        <td>
+                            {% if u.is_superuser %} ✅ {% else %} ❌ {% endif %}
+                        </td>
+                        <td>
+                            {% if not u.is_superuser %}
+                                <a class="button" href="{% url 'user_management' %}?edit={{ u.pk }}">Modifier</a>
+                                <a class="button danger" href="{% url 'delete_user' u.pk %}">Supprimer</a>
+                            {% else %}
+                                <span class="text-muted">Admin</span>
+=======
                         <td>{{ u.is_staff }}</td>
                         <td>{{ u.is_superuser }}</td>
                         <td>
@@ -33,6 +113,7 @@
                                 <a class="button danger" href="{% url 'delete_user' u.pk %}">Supprimer</a>
                             {% else %}
                                 -
+>>>>>>> Stashed changes
                             {% endif %}
                         </td>
                     </tr>
@@ -42,4 +123,8 @@
     </div>
 </div>
 
+<<<<<<< Updated upstream
 {% endblock %}
+=======
+{% endblock %}
+>>>>>>> Stashed changes

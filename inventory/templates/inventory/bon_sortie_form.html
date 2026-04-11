@@ -109,95 +109,54 @@
 </script>
 
 <style>
-    /* خلفية زرقاء مع دفع البطاقة إلى أقصى اليمين */
+    /* الحاوية الرئيسية */
     .fullscreen-blue {
         background-color: #b0c8f0;
         min-height: 100vh;
         width: 100%;
         margin: 0;
         display: flex;
-        align-items: right;
-        justify-content: flex-end;
-        padding-right: 10rem;  
-                /* زيادة المسافة من اليمين لتصبح أكبر */
+        align-items: center;    /* توسيط عمودي */
+        justify-content: center; /* توسيط أفقي */
+        padding: 0;             /* إلغاء المسافات من الأعلى والأسفل والجوانب */
     }
 
-    /* حاوية المحتوى */
+    /* حاوية المحتوى - جعلناها كبيرة جداً */
     .content-center {
-        width: 100%;
-        max-width: 1200px;
-        padding: 0 0.005rem;
+        width: 96%;            /* المسافة من الجانبين ستكون صغيرة جداً (2% من كل جانب) */
+        max-width: 1800px;     /* سقف العرض لضمان عدم تمددها بشكل مبالغ فيه على الشاشات الضخمة */
+        height: 100vh;         /* جعل الحاوية تأخذ كامل ارتفاع الشاشة */
+        display: flex;
+        align-items: center;
     }
 
     /* البطاقة البيضاء */
     .card {
+        width: 100%;           /* تأخذ كامل عرض الحاوية الأب */
         border-radius: 1.25rem;
         background-color: #ffffff;
         border: none;
         box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        /* إذا أردت أن تلمس البطاقة الأعلى والأسفل تماماً، فكّر في إضافة height: 100% هنا */
     }
 
-    .text-primary-dark {
-        color: #1e3a8a;
+    
+    .table-responsive {
+        margin-top: 1rem;
     }
 
-    .form-select, .form-control {
-        border-radius: 0.75rem;
-        border: 1px solid #dee2e6;
-        transition: all 0.2s;
-    }
-
-    .form-select:focus, .form-control:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
-    }
-
-    .btn-primary {
-        background-color: #1e3a8a;
-        border: none;
-    }
-
-    .btn-primary:hover {
-        background-color: #2e4a9a;
-    }
-
-    .btn-outline-primary {
-        color: #1e3a8a;
-        border-color: #1e3a8a;
-    }
-
-    .btn-outline-primary:hover {
-        background-color: #1e3a8a;
-        color: white;
-    }
-
-    .btn-outline-danger {
-        border-color: #dc3545;
-        color: #dc3545;
-    }
-
-    .btn-outline-danger:hover {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .table-light {
-        background-color: #f8fafc;
-    }
-
-    .table-bordered {
-        border-color: #e2e8f0;
-    }
+    
+    .text-primary-dark { color: #1e3a8a; }
+    .form-select, .form-control { border-radius: 0.75rem; border: 1px solid #dee2e6; }
+    .btn-primary { background-color: #1e3a8a; border: none; }
+    .btn-primary:hover { background-color: #2e4a9a; }
 
     @media (max-width: 768px) {
-        .fullscreen-blue {
-            padding-right: 1rem;   /* مسافة أقل على الشاشات الصغيرة */
-        }
         .content-center {
-            padding: 0 0.75rem;
+            width: 98%; 
         }
         .card-body {
-            padding: 1.5rem !important;
+            padding: 1rem !important;
         }
     }
 </style>

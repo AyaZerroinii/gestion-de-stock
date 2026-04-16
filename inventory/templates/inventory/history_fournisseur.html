@@ -1,0 +1,39 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Historique des approvisionnements : {{ fournisseur.designation }}</h2>
+    <a href="{% url 'fournisseur_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Retour</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>N° Bon</th>
+                <th>Date</th>
+                <th>Produits (quantité)</th>
+                <th>Utilisateur</th>
+                <th>Actions</th>
+            </thead>
+        <tbody>
+            {% for bon in bons %}
+            <tr>
+                <td>#{{ bon.num_e }}</td>
+                <td>{{ bon.date_e|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% for ligne in bon.lignes.all %}
+                        {{ ligne.produit.designation }} ({{ ligne.qte_e }})<br>
+                    {% endfor %}
+                </td>
+                <td>{{ bon.utilisateur.username }}</td>
+                <td>
+                    <a href="{% url 'bon_entree_detail' bon.pk %}" class="btn btn-sm btn-outline-primary">Détail</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted">Aucun bon d'entrée pour ce fournisseur.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

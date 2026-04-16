@@ -36,11 +36,15 @@ urlpatterns = [
     path('api/produits/<int:pk>/', views.produit_api_detail, name='produit_api_detail'),
   path('api/notifications/<int:product_id>/read/', views.notification_mark_read, name='notification_mark_read'),
 path('api/notifications/<int:product_id>/delete/', views.notification_mark_deleted, name='notification_mark_deleted'),
-
+path('bon-entrees/<int:pk>/delete/', views.bon_entree_delete, name='bon_entree_delete'),
+path('bon-sorties/<int:pk>/delete/', views.bon_sortie_delete, name='bon_sortie_delete'),
 path('users/', views.user_list, name='user_list'),
 path('users/create/', views.user_create, name='user_create'),
 path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
 path('users/<int:pk>/delete/', views.delete_user, name='delete_user'),
-
+path('produits/<int:pk>/history/', views.produit_history, name='produit_history'),
+path('clients/<int:pk>/history/', views.client_history, name='client_history'),
+path('fournisseurs/<int:pk>/history/', views.fournisseur_history, name='fournisseur_history'),
+path('users/<str:username>/history/', views.user_history, name='user_history'),
 
 ]

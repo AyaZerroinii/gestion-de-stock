@@ -1,0 +1,50 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Activité de l'utilisateur : {{ user_obj.username }}</h2>
+    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Retour</a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h4>Bons d'entrée créés</h4>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead><tr><th>N°</th><th>Date</th><th>Fournisseur</th><th>Action</th></tr></thead>
+                <tbody>
+                    {% for bon in entrees %}
+                    <tr>
+                        <td>#{{ bon.num_e }}</td>
+                        <td>{{ bon.date_e|date:"d/m/Y H:i" }}</td>
+                        <td>{{ bon.fournisseur.designation }}</td>
+                        <td><a href="{% url 'bon_entree_detail' bon.pk %}" class="btn btn-sm btn-outline-primary">Détail</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-muted">Aucune entrée.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h4>Bons de sortie créés</h4>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Action</th></tr></thead>
+                <tbody>
+                    {% for bon in sorties %}
+                    <tr>
+                        <td>#{{ bon.num_s }}</td>
+                        <td>{{ bon.date_s|date:"d/m/Y H:i" }}</td>
+                        <td>{{ bon.client.designation }}</td>
+                        <td><a href="{% url 'bon_sortie_detail' bon.pk %}" class="btn btn-sm btn-outline-primary">Détail</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-muted">Aucune sortie.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

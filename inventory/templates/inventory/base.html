@@ -428,7 +428,8 @@ body.sidebar-collapsed .content-area {
         }
     </style>
 </head>
-<body class="{% if user.is_staff and not user.is_superuser %}staff-view{% endif %}{% if user.is_superuser or not user.is_staff %} has-sidebar{% endif %} {% block body_class %}{% endblock %}">
+<body class="{% if user.is_staff or user.is_superuser %} has-sidebar {% endif %} {% if user.is_staff and not user.is_superuser %} staff-view {% endif %} {% block body_class %}{% endblock %}">    
+    {% if user.is_staff or user.is_superuser %}
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top no-print">
          {% if '/login' not in request.path and '/accounts/login' not in request.path and '/register' not in request.path and '/accounts/register' not in request.path %}
         <div class="container-fluid">
@@ -483,6 +484,7 @@ body.sidebar-collapsed .content-area {
             </div>
         </div>
     </nav>
+    {% endif %}
      {% endif %}
     <div class="app-layout">
         {% if user.is_superuser or not user.is_staff %}
@@ -493,11 +495,13 @@ body.sidebar-collapsed .content-area {
                         <a class="nav-link mb-2" href="{% url 'produit_list' %}"><i class="bi bi-box fa-fw me-2"></i> Produits</a>
                         <button class="btn btn-toggle mb-2 collapsed" data-bs-toggle="collapse" data-bs-target="#bonsMenu"><i class="bi bi-file-text fa-fw me-2"></i> Bons</button>
                         <div class="collapse submenu mb-3" id="bonsMenu">
-                            <a class="nav-link mb-1" href="{% url 'bon_entree_list' %}"><i class="bi bi-box-arrow-in-down me-2"></i> Bons d'Entrée</a>
-                            <a class="nav-link mb-1" href="{% url 'bon_sortie_list' %}"><i class="bi bi-box-arrow-right me-2"></i> Bons de Sortie</a>
-                            <a class="nav-link mb-1" href="{% url 'bon_entree_create' %}"><i class="bi bi-plus-circle me-2"></i> Ajouter Bon Entrée</a>
-                            <a class="nav-link mb-1" href="{% url 'bon_sortie_create' %}"><i class="bi bi-plus-circle me-2"></i> Ajouter Bon Sortie</a>
-                        </div>
+    <a class="nav-link mb-1" href="{% url 'bon_entree_list' %}"><i class="bi bi-box-arrow-in-down me-2"></i> Bons d'Entrée</a>
+    <a class="nav-link mb-1" href="{% url 'bon_sortie_list' %}"><i class="bi bi-box-arrow-right me-2"></i> Bons de Sortie</a>
+    {% if not user.is_superuser %}
+        <a class="nav-link mb-1" href="{% url 'bon_entree_create' %}"><i class="bi bi-plus-circle me-2"></i> Ajouter Bon Entrée</a>
+        <a class="nav-link mb-1" href="{% url 'bon_sortie_create' %}"><i class="bi bi-plus-circle me-2"></i> Ajouter Bon Sortie</a>
+    {% endif %}
+</div>
                         {% if user.is_superuser %}
                         <button class="btn btn-toggle mb-2 collapsed" data-bs-toggle="collapse" data-bs-target="#adminMenu"><i class="bi bi-gear fa-fw me-2"></i> Administration</button>
                         <div class="collapse submenu mb-3" id="adminMenu">

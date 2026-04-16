@@ -1,0 +1,10 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<h2>Supprimer Bon d'Entrée</h2>
+<p>Voulez-vous vraiment supprimer le bon d'entrée #{{ bon.pk }} ?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger rounded-pill px-4">Supprimer</button>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="{% url 'bon_entree_list' %}">Annuler</a>
+</form>
+{% endblock %}

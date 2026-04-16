@@ -1,0 +1,39 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Historique des achats : {{ client.designation }}</h2>
+    <a href="{% url 'client_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Retour</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>N° Bon</th>
+                <th>Date</th>
+                <th>Produits (quantité)</th>
+                <th>Utilisateur</th>
+                <th>Actions</th>
+            </thead>
+        <tbody>
+            {% for bon in bons %}
+            <tr>
+                <td>#{{ bon.num_s }}</td>
+                <td>{{ bon.date_s|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% for ligne in bon.lignes.all %}
+                        {{ ligne.produit.designation }} ({{ ligne.qte_s }})<br>
+                    {% endfor %}
+                </td>
+                <td>{{ bon.utilisateur.username }}</td>
+                <td>
+                    <a href="{% url 'bon_sortie_detail' bon.pk %}" class="btn btn-sm btn-outline-primary">Détail</a>
+                </td>
+            </tr>
+            {% empty %}
+            <td><td colspan="5" class="text-center text-muted">Aucun bon de sortie pour ce client.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

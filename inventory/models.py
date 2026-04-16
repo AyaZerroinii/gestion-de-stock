@@ -53,7 +53,7 @@ class Produit(models.Model):
 class BonEntree(models.Model):
     num_e = models.AutoField(primary_key=True)
     date_e = models.DateTimeField()
-    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.PROTECT, related_name='bons_entree')
+    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE, related_name='bons_entree')
     utilisateur = models.ForeignKey(Utilisateur, on_delete=models.PROTECT, related_name='bons_entree')
 
     def __str__(self):
@@ -63,7 +63,7 @@ class BonEntree(models.Model):
 class LigneEntree(models.Model):
     id_le = models.AutoField(primary_key=True)
     bon = models.ForeignKey(BonEntree, on_delete=models.CASCADE, related_name='lignes')
-    produit = models.ForeignKey(Produit, on_delete=models.PROTECT, related_name='lignes_entree')
+    produit = models.ForeignKey(Produit, on_delete=models.CASCADE, related_name='lignes_entree')   # CHANGED to CASCADE
     qte_e = models.IntegerField()
 
     def __str__(self):
@@ -73,7 +73,7 @@ class LigneEntree(models.Model):
 class BonSortie(models.Model):
     num_s = models.AutoField(primary_key=True)
     date_s = models.DateTimeField()
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name='bons_sortie')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='bons_sortie')
     utilisateur = models.ForeignKey(Utilisateur, on_delete=models.PROTECT, related_name='bons_sortie')
 
     def __str__(self):
@@ -83,8 +83,12 @@ class BonSortie(models.Model):
 class LigneSortie(models.Model):
     id_ls = models.AutoField(primary_key=True)
     bon = models.ForeignKey(BonSortie, on_delete=models.CASCADE, related_name='lignes')
-    produit = models.ForeignKey(Produit, on_delete=models.PROTECT, related_name='lignes_sortie')
+    produit = models.ForeignKey(Produit, on_delete=models.CASCADE, related_name='lignes_sortie')   # CHANGED to CASCADE
     qte_s = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.qte_s} x {self.produit}"
+
 
 class NotificationStatus(models.Model):
     utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='notification_statuses')
@@ -99,7 +103,3 @@ class NotificationStatus(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur.username} - {self.produit.designation}"
-
-
-    def __str__(self):
-        return f"{self.qte_s} x {self.produit}"

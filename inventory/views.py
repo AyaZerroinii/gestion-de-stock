@@ -1,4 +1,5 @@
 import json
+from django.db import transaction
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -8,10 +9,12 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden, JsonRespons
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from .forms import AdminUserCreationForm
+from django.db.models import Q
 from .models import Utilisateur
 from django.db.models import ProtectedError
 from django.contrib import messages
@@ -26,7 +29,18 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from .models import NotificationStatus, Produit, Utilisateur
 
+
+def staff_or_superuser_required(view_func):
+    actual_decorator = user_passes_test(
+        lambda u: u.is_authenticated and (u.is_staff or u.is_superuser),
+        login_url='waiting_room',
+        redirect_field_name=None
+    )
+    return actual_decorator(view_func)
+
+
 @login_required
+@staff_or_superuser_required
 @csrf_exempt
 @require_POST
 def notification_mark_read(request, product_id):
@@ -52,6 +66,7 @@ def notification_mark_read(request, product_id):
     return JsonResponse({'status': 'ok'})
 
 @login_required
+@staff_or_superuser_required
 @csrf_exempt
 @require_POST
 def notification_mark_deleted(request, product_id):
@@ -95,7 +110,7 @@ def dashboard_admin(request):
         'recent_sorties': recent_sorties,
     })
 
-
+@staff_or_superuser_required
 @login_required(login_url='login')
 def dashboard_user(request):
     if request.user.is_superuser:
@@ -139,12 +154,17 @@ def home(request):
 
     return HttpResponseRedirect(reverse('dashboard_user'))
 
-
+@staff_or_superuser_required
 @login_required(login_url='login')
 def produit_list(request):
     produits = Produit.objects.all().order_by('designation')
-    return render(request, 'inventory/produit_list.html', {'produits': produits})
-
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        produits = produits.filter(
+            Q(code_p__icontains=search_query) |
+            Q(designation__icontains=search_query)
+        )
+    return render(request, 'inventory/produit_list.html', {'produits': produits, 'search_query': search_query})
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def app_home(request):
@@ -192,6 +212,7 @@ def produit_delete(request, pk):
     return render(request, 'inventory/produit_confirm_delete.html', {'produit': produit})
 
 
+@staff_or_superuser_required
 @login_required(login_url='login')
 def product_list_api(request):
     produits = Produit.objects.all().values('code_p', 'designation', 'qte_stock', 'stock_alerte')
@@ -287,8 +308,14 @@ def data_dashboard(request):
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def client_list(request):
     clients = Client.objects.all().order_by('designation')
-    return render(request, 'inventory/client_list.html', {'clients': clients})
-
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        clients = clients.filter(
+            Q(code_cl__icontains=search_query) |
+            Q(designation__icontains=search_query) |
+            Q(tel__icontains=search_query)
+        )
+    return render(request, 'inventory/client_list.html', {'clients': clients, 'search_query': search_query})
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def client_create(request):
@@ -318,25 +345,26 @@ def client_edit(request, pk):
 
     return render(request, 'inventory/client_form.html', {'client': client})
 
-
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def client_delete(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':
-        try:
-            client.delete()
-            messages.success(request, f"Client '{client.designation}' supprimé avec succès.")
-            return redirect('client_list')
-        except ProtectedError:
-            messages.error(request, f"Impossible de supprimer '{client.designation}' car il est référencé dans des bons de sortie. Veuillez d'abord supprimer ou modifier ces bons.")
-            return redirect('client_list')
+        client.delete()
+        messages.success(request, f"Client '{client.designation}' supprimé avec succès (ainsi que tous ses bons de sortie).")
+        return redirect('client_list')
     return render(request, 'inventory/client_confirm_delete.html', {'client': client})
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def fournisseur_list(request):
     fournisseurs = Fournisseur.objects.all().order_by('designation')
-    return render(request, 'inventory/fournisseur_list.html', {'fournisseurs': fournisseurs})
-
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        fournisseurs = fournisseurs.filter(
+            Q(num_f__icontains=search_query) |
+            Q(designation__icontains=search_query) |
+            Q(tel__icontains=search_query)
+        )
+    return render(request, 'inventory/fournisseur_list.html', {'fournisseurs': fournisseurs, 'search_query': search_query})
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def fournisseur_create(request):
@@ -369,15 +397,10 @@ def fournisseur_edit(request, pk):
 def fournisseur_delete(request, pk):
     fournisseur = get_object_or_404(Fournisseur, pk=pk)
     if request.method == 'POST':
-        try:
-            fournisseur.delete()
-            messages.success(request, f"Fournisseur '{fournisseur.designation}' supprimé avec succès.")
-            return redirect('fournisseur_list')
-        except ProtectedError:
-            messages.error(request, f"Impossible de supprimer '{fournisseur.designation}' car il est référencé dans des bons d'entrée. Veuillez d'abord supprimer ou modifier ces bons.")
-            return redirect('fournisseur_list')
+        fournisseur.delete()
+        messages.success(request, f"Fournisseur '{fournisseur.designation}' supprimé avec succès (ainsi que tous ses bons d'entrée).")
+        return redirect('fournisseur_list')
     return render(request, 'inventory/fournisseur_confirm_delete.html', {'fournisseur': fournisseur})
-
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def entreprise_list(request):
@@ -424,6 +447,7 @@ def entreprise_delete(request, pk):
     return render(request, 'inventory/entreprise_confirm_delete.html', {'entreprise': entreprise})
 
 
+@staff_or_superuser_required
 @login_required(login_url='login')
 def bon_entree_list(request):
     utilisateur_obj = Utilisateur.objects.filter(username=request.user.username).first()
@@ -431,9 +455,34 @@ def bon_entree_list(request):
         bons = BonEntree.objects.all().order_by('-date_e')
     else:
         bons = BonEntree.objects.filter(utilisateur=utilisateur_obj).order_by('-date_e')
-    return render(request, 'inventory/bon_entree_list.html', {'bons': bons})
+    
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        bons = bons.filter(
+            Q(num_e__icontains=search_query) |
+            Q(fournisseur__designation__icontains=search_query) |
+            Q(utilisateur__username__icontains=search_query) |
+            Q(date_e__icontains=search_query)  # works with string representation
+        )
+    return render(request, 'inventory/bon_entree_list.html', {'bons': bons, 'search_query': search_query})
+@login_required(login_url='login')
+def bon_entree_delete(request, pk):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Seuls les administrateurs peuvent supprimer des bons d'entrée.")
+    bon = get_object_or_404(BonEntree, pk=pk)
+    if request.method == 'POST':
+        with transaction.atomic():
+            for ligne in bon.lignes.all():
+                produit = ligne.produit
+                produit.qte_stock -= ligne.qte_e
+                produit.save()
+            bon.delete()
+        messages.success(request, f"Bon d'entrée #{pk} supprimé avec succès, stock mis à jour.")
+        return redirect('bon_entree_list')
+    return render(request, 'inventory/bon_entree_confirm_delete.html', {'bon': bon})
 
 
+@staff_or_superuser_required
 @login_required(login_url='login')
 def bon_sortie_list(request):
     utilisateur_obj = Utilisateur.objects.filter(username=request.user.username).first()
@@ -441,10 +490,34 @@ def bon_sortie_list(request):
         bons = BonSortie.objects.all().order_by('-date_s')
     else:
         bons = BonSortie.objects.filter(utilisateur=utilisateur_obj).order_by('-date_s')
-    return render(request, 'inventory/bon_sortie_list.html', {'bons': bons})
+    
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        bons = bons.filter(
+            Q(num_s__icontains=search_query) |
+            Q(client__designation__icontains=search_query) |
+            Q(utilisateur__username__icontains=search_query) |
+            Q(date_s__icontains=search_query)
+        )
+    return render(request, 'inventory/bon_sortie_list.html', {'bons': bons, 'search_query': search_query})
+@login_required(login_url='login')
+def bon_sortie_delete(request, pk):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Seuls les administrateurs peuvent supprimer des bons de sortie.")
+    bon = get_object_or_404(BonSortie, pk=pk)
+    if request.method == 'POST':
+        with transaction.atomic():
+            for ligne in bon.lignes.all():
+                produit = ligne.produit
+                produit.qte_stock += ligne.qte_s
+                produit.save()
+            bon.delete()
+        messages.success(request, f"Bon de sortie #{pk} supprimé avec succès, stock restauré.")
+        return redirect('bon_sortie_list')
+    return render(request, 'inventory/bon_sortie_confirm_delete.html', {'bon': bon})
 
 
-
+@staff_or_superuser_required
 @login_required(login_url='login')
 def bon_entree_create(request):
     fournisseurs = Fournisseur.objects.all()
@@ -541,6 +614,7 @@ def bon_entree_detail(request, pk):
     return render(request, 'inventory/bon_entree_detail.html', {'bon': bon, 'lignes': lignes})
 
 
+@staff_or_superuser_required
 @login_required(login_url='login')
 def bon_sortie_create(request):
     clients = Client.objects.all()
@@ -646,6 +720,7 @@ def bon_sortie_detail(request, pk):
 
 @csrf_exempt
 @login_required(login_url='login')
+@staff_or_superuser_required
 @require_http_methods(['GET', 'POST'])
 def produit_api(request):
     if request.method == 'GET':
@@ -671,7 +746,13 @@ def produit_api(request):
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def user_list(request):
     users = User.objects.all().order_by('username')
-    return render(request, 'inventory/user_list.html', {'users': users})
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+    return render(request, 'inventory/user_list.html', {'users': users, 'search_query': search_query})
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def user_create(request):
@@ -717,9 +798,62 @@ def user_edit(request, pk):
         form = AdminUserCreationForm(instance=user, initial=initial)
     return render(request, 'inventory/user_form.html', {'form': form, 'title': 'Modifier l\'utilisateur'})
 
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def produit_history(request, pk):
+    produit = get_object_or_404(Produit, pk=pk)
+    entrees = LigneEntree.objects.filter(produit=produit).select_related('bon', 'bon__fournisseur', 'bon__utilisateur')
+    sorties = LigneSortie.objects.filter(produit=produit).select_related('bon', 'bon__client', 'bon__utilisateur')
+    
+    history = []
+    for ligne in entrees:
+        history.append({
+            'type': 'Entrée',
+            'date': ligne.bon.date_e,
+            'quantity': ligne.qte_e,
+            'counterparty': ligne.bon.fournisseur.designation,
+            'user': ligne.bon.utilisateur.username,
+            'bon_num': ligne.bon.num_e,
+        })
+    for ligne in sorties:
+        history.append({
+            'type': 'Sortie',
+            'date': ligne.bon.date_s,
+            'quantity': ligne.qte_s,
+            'counterparty': ligne.bon.client.designation,
+            'user': ligne.bon.utilisateur.username,
+            'bon_num': ligne.bon.num_s,
+        })
+    history.sort(key=lambda x: x['date'], reverse=True)
+    
+    return render(request, 'inventory/history_produit.html', {'produit': produit, 'history': history})
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def client_history(request, pk):
+    client = get_object_or_404(Client, pk=pk)
+    bons = BonSortie.objects.filter(client=client).prefetch_related('lignes__produit').order_by('-date_s')
+    return render(request, 'inventory/history_client.html', {'client': client, 'bons': bons})
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def fournisseur_history(request, pk):
+    fournisseur = get_object_or_404(Fournisseur, pk=pk)
+    bons = BonEntree.objects.filter(fournisseur=fournisseur).prefetch_related('lignes__produit').order_by('-date_e')
+    return render(request, 'inventory/history_fournisseur.html', {'fournisseur': fournisseur, 'bons': bons})
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def user_history(request, username):
+    user_obj = get_object_or_404(User, username=username)
+    utilisateur_obj = Utilisateur.objects.filter(username=user_obj.username).first()
+    if not utilisateur_obj:
+        messages.warning(request, "Aucun profil utilisateur associé.")
+        return redirect('user_list')
+    
+    entrees = BonEntree.objects.filter(utilisateur=utilisateur_obj).order_by('-date_e')
+    sorties = BonSortie.objects.filter(utilisateur=utilisateur_obj).order_by('-date_s')
+    return render(request, 'inventory/history_user.html', {'user_obj': user_obj, 'entrees': entrees, 'sorties': sorties})
 
 @csrf_exempt
 @login_required(login_url='login')
+@staff_or_superuser_required
 @require_http_methods(['PUT', 'DELETE'])
 def produit_api_detail(request, pk):
     produit = get_object_or_404(Produit, pk=pk)

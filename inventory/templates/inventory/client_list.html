@@ -2,6 +2,18 @@
 {% block content %}
 <h2>Clients</h2>
 <p><a class="btn btn-primary rounded-pill px-4" href="{% url 'client_create' %}">Ajouter un client</a></p>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control rounded-pill" placeholder="Rechercher par nom, code ou téléphone..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-outline-primary rounded-pill">Rechercher</button>
+            {% if search_query %}
+                <a href="{% url 'client_list' %}" class="btn btn-outline-secondary rounded-pill">Réinitialiser</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
 <table class="table table-striped">
     <thead>
         <tr><th>Code</th><th>Nom</th><th>Téléphone</th><th>Actions</th></tr>
@@ -15,6 +27,7 @@
                 <td>
                     <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'client_edit' client.pk %}">Modifier</a>
                     <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'client_delete' client.pk %}">Supprimer</a>
+                    <a href="{% url 'client_history' client.pk %}" class="btn btn-sm btn-info rounded-pill px-3">Historique</a>
                 </td>
             </tr>
         {% empty %}

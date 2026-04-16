@@ -4,60 +4,70 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Liste des produits</h2>
-    <div>
-        {% if user.is_superuser %}
-            <a href="{% url 'produit_create' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Ajouter un produit
-            </a>
-            
-        {% endif %}
-        
+    {% if user.is_superuser %}
+        <a href="{% url 'produit_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Ajouter un produit
+        </a>
+    {% endif %}
+</div>
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control rounded-pill" placeholder="Rechercher par code ou nom..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-outline-primary rounded-pill">Rechercher</button>
+            {% if search_query %}
+                <a href="{% url 'produit_list' %}" class="btn btn-outline-secondary rounded-pill">Réinitialiser</a>
+            {% endif %}
+        </form>
     </div>
 </div>
 
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    {% for produit in produits %}
-    <div class="col">
-        <div class="card h-100 {% if produit.qte_stock <= produit.stock_alerte %}border-danger{% endif %}">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <h5 class="card-title">{{ produit.designation }}</h5>
-                    <span class="badge bg-secondary">Code: {{ produit.code_p }}</span>
-                </div>
-                <hr>
-                <p class="card-text">
-                    <strong>Quantité en stock :</strong>
-                    <span class="{% if produit.qte_stock <= produit.stock_alerte %}text-danger fw-bold{% endif %}">
-                        {{ produit.qte_stock }}
-                        {% if produit.qte_stock <= produit.stock_alerte %}
-                            <i class="bi bi-exclamation-triangle-fill text-danger" title="Stock faible"></i>
-                        {% endif %}
-                    </span>
-                </p>
-                <!-- La ligne du seuil d'alerte a été supprimée -->
-            </div>
-            {% if user.is_superuser %}
-            <div class="card-footer bg-transparent border-top-0">
-                <div class="d-flex justify-content-end gap-2">
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Désignation</th>
+                <th>Stock</th>
+                <th>Seuil d'alerte</th>
+                {% if user.is_superuser %}
+                    <th>Actions</th>
+                {% endif %}
+            </thead>
+        <tbody>
+            {% for produit in produits %}
+            <tr class="{% if produit.qte_stock <= produit.stock_alerte %}table-danger{% endif %}">
+                <td>{{ produit.code_p }}</td>
+                <td>{{ produit.designation }}</td>
+                <td>
+                    {{ produit.qte_stock }}
+                    {% if produit.qte_stock <= produit.stock_alerte %}
+                        <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Stock faible"></i>
+                    {% endif %}
+                </td>
+                <td>{{ produit.stock_alerte }}</td>
+                {% if user.is_superuser %}
+                <td>
                     <a href="{% url 'produit_edit' produit.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Modifier">
                         <i class="bi bi-pencil-square"></i> Modifier
                     </a>
                     <a href="{% url 'produit_delete' produit.pk %}" class="btn btn-sm btn-danger rounded-pill px-3" title="Supprimer">
                         <i class="bi bi-trash3"></i> Supprimer
                     </a>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-        <div class="alert alert-info text-center">
-            Aucun produit enregistré.
-        </div>
-    </div>
-    {% endfor %}
+                    <a href="{% url 'produit_history' produit.pk %}" class="btn btn-sm btn-info rounded-pill px-3" title="Historique">
+    <i class="bi bi-clock-history"></i> Historique
+</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{% if user.is_superuser %}5{% else %}4{% endif %}" class="text-center text-muted">
+                    Aucun produit enregistré.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-
-
 {% endblock %}

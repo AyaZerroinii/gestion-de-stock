@@ -1,17 +1,33 @@
 {% extends 'inventory/base.html' %}
+
 {% block content %}
 <div class="card mx-auto shadow-sm rounded-4" style="max-width: 640px;">
-    <div class="card-body">
-        <h2 class="card-title">Espace en attente</h2>
+    <div class="card-body p-4">
+        <h2 class="card-title text-primary-dark mb-4">
+            <i class="bi bi-clock-history me-2"></i>Espace en attente
+        </h2>
+        
         <p class="card-text">Bonjour <strong>{{ user.get_full_name|default:user.username }}</strong>, voici les informations de votre compte :</p>
+        
         <ul class="list-group mb-4">
             <li class="list-group-item"><strong>Nom d'utilisateur :</strong> {{ user.username }}</li>
             <li class="list-group-item"><strong>Email :</strong> {{ user.email }}</li>
         </ul>
-        <div class="alert alert-warning" role="alert">
+        
+        <div class="alert alert-warning border-0 bg-warning-soft" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
             Votre compte est en attente d'activation. Veuillez contacter l'administrateur pour obtenir des accès.
         </div>
-        <p class="text-muted">Vous pouvez revenir ici une fois que votre compte est activé.</p>
+        
+        <p class="text-muted mb-4">Vous pouvez revenir ici une fois que votre compte est activé.</p>
+
+        <hr>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger">
+                <i class="bi bi-box-arrow-right me-2"></i>Déconnexion 
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

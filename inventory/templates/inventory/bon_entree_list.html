@@ -1,92 +1,68 @@
 {% extends 'inventory/base.html' %}
 
 {% block content %}
-
-<div class="container mt-4">
-
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold">Bons d'Entrée</h4>
-
-        <a href="{% url 'bon_entree_create' %}" class="btn btn-primary">
-            + Nouveau Bon
-        </a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold">Bons d'Entrée</h4>
+    <a href="{% url 'bon_entree_create' %}" class="btn btn-primary">
+        + Nouveau Bon
+    </a>
+</div>
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control rounded-pill" placeholder="Rechercher par numéro, fournisseur/client, utilisateur ou date..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-outline-primary rounded-pill">Rechercher</button>
+            {% if search_query %}
+                <a href="{% url 'bon_entree_list' %}" class="btn btn-outline-secondary rounded-pill">Réinitialiser</a>
+            {% endif %}
+        </form>
     </div>
+</div>
 
-    <!-- Cards Grid -->
-    <div class="row">
-
-        {% for bon in bons %}
-        <div class="col-md-6 col-lg-4 mb-4">
-
-            <div class="card shadow-sm h-100 border-0 bon-card">
-
-                <div class="card-body">
-
-                    <!-- Top -->
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">#{{ bon.num_e }}</span>
-                        <span class="badge bg-light text-dark">
-                            {{ bon.date_e|date:"d/m/Y" }}
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>N°</th>
+                <th>Date</th>
+                <th>Fournisseur</th>
+                <th>Utilisateur</th>
+                <th>Produits</th>
+                <th>Actions</th>
+            </thead>
+        <tbody>
+            {% for bon in bons %}
+            <tr>
+                <td>#{{ bon.num_e }}</td>
+                <td>{{ bon.date_e|date:"d/m/Y H:i" }}</td>
+                <td>{{ bon.fournisseur.designation }}</td>
+                <td>{{ bon.utilisateur.username }}</td>
+                <td>
+                    {% for ligne in bon.lignes.all %}
+                        <span class="badge bg-light text-dark border me-1 mb-1">
+                            {{ ligne.produit.designation }} ({{ ligne.qte_e }})
                         </span>
-                    </div>
-
-<!-- Fournisseur -->
-<p class="mb-1">
-    <strong>Fournisseur:</strong> {{ bon.fournisseur.designation }}
-</p>
-
-<!-- Utilisateur -->
-<p class="mb-2">
-    <strong>Utilisateur:</strong> {{ bon.utilisateur.username }}
-</p>
-
-<!-- Produits -->
-<div class="mb-2">
-    <strong>Produits:</strong>
-    <div class="mt-1">
-        {% for ligne in bon.lignes.all %}
-            <span class="badge bg-light text-dark border me-1 mb-1">
-                {{ ligne.produit.designation }} ({{ ligne.qte_e }})
-            </span>
-        {% empty %}
-            <span class="text-muted">Aucun produit</span>
-        {% endfor %}
-    </div>
-</div>
-
-                    <!-- Button -->
-                    <a href="{% url 'bon_entree_detail' bon.pk %}" 
-                       class="btn btn-outline-primary w-100">
-                        imprimer
+                    {% empty %}
+                        <span class="text-muted">Aucun produit</span>
+                    {% endfor %}
+                </td>
+                <td>
+                    <a href="{% url 'bon_entree_detail' bon.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        <i class="bi bi-printer"></i> Imprimer
                     </a>
-
-                </div>
-
-            </div>
-
-        </div>
-        {% empty %}
-        <div class="col-12 text-center text-muted">
-            Aucun bon trouvé
-        </div>
-        {% endfor %}
-
-    </div>
-
+                    {% if user.is_superuser %}
+                        <a href="{% url 'bon_entree_delete' bon.pk %}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                            <i class="bi bi-trash3"></i> Supprimer
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">Aucun bon trouvé</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-
-
-<style>
-.bon-card {
-    transition: 0.3s;
-    border-radius: 12px;
-}
-
-.bon-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-</style>
-
 {% endblock %}

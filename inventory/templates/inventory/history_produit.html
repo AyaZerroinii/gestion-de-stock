@@ -1,0 +1,45 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Historique du produit : {{ produit.designation }}</h2>
+    <a href="{% url 'produit_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Retour</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Quantité</th>
+                <th>Partenaire</th>
+                <th>Utilisateur</th>
+                <th>N° Bon</th>
+            </thead>
+        <tbody>
+            {% for entry in history %}
+            <tr>
+                <td>
+                    <span class="badge {% if entry.type == 'Entrée' %}bg-success{% else %}bg-danger{% endif %}">
+                        {{ entry.type }}
+                    </span>
+                </td>
+                <td>{{ entry.date|date:"d/m/Y H:i" }}</td>
+                <td>{{ entry.quantity }}</td>
+                <td>{{ entry.counterparty }}</td>
+                <td>{{ entry.user }}</td>
+                <td>
+                    {% if entry.type == 'Entrée' %}
+                        <a href="{% url 'bon_entree_detail' entry.bon_num %}">#{{ entry.bon_num }}</a>
+                    {% else %}
+                        <a href="{% url 'bon_sortie_detail' entry.bon_num %}">#{{ entry.bon_num }}</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">Aucune transaction pour ce produit.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

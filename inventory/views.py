@@ -14,7 +14,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from .forms import AdminUserCreationForm
-from django.db.models import Q
+from django.db.models import Sum, Q
+from django.db.models import Count
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.dateparse import parse_date
+from django.contrib.admin.views.decorators import staff_member_required
 from .models import Utilisateur
 from django.db.models import ProtectedError
 from django.contrib import messages
@@ -294,7 +298,7 @@ def delete_user(request, pk):
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def data_dashboard(request):
     stats = {
-        'entreprises': Entreprise.objects.count(),
+        # 'entreprises': Entreprise.objects.count(),
         'fournisseurs': Fournisseur.objects.count(),
         'clients': Client.objects.count(),
         'produits': Produit.objects.count(),
@@ -402,10 +406,10 @@ def fournisseur_delete(request, pk):
         return redirect('fournisseur_list')
     return render(request, 'inventory/fournisseur_confirm_delete.html', {'fournisseur': fournisseur})
 
-@user_passes_test(lambda u: u.is_superuser, login_url='login')
-def entreprise_list(request):
-    entreprises = Entreprise.objects.all().order_by('nom')
-    return render(request, 'inventory/entreprise_list.html', {'entreprises': entreprises})
+# @user_passes_test(lambda u: u.is_superuser, login_url='login')
+# def entreprise_list(request):
+#     entreprises = Entreprise.objects.all().order_by('nom')
+#     return render(request, 'inventory/entreprise_list.html', {'entreprises': entreprises})
 
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
@@ -850,6 +854,130 @@ def user_history(request, username):
     entrees = BonEntree.objects.filter(utilisateur=utilisateur_obj).order_by('-date_e')
     sorties = BonSortie.objects.filter(utilisateur=utilisateur_obj).order_by('-date_s')
     return render(request, 'inventory/history_user.html', {'user_obj': user_obj, 'entrees': entrees, 'sorties': sorties})
+
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def admin_report(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    entrees = BonEntree.objects.none()
+    sorties = BonSortie.objects.none()
+    stats = {
+        'total_entrees': 0,
+        'total_sorties': 0,
+    }
+    top_products = []
+    top_fournisseurs = []  # each will have total_qte and list of products
+    top_clients = []       # each will have total_qte and list of products
+    error = None
+
+    if start_date and end_date:
+        try:
+            start = parse_date(start_date)
+            end = parse_date(end_date)
+            if start and end:
+                # Filter bons within date range
+                entrees = BonEntree.objects.filter(date_e__date__gte=start, date_e__date__lte=end).order_by('-date_e')
+                sorties = BonSortie.objects.filter(date_s__date__gte=start, date_s__date__lte=end).order_by('-date_s')
+                
+                stats['total_entrees'] = entrees.count()
+                stats['total_sorties'] = sorties.count()
+                
+                # ----- TOP PRODUITS (sorted by most requested = total sorties) -----
+                product_entries = LigneEntree.objects.filter(bon__in=entrees).values('produit__code_p', 'produit__designation').annotate(total_in=Sum('qte_e'))
+                product_exits = LigneSortie.objects.filter(bon__in=sorties).values('produit__code_p', 'produit__designation').annotate(total_out=Sum('qte_s'))
+                
+                product_totals = {}
+                for p in product_entries:
+                    product_totals[p['produit__code_p']] = {
+                        'designation': p['produit__designation'],
+                        'total_in': p['total_in'],
+                        'total_out': 0,
+                    }
+                for p in product_exits:
+                    code = p['produit__code_p']
+                    if code in product_totals:
+                        product_totals[code]['total_out'] = p['total_out']
+                    else:
+                        product_totals[code] = {
+                            'designation': p['produit__designation'],
+                            'total_in': 0,
+                            'total_out': p['total_out'],
+                        }
+                for code, data in product_totals.items():
+                    data['total_moved'] = data['total_in'] + data['total_out']
+                # Sort by total_out descending (most requested)
+                top_products = sorted(product_totals.values(), key=lambda x: x['total_out'], reverse=True)[:5]
+                
+                # ----- TOP FOURNISSEURS with product breakdown -----
+                fournisseur_totals = LigneEntree.objects.filter(bon__in=entrees).values(
+                    'bon__fournisseur__num_f', 'bon__fournisseur__designation'
+                ).annotate(total_qte=Sum('qte_e')).order_by('-total_qte')[:5]
+                
+                top_fournisseurs = []
+                for f in fournisseur_totals:
+                    fournisseur_num = f['bon__fournisseur__num_f']
+                    fournisseur_name = f['bon__fournisseur__designation']
+                    total_qte = f['total_qte']
+                    
+                    # Get product breakdown for this fournisseur
+                    products = LigneEntree.objects.filter(
+                        bon__in=entrees,
+                        bon__fournisseur__num_f=fournisseur_num
+                    ).values('produit__designation').annotate(qte=Sum('qte_e')).order_by('-qte')[:5]
+                    
+                    top_fournisseurs.append({
+                        'num': fournisseur_num,
+                        'name': fournisseur_name,
+                        'total_qte': total_qte,
+                        'products': list(products),
+                    })
+                
+                # ----- TOP CLIENTS with product breakdown -----
+                client_totals = LigneSortie.objects.filter(bon__in=sorties).values(
+                    'bon__client__code_cl', 'bon__client__designation'
+                ).annotate(total_qte=Sum('qte_s')).order_by('-total_qte')[:5]
+                
+                top_clients = []
+                for c in client_totals:
+                    client_code = c['bon__client__code_cl']
+                    client_name = c['bon__client__designation']
+                    total_qte = c['total_qte']
+                    
+                    # Get product breakdown for this client
+                    products = LigneSortie.objects.filter(
+                        bon__in=sorties,
+                        bon__client__code_cl=client_code
+                    ).values('produit__designation').annotate(qte=Sum('qte_s')).order_by('-qte')[:5]
+                    
+                    top_clients.append({
+                        'code': client_code,
+                        'name': client_name,
+                        'total_qte': total_qte,
+                        'products': list(products),
+                    })
+                
+            else:
+                error = "Format de date invalide. Utilisez YYYY-MM-DD."
+        except Exception as e:
+            error = f"Erreur: {str(e)}"
+    elif start_date or end_date:
+        error = "Veuillez fournir les deux dates (début et fin)."
+
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'entrees': entrees,
+        'sorties': sorties,
+        'stats': stats,
+        'top_products': top_products,
+        'top_fournisseurs': top_fournisseurs,
+        'top_clients': top_clients,
+        'error': error,
+    }
+    return render(request, 'inventory/admin_report.html', context)
 
 @csrf_exempt
 @login_required(login_url='login')

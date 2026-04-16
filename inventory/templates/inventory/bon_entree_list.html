@@ -7,10 +7,11 @@
         + Nouveau Bon
     </a>
 </div>
+
 <div class="row mb-3">
     <div class="col-md-6">
         <form method="get" class="d-flex gap-2">
-            <input type="text" name="q" class="form-control rounded-pill" placeholder="Rechercher par numéro, fournisseur/client, utilisateur ou date..." value="{{ search_query }}">
+            <input type="text" name="q" class="form-control rounded-pill" placeholder="Rechercher par numéro, fournisseur, utilisateur ou date..." value="{{ search_query }}">
             <button type="submit" class="btn btn-outline-primary rounded-pill">Rechercher</button>
             {% if search_query %}
                 <a href="{% url 'bon_entree_list' %}" class="btn btn-outline-secondary rounded-pill">Réinitialiser</a>
@@ -19,9 +20,9 @@
     </div>
 </div>
 
-<div class="table-responsive">
+<div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
     <table class="table table-striped align-middle">
-        <thead>
+        <thead style="position: sticky; top: 0; background-color: #f8fafc; z-index: 1;">
             <tr>
                 <th>N°</th>
                 <th>Date</th>

@@ -14,12 +14,13 @@
         </form>
     </div>
 </div>
-<table class="table table-striped">
-    <thead>
-        <tr><th>Code</th><th>Nom</th><th>Téléphone</th><th>Actions</th></tr>
-    </thead>
-    <tbody>
-        {% for client in clients %}
+
+<div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+    <table class="table table-striped">
+        <thead style="position: sticky; top: 0; background-color: #f8fafc; z-index: 1;">
+            <tr><th>Code</th><th>Nom</th><th>Téléphone</th><th>Actions</th></thead>
+        <tbody>
+            {% for client in clients %}
             <tr>
                 <td>{{ client.code_cl }}</td>
                 <td>{{ client.designation }}</td>
@@ -27,12 +28,13 @@
                 <td>
                     <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'client_edit' client.pk %}">Modifier</a>
                     <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'client_delete' client.pk %}">Supprimer</a>
-                    <a href="{% url 'client_history' client.pk %}" class="btn btn-sm btn-info rounded-pill px-3">Historique</a>
+                    <a class="btn btn-sm btn-info rounded-pill px-3" href="{% url 'client_history' client.pk %}">Historique</a>
                 </td>
             </tr>
-        {% empty %}
+            {% empty %}
             <tr><td colspan="4">Aucun client trouvé.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

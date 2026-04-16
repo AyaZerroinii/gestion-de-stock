@@ -27,10 +27,10 @@ urlpatterns = [
     path('fournisseurs/new/', views.fournisseur_create, name='fournisseur_create'),
     path('fournisseurs/<int:pk>/edit/', views.fournisseur_edit, name='fournisseur_edit'),
     path('fournisseurs/<int:pk>/delete/', views.fournisseur_delete, name='fournisseur_delete'),
-    path('entreprises/', views.entreprise_list, name='entreprise_list'),
-    path('entreprises/new/', views.entreprise_create, name='entreprise_create'),
-    path('entreprises/<int:pk>/edit/', views.entreprise_edit, name='entreprise_edit'),
-    path('entreprises/<int:pk>/delete/', views.entreprise_delete, name='entreprise_delete'),
+    # path('entreprises/', views.entreprise_list, name='entreprise_list'),
+    # path('entreprises/new/', views.entreprise_create, name='entreprise_create'),
+    # path('entreprises/<int:pk>/edit/', views.entreprise_edit, name='entreprise_edit'),
+    # path('entreprises/<int:pk>/delete/', views.entreprise_delete, name='entreprise_delete'),
     path('data-dashboard/', views.data_dashboard, name='data_dashboard'),
     path('api/produits/', views.produit_api, name='produit_api'),
     path('api/produits/<int:pk>/', views.produit_api_detail, name='produit_api_detail'),
@@ -46,5 +46,6 @@ path('produits/<int:pk>/history/', views.produit_history, name='produit_history'
 path('clients/<int:pk>/history/', views.client_history, name='client_history'),
 path('fournisseurs/<int:pk>/history/', views.fournisseur_history, name='fournisseur_history'),
 path('users/<str:username>/history/', views.user_history, name='user_history'),
+path('admin-report/', views.admin_report, name='admin_report'),
 
 ]

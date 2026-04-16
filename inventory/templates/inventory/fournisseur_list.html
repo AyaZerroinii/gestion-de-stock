@@ -15,29 +15,26 @@
     </div>
 </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nom</th>
-            <th>Téléphone</th>
-            <th>Actions</th>
-        </thead>
-    <tbody>
-        {% for f in fournisseurs %}
-        <tr>
-            <td>{{ f.num_f }}</td>
-            <td>{{ f.designation }}</td>
-            <td>{{ f.tel }}</td>
-            <td>
-                <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'fournisseur_edit' f.pk %}">Modifier</a>
-                <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'fournisseur_delete' f.pk %}">Supprimer</a>
-                <a class="btn btn-sm btn-info rounded-pill px-3" href="{% url 'fournisseur_history' f.pk %}">Historique</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="4">Aucun fournisseur.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+    <table class="table table-striped">
+        <thead style="position: sticky; top: 0; background-color: #f8fafc; z-index: 1;">
+            <tr><th>ID</th><th>Nom</th><th>Téléphone</th><th>Actions</th></thead>
+        <tbody>
+            {% for f in fournisseurs %}
+            <tr>
+                <td>{{ f.num_f }}</td>
+                <td>{{ f.designation }}</td>
+                <td>{{ f.tel }}</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'fournisseur_edit' f.pk %}">Modifier</a>
+                    <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'fournisseur_delete' f.pk %}">Supprimer</a>
+                    <a class="btn btn-sm btn-info rounded-pill px-3" href="{% url 'fournisseur_history' f.pk %}">Historique</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Aucun fournisseur.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

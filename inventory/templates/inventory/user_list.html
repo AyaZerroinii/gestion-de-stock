@@ -6,6 +6,7 @@
         Ajouter un utilisateur
     </a>
 </p>
+
 <div class="row mb-3">
     <div class="col-md-6">
         <form method="get" class="d-flex gap-2">
@@ -17,33 +18,36 @@
         </form>
     </div>
 </div>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nom</th>
-            <th>Email</th>
-            <th>Staff</th>
-            <th>Superuser</th>
-            <th>Actions</th>
-        </thead>
-    <tbody>
-        {% for u in users %}
-        <tr>
-            <td>{{ u.username }}</td>
-            <td>{{ u.email }}</td>
-            <td>{% if u.is_staff %}Oui{% else %}Non{% endif %}</td>
-            <td>{% if u.is_superuser %}Oui{% else %}Non{% endif %}</td>
-          <td>
-    {% if not u.is_superuser %}
-        <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'user_edit' u.pk %}">Modifier</a>
-        <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'delete_user' u.pk %}">Supprimer</a>
-    {% endif %}
-    <a class="btn btn-sm btn-info rounded-pill px-3" href="{% url 'user_history' u.username %}">Historique</a>
-</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5">Aucun utilisateur trouvé.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+<div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+    <table class="table table-striped">
+        <thead style="position: sticky; top: 0; background-color: #f8fafc; z-index: 1;">
+            <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Staff</th>
+                <th>Superuser</th>
+                <th>Actions</th>
+            </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>{% if u.is_staff %}Oui{% else %}Non{% endif %}</td>
+                <td>{% if u.is_superuser %}Oui{% else %}Non{% endif %}</td>
+                <td>
+                    {% if not u.is_superuser %}
+                        <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'user_edit' u.pk %}">Modifier</a>
+                        <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'delete_user' u.pk %}">Supprimer</a>
+                    {% endif %}
+                    <a class="btn btn-sm btn-info rounded-pill px-3" href="{% url 'user_history' u.username %}">Historique</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Aucun utilisateur trouvé.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

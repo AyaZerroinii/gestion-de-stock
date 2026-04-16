@@ -453,6 +453,7 @@ body.sidebar-collapsed .content-area {
                 <div class="collapse navbar-collapse" id="navbarStaff">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li class="nav-item"><a class="nav-link" href="{% url 'home' %}"><i class="bi bi-house-door me-1"></i> Accueil</a></li>
+                       
                         <li class="nav-item"><a class="nav-link" href="{% url 'produit_list' %}"><i class="bi bi-box me-1"></i> Produits</a></li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="bonsDropdown" role="button" data-bs-toggle="dropdown"><i class="bi bi-file-text me-1"></i> Bons</a>
@@ -492,6 +493,7 @@ body.sidebar-collapsed .content-area {
                 <aside class="sidebar" id="sidebar">
                     <nav class="nav flex-column">
                         <a class="nav-link mb-2" href="{% url 'home' %}"><i class="bi bi-house-door fa-fw me-2"></i> Accueil</a>
+                        <a class="nav-link mb-2" href="{% url 'admin_report' %}"><i class="bi bi-bar-chart-steps fa-fw me-2"></i> Statut</a>
                         <a class="nav-link mb-2" href="{% url 'produit_list' %}"><i class="bi bi-box fa-fw me-2"></i> Produits</a>
                         <button class="btn btn-toggle mb-2 collapsed" data-bs-toggle="collapse" data-bs-target="#bonsMenu"><i class="bi bi-file-text fa-fw me-2"></i> Bons</button>
                         <div class="collapse submenu mb-3" id="bonsMenu">
@@ -508,8 +510,7 @@ body.sidebar-collapsed .content-area {
                             <a class="nav-link mb-1" href="{% url 'user_list' %}"><i class="bi bi-people me-2"></i> Utilisateurs</a>
                             <a class="nav-link mb-1" href="{% url 'client_list' %}"><i class="bi bi-person-badge me-2"></i> Clients</a>
                             <a class="nav-link mb-1" href="{% url 'fournisseur_list' %}"><i class="bi bi-truck me-2"></i> Fournisseurs</a>
-                            <a class="nav-link mb-1" href="{% url 'entreprise_list' %}"><i class="bi bi-building me-2"></i> Entreprises</a>
-                        </div>
+                           
                         {% endif %}
                     </nav>
                 </aside>

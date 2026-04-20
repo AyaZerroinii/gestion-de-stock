@@ -22,10 +22,26 @@
     }
     .signature {
         margin-top: 40px;
-        text-align: left;
+        text-align: right;
     }
-    hr {
-        border-top: 1px solid #000;
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table th, .table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    /* الأعمدة تظهر من اليمين لليسار: #، اسم المنتج، الكمية */
+    .table th, .table td {
+        direction: rtl;
+    }
+    /* الأرقام (الرقم التسلسلي والكمية) نعكس اتجاهها لتظهر بشكل صحيح */
+    .table td:first-child, .table td:last-child,
+    .table th:first-child, .table th:last-child {
+        direction: ltr;
+        unicode-bidi: embed;
     }
 }
 </style>
@@ -35,14 +51,13 @@
         <div class="card-header text-center bg-light">
             <button class="btn btn-primary no-print" onclick="window.print()">طباعة</button>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="direction: rtl; text-align: right;">
             <!-- الترويسة الرسمية -->
             <div class="text-center mb-4">
                 <h3>الجمهورية الجزائرية الديمقراطية الشعبية</h3>
                 <h4>وزارة التربية الوطنية</h4>
                 <h5>مصلحة المستخدمين</h5>
-                <br>
-                <br>
+                <hr style="width: 50%; margin: 0 auto;">
                 <h2>وصل خروج من المخزن</h2>
             </div>
 
@@ -61,7 +76,7 @@
             <!-- جدول المنتجات -->
             <table class="table table-bordered">
                 <thead>
-                    <tr class="text-center">
+                    <tr>
                         <th>#</th>
                         <th>اسم المنتج</th>
                         <th>الكمية</th>
@@ -71,31 +86,27 @@
                     {% for ligne in lignes %}
                     <tr>
                         <td class="text-center">{{ forloop.counter }}</td>
-                        <td>{{ ligne.produit.designation }}</td>
+                        <td class="text-right">{{ ligne.produit.designation }}</td>
                         <td class="text-center">{{ ligne.qte_s }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
 
-           
+            <!-- تذييل بالتوقيع -->
             <div class="signature mt-5">
                 <div class="row">
                     <div class="col-6">
                         <p><strong>مدير مصلحة المستخدمين</strong></p>
-                        
-                        <p>التوقيع:        </p>
+                        <p>التوقيع: </p>
                     </div>
                     <div class="col-6 text-left">
                         <p><strong>ختم المؤسسة</strong></p>
-                      
+                        
                     </div>
                 </div>
             </div>
 
-            <div class="mt-3 text-muted text-center small">
-                هذا الوصل يُعتبر سنداً رسمياً للخروج.
-            </div>
         </div>
     </div>
 </div>

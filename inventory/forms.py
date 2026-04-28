@@ -1,30 +1,50 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from django.core.validators import MinLengthValidator
+import re
 
 from .models import Produit, Utilisateur
 
 
+# ========== PRODUIT FORM ==========
 class ProduitForm(forms.ModelForm):
     class Meta:
         model = Produit
         fields = ['designation', 'qte_stock', 'stock_alerte']
         widgets = {
-            'designation': forms.TextInput(attrs={'class': 'form-control'}),
-            'qte_stock': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'stock_alerte': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'designation': forms.TextInput(attrs={'class': 'form-control rounded-3'}),
+            'qte_stock': forms.NumberInput(attrs={'class': 'form-control rounded-3', 'min': 0}),
+            'stock_alerte': forms.NumberInput(attrs={'class': 'form-control rounded-3', 'min': 0}),
         }
+    
+    def clean_designation(self):
+        """Vérifier que le nom du produit n'existe pas déjà"""
+        designation = self.cleaned_data.get('designation')
+        instance = getattr(self, 'instance', None)
+        
+        # Cas de modification : on exclut l'instance actuelle
+        if instance and instance.pk:
+            if Produit.objects.filter(designation__iexact=designation).exclude(pk=instance.pk).exists():
+                raise forms.ValidationError(f"Un produit avec le nom '{designation}' existe déjà.")
+        else:
+            # Cas d'ajout : on vérifie tous les produits
+            if Produit.objects.filter(designation__iexact=designation).exists():
+                raise forms.ValidationError(f"Un produit avec le nom '{designation}' existe déjà.")
+        
+        return designation
 
-
+# ========== ADMIN USER CREATION FORM ==========
 class AdminUserCreationForm(forms.ModelForm):
     password1 = forms.CharField(
         label='Password',
-        widget=forms.PasswordInput,
+        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3'}),
         required=False,
         help_text='Enter a password for new users, or leave blank to keep the current password when editing.',
     )
     password2 = forms.CharField(
         label='Confirm Password',
-        widget=forms.PasswordInput,
+        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3'}),
         required=False,
         help_text='Confirm the password if setting or changing it.',
     )
@@ -32,6 +52,7 @@ class AdminUserCreationForm(forms.ModelForm):
     role = forms.CharField(
         max_length=50,
         required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control rounded-3'}),
         help_text='Role (e.g. manager, vendor)',
         error_messages={
             'max_length': 'Role must contain 50 characters or fewer.',
@@ -40,6 +61,7 @@ class AdminUserCreationForm(forms.ModelForm):
     tel = forms.CharField(
         max_length=50,
         required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control rounded-3'}),
         help_text='Phone number (optional)',
         error_messages={
             'max_length': 'Phone number must contain 50 characters or fewer.',
@@ -50,6 +72,12 @@ class AdminUserCreationForm(forms.ModelForm):
         model = User
         fields = ['username', 'email', 'is_staff', 'is_superuser']
         field_order = ['username', 'email', 'role', 'tel', 'is_staff', 'is_superuser', 'password1', 'password2']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control rounded-3'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control rounded-3'}),
+            'is_staff': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_superuser': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -119,47 +147,51 @@ class AdminUserCreationForm(forms.ModelForm):
             user.save()
         return user
 
-from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.models import User
-from django.core.validators import MinLengthValidator
-import re
 
+# ========== CUSTOM USER CREATION FORM ==========
 class CustomUserCreationForm(UserCreationForm):
     """Formulaire de création d'utilisateur par l'admin"""
-    email = forms.EmailField(required=True)
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control rounded-3'}))
     
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control rounded-3'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control rounded-3'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control rounded-3'}),
+        }
     
     def save(self, commit=True):
         user = super().save(commit=False)
         # Générer un mot de passe temporaire
-        temp_password = User.objects.make_random_password(length=10)
+        import secrets
+        import string
+        alphabet = string.ascii_letters + string.digits
+        temp_password = ''.join(secrets.choice(alphabet) for _ in range(10))
         user.set_password(temp_password)
         if commit:
             user.save()
             # Créer le profil Utilisateur associé
-            from .models import Utilisateur
             Utilisateur.objects.create(
                 username=user.username,
                 password=user.password,
-                must_change_password=True,  
+                must_change_password=True,
                 role='user'
             )
         return user, temp_password
 
 
+# ========== FORCE PASSWORD CHANGE FORM ==========
 class ForcePasswordChangeForm(forms.Form):
     """Formulaire pour forcer le changement de mot de passe"""
     new_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': 'Nouveau mot de passe'}),
         validators=[MinLengthValidator(8)],
         label='Nouveau mot de passe'
     )
     confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer le mot de passe'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': 'Confirmer le mot de passe'}),
         label='Confirmer le mot de passe'
     )
     
@@ -183,19 +215,23 @@ class ForcePasswordChangeForm(forms.Form):
         return cleaned_data
 
 
+# ========== FORGOT PASSWORD FORM ==========
 class ForgotPasswordForm(forms.Form):
     """Formulaire pour demander réinitialisation"""
-    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Entrez votre email'}))
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control rounded-3', 'placeholder': 'Entrez votre email'})
+    )
 
 
+# ========== RESET PASSWORD FORM ==========
 class ResetPasswordForm(forms.Form):
     """Formulaire pour réinitialiser le mot de passe"""
     new_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': 'Nouveau mot de passe'}),
         validators=[MinLengthValidator(8)]
     )
     confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer le mot de passe'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': 'Confirmer le mot de passe'})
     )
     
     def clean(self):
@@ -205,9 +241,10 @@ class ResetPasswordForm(forms.Form):
         return cleaned_data
 
 
+# ========== ADMIN OTP FORM ==========
 class AdminOTPForm(forms.Form):
     """Formulaire pour l'OTP admin"""
     otp_code = forms.CharField(
         max_length=6,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Code à 6 chiffres'})
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-lg text-center fs-3 rounded-3', 'placeholder': '000000'})
     )

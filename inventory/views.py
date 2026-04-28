@@ -24,7 +24,8 @@ from .models import (
 )
 
 import pyotp
-
+from .utils import notify_admin_password_change
+from .utils import send_email_to_user, notify_admin_forgot_password
 LOW_STOCK = 50
 
 
@@ -202,24 +203,20 @@ def forgot_password(request):
                 if hasattr(user, 'profil'):
                     profil = user.profil
                     
-                    # Générer un token unique
+                    import secrets
                     token = secrets.token_urlsafe(32)
                     profil.reset_password_token = token
                     profil.reset_token_expires = timezone.now() + timezone.timedelta(hours=24)
                     profil.save()
                     
-                    # Envoyer email
                     reset_link = request.build_absolute_uri(reverse('reset_password', args=[token]))
-                    send_mail(
-                        'Réinitialisation de votre mot de passe',
-                        f'Bonjour {user.username},\n\nCliquez sur le lien suivant pour réinitialiser votre mot de passe:\n{reset_link}\n\nCe lien expire dans 24 heures.',
-                        settings.DEFAULT_FROM_EMAIL,
-                        [email],
-                        fail_silently=False,
-                    )
+                    
+                    # ========== 🔔 إشعار للأدمن ==========
+                    from .utils import notify_admin_forgot_password
+                    notify_admin_forgot_password(user)
+                    # =====================================
+                    
                     messages.success(request, "📧 Un email de réinitialisation a été envoyé.")
-                else:
-                    messages.success(request, "📧 Si cet email existe, un lien de réinitialisation a été envoyé.")
             except User.DoesNotExist:
                 messages.success(request, "📧 Si cet email existe, un lien de réinitialisation a été envoyé.")
             return redirect('login')
@@ -393,6 +390,8 @@ def dashboard_user(request):
 
 
 # ========== USER PROFILE ==========
+from django.core.mail import send_mail
+from django.conf import settings
 @login_required
 def user_profile(request):
     if request.method == 'POST':
@@ -407,19 +406,24 @@ def user_profile(request):
         
         if new_password:
             if new_password == confirm_password:
-                user.set_password(new_password)
-                update_session_auth_hash(request, user)
-                messages.success(request, 'Mot de passe mis à jour avec succès.')
+                if len(new_password) >= 8:
+                    user.set_password(new_password)
+                    update_session_auth_hash(request, user)
+                    messages.success(request, '✅ Mot de passe mis à jour avec succès.')
+                    
+                    # ========== 🔔 إشعار للأدمن ==========
+                    from .utils import notify_admin_password_change
+                    notify_admin_password_change(user)
+                    # =====================================
+                else:
+                    messages.error(request, '❌ Le mot de passe doit contenir au moins 8 caractères.')
             else:
-                messages.error(request, 'Les mots de passe ne correspondent pas.')
-                return render(request, 'inventory/user_profile.html')
+                messages.error(request, '❌ Les mots de passe ne correspondent pas.')
         
         user.save()
-        messages.success(request, 'Vos informations ont été mises à jour.')
         return redirect('user_profile')
     
     return render(request, 'inventory/user_profile.html')
-
 
 # ========== PRODUCT MANAGEMENT ==========
 @staff_or_superuser_required
@@ -724,7 +728,6 @@ def admin_create_user(request):
             user.set_password(temp_password)
             user.save()
             
-            # 🔐 إنشاء البروفايل تلقائياً
             profil, created = Utilisateur.objects.get_or_create(
                 user=user,
                 defaults={
@@ -736,7 +739,12 @@ def admin_create_user(request):
                 }
             )
             
-            messages.success(request, f"✅ Utilisateur '{user.username}' créé. Mot de passe temporaire: {temp_password}")
+            # ========== 🔔 إرسال الإيميل ==========
+            from .utils import send_welcome_email
+            send_welcome_email(user, temp_password)
+            # =====================================
+            
+            messages.success(request, f"✅ Utilisateur '{user.username}' créé.")
             return redirect('user_list')
     else:
         form = AdminUserCreationForm()
@@ -1257,7 +1265,6 @@ def user_create(request):
         form = AdminUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            # توليد كلمة سر عشوائية
             import secrets
             import string
             alphabet = string.ascii_letters + string.digits
@@ -1265,11 +1272,11 @@ def user_create(request):
             user.set_password(temp_password)
             user.save()
             
-            # 🔐 إنشاء البروفايل تلقائياً (المهم هنا)
+            # إنشاء البروفايل
             profil, created = Utilisateur.objects.get_or_create(
                 user=user,
                 defaults={
-                    'must_change_password': True,  # أجبره يبدل كلمة السر
+                    'must_change_password': True,
                     'role': 'staff',
                     'tel': '',
                     'is_banned': False,
@@ -1277,35 +1284,19 @@ def user_create(request):
                 }
             )
             
-            if not created:
-                # إذا كان البروفايل موجود بالفعل، حدثه
-                profil.must_change_password = True
-                profil.role = 'staff'
-                profil.save()
+            # ========== 🔔 هنا نضيف إرسال الإيميل ==========
+            from .utils import send_welcome_email
+            send_welcome_email(user, temp_password)
+            # =============================================
             
-            # إرسال إيميل بكلمة السر المؤقتة
-            try:
-                from django.core.mail import send_mail
-                from django.conf import settings
-                send_mail(
-                    'Votre compte a été créé',
-                    f'Bonjour {user.username},\n\nVotre compte a été créé.\n'
-                    f'Mot de passe temporaire: {temp_password}\n\n'
-                    f'Vous devez changer votre mot de passe lors de votre première connexion.\n\n'
-                    f'Lien: {request.build_absolute_uri(reverse("login"))}',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                    fail_silently=True,
-                )
-            except:
-                pass
+            # تخزين كلمة السر المؤقتة في session
+            request.session['temp_password'] = temp_password
+            request.session['new_user_id'] = user.id
             
-            messages.success(request, f"✅ Utilisateur '{user.username}' créé. Mot de passe temporaire: {temp_password}")
-            return redirect('user_list')
+            return redirect('user_created_info')
     else:
         form = AdminUserCreationForm()
     return render(request, 'inventory/user_form.html', {'form': form, 'title': 'Ajouter un utilisateur'})
-
 
 # ========== USER EDIT ==========
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
@@ -1346,3 +1337,25 @@ def custom_logout(request):
     logout(request)
     messages.success(request, "✅ Vous avez été déconnecté avec succès.")
     return redirect('login')
+
+from django.utils import timezone
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def user_created_info(request):
+    user_id = request.session.get('new_user_id')
+    temp_password = request.session.get('temp_password')
+    
+    if not user_id or not temp_password:
+        return redirect('user_list')
+    
+    user = get_object_or_404(User, pk=user_id)
+    
+    # مسح الجلسة بعد العرض
+    del request.session['new_user_id']
+    del request.session['temp_password']
+    
+    return render(request, 'inventory/user_created_info.html', {
+        'user': user,
+        'temp_password': temp_password,
+        'now': timezone.now()
+    })

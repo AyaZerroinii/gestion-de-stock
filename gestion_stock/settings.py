@@ -98,3 +98,14 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ========== EMAIL CONFIGURATION ==========
+# للإستخدام مع Gmail (الأسهل)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'regaa.ibtissam@gmail.com'  # غير هذا بإيميلك
+EMAIL_HOST_PASSWORD = 'kwcd lylz czuh asmr'  # كلمة سر التطبيق (ليست كلمة السر العادية)
+DEFAULT_FROM_EMAIL = 'regaa.ibtissam@gmail.com'
+ADMIN_EMAILS = ['ayazrrouni@gmail.com']  # هنا الأدمن اللي يوصله الإشعارات

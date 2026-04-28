@@ -1,0 +1,74 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Utilisateur créé{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg rounded-4">
+            <div class="card-header bg-success text-white text-center py-3 rounded-top-4">
+                <i class="bi bi-check-circle-fill fs-1"></i>
+                <h3 class="mb-0 mt-2">Utilisateur créé avec succès !</h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-person-plus fs-1 text-success"></i>
+                    </div>
+                </div>
+                
+                <table class="table table-bordered">
+                    <tr>
+                        <th style="width: 40%;">Nom d'utilisateur</th>
+                        <td><strong>{{ user.username }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Rôle</th>
+                        <td>
+                            {% if user.is_superuser %}Administrateur
+                            {% elif user.is_staff %}Staff
+                            {% else %}Utilisateur{% endif %}
+                        </td>
+                    </tr>
+                    <tr class="table-warning">
+                        <th>🔐 Mot de passe temporaire</th>
+                        <td><code class="fs-5">{{ temp_password }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Date de création</th>
+                        <td>{{ now|date:"d/m/Y H:i:s" }}</td>
+                    </tr>
+                </table>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Note importante :</strong> L'utilisateur devra changer son mot de passe lors de sa première connexion.
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button onclick="window.print()" class="btn btn-primary rounded-pill">
+                        <i class="bi bi-printer me-2"></i>Imprimer les informations
+                    </button>
+                    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary rounded-pill">
+                        <i class="bi bi-arrow-left me-2"></i>Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .no-print, .btn, .navbar, .sidebar, .btn-close, .alert-info {
+            display: none !important;
+        }
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+        }
+    }
+</style>
+{% endblock %}

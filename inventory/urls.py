@@ -59,7 +59,7 @@ path('user/<int:user_id>/toggle-ban/', views.toggle_user_ban, name='toggle_user_
 path('user/<int:pk>/edit-secure/', views.user_edit_secure, name='user_edit_secure'),
 path('login/', views.custom_login, name='login'),
 
-
+path('user-created-info/', views.user_created_info, name='user_created_info'),
 
 # Authentication
     path('login/', views.custom_login, name='login'),

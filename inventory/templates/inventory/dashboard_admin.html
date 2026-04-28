@@ -136,13 +136,16 @@
 </style>
 
 <!-- Cartes statistiques -->
+<!-- Cartes statistiques -->
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-6">
         <div class="dashboard-card">
             <div class="card-body-soft text-center">
                 <div class="stat-number" style="color: #0f2b3d;">{{ total_produits|default:0 }}</div>
                 <div class="stat-label">Total produits</div>
-                <span class="badge mt-2" style="background-color: #eef2ff; color: #0f2b3d;">Catalogue</span>
+                <span class="badge mt-2" style="background-color: #eef2ff; color: #0f2b3d;">
+                    <i class="bi bi-box-seam me-1"></i>Catalogue
+                </span>
             </div>
         </div>
     </div>
@@ -151,7 +154,9 @@
             <div class="card-body-soft text-center">
                 <div class="stat-number" style="color: #b91c1c;">{{ low_stock|default:0 }}</div>
                 <div class="stat-label">Stock faible</div>
-                <span class="badge mt-2" style="background-color: #fee2e2; color: #b91c1c;">Alerte</span>
+                <span class="badge mt-2" style="background-color: #fee2e2; color: #b91c1c;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Alerte
+                </span>
             </div>
         </div>
     </div>
@@ -160,6 +165,9 @@
             <div class="card-body-soft text-center">
                 <div class="stat-number" style="color: #15803d;">{{ entrees_mois|default:0 }}</div>
                 <div class="stat-label">Entrées (mois)</div>
+                <span class="badge mt-2" style="background-color: #dcfce7; color: #15803d;">
+                    <i class="bi bi-box-arrow-in-down me-1"></i>Ce mois
+                </span>
             </div>
         </div>
     </div>
@@ -168,6 +176,9 @@
             <div class="card-body-soft text-center">
                 <div class="stat-number" style="color: #c2410c;">{{ sorties_mois|default:0 }}</div>
                 <div class="stat-label">Sorties (mois)</div>
+                <span class="badge mt-2" style="background-color: #ffedd5; color: #c2410c;">
+                    <i class="bi bi-box-arrow-right me-1"></i>Ce mois
+                </span>
             </div>
         </div>
     </div>
@@ -185,8 +196,8 @@
             <div class="card-body-soft text-center">
                 <canvas id="stockChart" style="max-height: 180px;"></canvas>
                 <div class="mt-2">
-                    <span class="badge me-2" style="background-color: #eef2ff; color: #0f2b3d;">📦 Total: {{ total_produits|default:0 }} produits</span>
-                    <span class="badge" style="background-color: #fee2e2; color: #b91c1c;">⚠ Stock faible: {{ low_stock|default:0 }}</span>
+                    <span class="badge me-2" style="background-color: #eef2ff; color: #0f2b3d;"><i class="bi bi-box-seam me-1"></i>Total: {{ total_produits|default:0 }} produits</span>
+                    <span class="badge" style="background-color: #fee2e2; color: #b91c1c;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Stock faible: {{ low_stock|default:0 }}</span>
                 </div>
             </div>
         </div>
@@ -240,7 +251,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <div class="text-center text-muted py-3">✅ Aucun stock critique</div>
+                <div class="text-center text-muted py-3"><i class="bi bi-check-circle-fill text-success me-1"></i> Aucun stock critique</div>
                 {% endfor %}
                 {% if low_stock > 0 %}
                 <a href="{% url 'produit_list' %}" class="btn-soft-primary w-100 mt-3">
@@ -275,7 +286,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <div class="text-center text-muted py-3">Aucun mouvement récent</div>
+                <div class="text-center text-muted py-3"><i class="bi bi-inbox me-1"></i> Aucun mouvement récent</div>
                 {% endfor %}
             </div>
         </div>

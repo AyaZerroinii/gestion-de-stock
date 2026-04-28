@@ -503,7 +503,7 @@
                 let html = '';
 
                 if (lowStockProducts.length === 0) {
-                    html = '<div class="text-center text-muted p-3 small">✅ Aucun produit en stock faible.</div>';
+                    html = '<div class="text-center text-muted p-3 small"><i class="bi bi-check-circle-fill"></i> Aucun produit en stock faible.</div>';
                 } else {
                     unread.forEach(prod => {
                         html += `<div class="notification-item unread d-flex justify-content-between align-items-start" data-id="${prod.code_p}">

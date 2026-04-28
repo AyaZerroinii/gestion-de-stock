@@ -37,5 +37,5 @@ def low_stock_notifications(request):
             'unread_notifications_count': unread_count,
         }
     except Exception as e:
-        # في حالة أي خطأ، نرجع قاموس فارغ
+      
         return {}

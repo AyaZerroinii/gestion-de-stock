@@ -1,13 +1,14 @@
 {% extends 'inventory/base.html' %}
 {% block title %}Mon Profil{% endblock %}
 {% block content %}
+
 <style>
-    /* ========== STYLES SPÉCIFIQUES À LA PAGE PROFIL ========== */
     .profil-card {
         border: none;
         border-radius: 1.5rem;
         box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
         overflow: hidden;
+        background: white;
     }
     
     .profil-card-header {
@@ -169,22 +170,30 @@
                     {% csrf_token %}
                     
                     <div class="mb-3">
-                        <label class="profil-label">Nom d'utilisateur</label>
+                        <label class="profil-label">
+                            <i class="bi bi-person-badge me-1"></i>Nom d'utilisateur
+                        </label>
                         <input type="text" name="username" class="profil-input" value="{{ user.username }}" required>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="profil-label">Email</label>
+                        <label class="profil-label">
+                            <i class="bi bi-envelope me-1"></i>Email
+                        </label>
                         <input type="email" name="email" class="profil-input" value="{{ user.email }}" required>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="profil-label">Prénom</label>
+                            <label class="profil-label">
+                                <i class="bi bi-person me-1"></i>Prénom
+                            </label>
                             <input type="text" name="first_name" class="profil-input" value="{{ user.first_name }}">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="profil-label">Nom</label>
+                            <label class="profil-label">
+                                <i class="bi bi-person me-1"></i>Nom
+                            </label>
                             <input type="text" name="last_name" class="profil-input" value="{{ user.last_name }}">
                         </div>
                     </div>
@@ -192,7 +201,7 @@
                     <hr class="divider-profil">
                     
                     <div class="alert-security">
-                        <i class="bi bi-shield-lock"></i>
+                        <i class="bi bi-shield-lock-fill"></i>
                         <div>
                             <strong>Sécurité du mot de passe</strong><br>
                             <span class="small text-secondary">Pour changer votre mot de passe, cliquez sur le bouton ci-dessous.</span>
@@ -223,4 +232,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %}

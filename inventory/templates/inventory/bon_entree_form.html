@@ -108,7 +108,12 @@
             if (document.querySelectorAll('.ligne').length > 1) {
                 row.remove();
             } else {
-                alert("❌ Il doit rester au moins une ligne de produit.");
+                // Message Bootstrap sans alert()
+                const msg = document.createElement('div');
+                msg.className = 'alert alert-warning alert-dismissible fade show rounded-3 mt-2';
+                msg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i> Il doit rester au moins une ligne de produit.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.getElementById('lignesContainer').after(msg);
+                setTimeout(() => msg.remove(), 3000);
             }
         }
     });

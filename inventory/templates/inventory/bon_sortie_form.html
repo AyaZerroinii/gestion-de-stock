@@ -104,12 +104,27 @@
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const stock = selectedOption.getAttribute('data-stock') || 0;
         stockDisplay.innerHTML = `<span class="badge ${stock < 10 ? 'bg-danger' : 'bg-success'} rounded-pill">${stock} unités</span>`;
+        
+        // Réinitialiser le champ quantité si le stock est 0
+        const qteInput = row.querySelector('.qte-input');
+        if (stock === 0 && qteInput) {
+            qteInput.value = 0;
+            qteInput.disabled = true;
+        } else if (qteInput) {
+            qteInput.disabled = false;
+        }
     }
 
     // Initialiser les affichages de stock
     document.querySelectorAll('.produit-select').forEach(select => {
         if (select.value) updateStockDisplay(select);
-        select.addEventListener('change', function() { updateStockDisplay(this); });
+        select.addEventListener('change', function() { 
+            updateStockDisplay(this);
+            // Enlever la classe is-invalid du champ quantité quand on change de produit
+            const row = this.closest('.ligne');
+            const qteInput = row.querySelector('.qte-input');
+            if (qteInput) qteInput.classList.remove('is-invalid');
+        });
     });
 
     // Ajouter une ligne
@@ -119,6 +134,7 @@
         newRow.querySelectorAll('input, select').forEach(field => field.value = '');
         newRow.querySelector('select').selectedIndex = 0;
         newRow.querySelector('input').value = 1;
+        newRow.querySelector('input').disabled = false;
         newRow.querySelector('.stock-display').innerHTML = '<span class="badge bg-light text-dark">—</span>';
         container.appendChild(newRow);
         
@@ -126,14 +142,23 @@
         newRow.querySelector('.produit-select').addEventListener('change', function() { updateStockDisplay(this); });
     });
 
-    // Supprimer une ligne
+    // Supprimer une ligne (sans alert)
     document.getElementById('lignesContainer').addEventListener('click', function(e) {
         if (e.target.closest('.removeRow')) {
             const row = e.target.closest('.ligne');
             if (document.querySelectorAll('.ligne').length > 1) {
                 row.remove();
             } else {
-                alert("❌ Il doit rester au moins une ligne de produit.");
+                // Message Bootstrap au lieu de alert
+                let existingMsg = document.querySelector('.alert-warning-msg');
+                if (!existingMsg) {
+                    const msg = document.createElement('div');
+                    msg.className = 'alert alert-warning alert-dismissible fade show rounded-3 mt-2 alert-warning-msg';
+                    msg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i> Il doit rester au moins une ligne de produit.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    const container = document.getElementById('lignesContainer');
+                    container.parentNode.insertBefore(msg, container.nextSibling);
+                    setTimeout(() => msg.remove(), 3000);
+                }
             }
         }
     });
@@ -141,6 +166,10 @@
     // Validation avant soumission
     document.getElementById('bonSortieForm').addEventListener('submit', function(e) {
         let hasError = false;
+        
+        // Supprimer les anciennes alertes
+        document.querySelectorAll('.alert-danger-custom').forEach(el => el.remove());
+        
         document.querySelectorAll('.ligne').forEach(row => {
             const select = row.querySelector('.produit-select');
             const qteInput = row.querySelector('.qte-input');
@@ -148,12 +177,26 @@
             const stockDispo = parseInt(selectedOption.getAttribute('data-stock')) || 0;
             const qteDemandee = parseInt(qteInput.value) || 0;
             
+            // Enlever classe is-invalid au début
+            qteInput.classList.remove('is-invalid');
+            
             if (select.value && qteDemandee > stockDispo) {
-                alert(`❌ Stock insuffisant pour "${selectedOption.text.split('(')[0]}". Disponible: ${stockDispo} unités.`);
+                // Message Bootstrap personnalisé
+                const msg = document.createElement('div');
+                msg.className = 'alert alert-danger alert-dismissible fade show rounded-3 mb-3 alert-danger-custom';
+                msg.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> Stock insuffisant pour "${selectedOption.text.split('(')[0]}". Disponible: ${stockDispo} unités.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                
+                const form = document.getElementById('bonSortieForm');
+                form.insertBefore(msg, form.firstChild);
+                
+                setTimeout(() => msg.remove(), 4000);
+                
                 hasError = true;
                 qteInput.focus();
+                qteInput.classList.add('is-invalid');
             }
         });
+        
         if (hasError) e.preventDefault();
     });
 </script>

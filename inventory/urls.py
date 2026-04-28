@@ -10,15 +10,10 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
     
-    # ========== OTP PASSWORD CHANGE (Connecté) ==========
+    # ========== CHANGE PASSWORD AVEC OTP (UNIFIÉ) ==========
     path('change-password/', views.change_password_request, name='change_password_request'),
     path('change-password-otp/', views.change_password_otp_verify, name='change_password_otp_verify'),
     path('request-otp-pw-change/', views.request_otp_for_password_change, name='request_otp_for_password_change'),
-    path('change-password-otp-after-login/', views.change_password_with_otp_after_login, name='change_password_with_otp_after_login'),
-    
-    # ========== OTP PASSWORD CHANGE (Non connecté) ==========
-    path('request-password-change-otp/', views.request_password_change_otp, name='request_password_change_otp'),
-    path('change-password-with-otp/', views.change_password_with_otp, name='change_password_with_otp'),
     
     # ========== RESET PASSWORD VIA EMAIL ==========
     path('reset-password-request/', views.reset_password_request, name='reset_password_request'),
@@ -91,9 +86,8 @@ urlpatterns = [
     # ========== REPORTS ==========
     path('admin-report/', views.admin_report, name='admin_report'),
     path('data-dashboard/', views.data_dashboard, name='data_dashboard'),
+    path('generate-pdf/', views.generate_pdf_report, name='generate_pdf_report'),
     
     # ========== OTHERS ==========
     path('app/', views.app_home, name='app_home'),
-    path('generate-pdf/', views.generate_pdf_report, name='generate_pdf_report'),
-    path('user/<int:user_id>/toggle-ban/', views.toggle_user_ban, name='toggle_user_ban'),
 ]

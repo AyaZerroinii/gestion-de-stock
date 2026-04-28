@@ -145,7 +145,7 @@ class CustomUserCreationForm(UserCreationForm):
             Utilisateur.objects.create(
                 username=user.username,
                 password=user.password,
-                must_change_password=True,  # 🔐 Forcer le changement
+                must_change_password=True,  
                 role='user'
             )
         return user, temp_password

@@ -18,6 +18,8 @@ from django.db.models import Sum, Q, F, Count
 from django.utils.dateparse import parse_date
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.cache import cache
+import uuid
 
 from .forms import AdminUserCreationForm, ProduitForm, ForcePasswordChangeForm, ForgotPasswordForm, ResetPasswordForm, AdminOTPForm
 from .models import (
@@ -40,7 +42,6 @@ def staff_or_superuser_required(view_func):
 
 
 def get_user_profile(user):
-    """الحصول على ملف تعريف المستخدم أو إنشاؤه إذا لم يكن موجوداً"""
     try:
         return user.profil
     except Exception:
@@ -64,13 +65,12 @@ def custom_login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
-        # Vérifier si l'utilisateur existe
         try:
             user_obj = User.objects.get(username=username)
             if hasattr(user_obj, 'profil'):
                 is_locked, lock_message = user_obj.profil.is_account_locked()
                 if is_locked:
-                    messages.error(request, f"🔒 {lock_message}")
+                    messages.error(request, f"[LOCK] {lock_message}")
                     return redirect('login')
         except User.DoesNotExist:
             pass
@@ -78,14 +78,11 @@ def custom_login(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            # Réinitialiser les tentatives échouées
             if hasattr(user, 'profil'):
                 user.profil.reset_failed_attempts()
             
-            # Stocker l'ID utilisateur en session pour l'OTP
             request.session['pre_otp_user_id'] = user.id
             
-            # Générer et envoyer OTP
             profil = get_user_profile(user)
             if not profil.otp_secret:
                 profil.otp_secret = pyotp.random_base32()
@@ -97,10 +94,9 @@ def custom_login(request):
             request.session['login_otp'] = otp_code
             request.session['login_otp_expires'] = (timezone.now() + timezone.timedelta(minutes=5)).timestamp()
             
-            # Envoyer OTP par email
             try:
                 send_mail(
-                    '🔐 Code de vérification OTP',
+                    'Code de verification OTP',
                     f'Bonjour {user.username},\n\nVotre code OTP pour vous connecter est : {otp_code}\n\nCe code expire dans 5 minutes.',
                     settings.DEFAULT_FROM_EMAIL,
                     [user.email],
@@ -111,20 +107,18 @@ def custom_login(request):
             
             return redirect('verify_login_otp')
         else:
-            # Incrémenter les tentatives échouées
             try:
                 user_obj = User.objects.get(username=username)
                 if hasattr(user_obj, 'profil'):
                     user_obj.profil.increment_failed_attempts()
             except User.DoesNotExist:
                 pass
-            messages.error(request, "❌ Nom d'utilisateur ou mot de passe incorrect.")
+            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     
     return render(request, 'inventory/login.html')
 
 
 def verify_login_otp(request):
-    """التحقق من OTP بعد تسجيل الدخول"""
     user_id = request.session.get('pre_otp_user_id')
     
     if not user_id:
@@ -136,38 +130,33 @@ def verify_login_otp(request):
     expires = request.session.get('login_otp_expires', 0)
     
     if timezone.now().timestamp() > expires:
-        messages.error(request, "❌ Code OTP expiré")
+        messages.error(request, "Code OTP expiré")
         return redirect('login')
     
     if request.method == 'POST':
         otp_code = request.POST.get('otp_code')
         
         if otp_code == stored_otp:
-            # OTP correct, on connecte l'utilisateur
             login(request, user)
             
-            # Nettoyer la session
             for key in ['pre_otp_user_id', 'login_otp', 'login_otp_expires']:
                 if key in request.session:
                     del request.session[key]
             
-            # 🔐 جدد هذا الجزء ==========
-            # Si l'utilisateur doit changer son mot de passe (première connexion)
             if hasattr(user, 'profil') and user.profil.must_change_password:
-                messages.info(request, "🔐 Veuillez changer votre mot de passe temporaire")
+                messages.info(request, "Veuillez changer votre mot de passe temporaire")
                 return redirect('request_otp_for_password_change')
-            # ===========================
             
             return redirect('home')
         else:
-            messages.error(request, "❌ Code OTP invalide")
+            messages.error(request, "Code OTP invalide")
     
     return render(request, 'inventory/verify_otp.html', {'username': user.username})
 
 
 def custom_logout(request):
     logout(request)
-    messages.success(request, "✅ Vous avez été déconnecté avec succès.")
+    messages.success(request, "Vous avez ete deconnecte avec succes.")
     return redirect('login')
 
 
@@ -190,7 +179,7 @@ def force_password_change(request):
             
             update_session_auth_hash(request, request.user)
             
-            messages.success(request, "✅ Votre mot de passe a été changé avec succès.")
+            messages.success(request, "Votre mot de passe a ete change avec succes.")
             return redirect('home')
     else:
         form = ForcePasswordChangeForm()
@@ -217,7 +206,7 @@ def forgot_password(request):
                     
                     try:
                         send_mail(
-                            'Réinitialisation de votre mot de passe',
+                            'Reinitialisation de votre mot de passe',
                             f'Bonjour {user.username},\n\nCliquez sur le lien suivant :\n{reset_link}\n\nCe lien expire dans 24 heures.',
                             settings.DEFAULT_FROM_EMAIL,
                             [email],
@@ -228,9 +217,9 @@ def forgot_password(request):
                     
                     notify_admin_forgot_password(user)
                     
-                    messages.success(request, "📧 Un email de réinitialisation a été envoyé.")
+                    messages.success(request, "Un email de reinitialisation a ete envoye.")
             except User.DoesNotExist:
-                messages.success(request, "📧 Si cet email existe, un lien de réinitialisation a été envoyé.")
+                messages.success(request, "Si cet email existe, un lien de reinitialisation a ete envoye.")
             return redirect('login')
     else:
         form = ForgotPasswordForm()
@@ -242,7 +231,7 @@ def reset_password(request, token):
         profil = Utilisateur.objects.get(reset_password_token=token, reset_token_expires__gt=timezone.now())
         user = profil.user
     except Utilisateur.DoesNotExist:
-        messages.error(request, "❌ Lien invalide ou expiré.")
+        messages.error(request, "Lien invalide ou expire.")
         return redirect('login')
     
     if request.method == 'POST':
@@ -257,44 +246,70 @@ def reset_password(request, token):
             profil.must_change_password = False
             profil.save()
             
-            messages.success(request, "✅ Votre mot de passe a été réinitialisé.")
+            messages.success(request, "Votre mot de passe a ete reinitialise.")
             return redirect('login')
     else:
         form = ResetPasswordForm()
     
     return render(request, 'inventory/reset_password.html', {'form': form, 'token': token})
 
-# 🔐 ========== OTP PASSWORD CHANGE AFTER LOGIN ==========
-def request_otp_for_password_change(request):
-    """طلب OTP لتغيير كلمة السر بعد تسجيل الدخول"""
-    if not request.user.is_authenticated:
-        return redirect('login')
+
+# ========== OTP PASSWORD CHANGE AFTER LOGIN ==========
+
+@login_required
+def change_password_otp_verify(request):
+    """التحقق من OTP وتغيير كلمة السر"""
+    stored_otp = request.session.get('change_pw_otp')
+    expires = request.session.get('change_pw_otp_expires', 0)
+    new_password = request.session.get('new_password')
+    
+    # ✅ التحقق من وجود البيانات
+    if not stored_otp:
+        messages.error(request, "Session expirée, veuillez recommencer")
+        return redirect('change_password_request')
+    
+    if not new_password:
+        messages.error(request, "Session expirée, veuillez recommencer")
+        return redirect('change_password_request')
+    
+    if timezone.now().timestamp() > expires:
+        messages.error(request, "Code OTP expiré, veuillez recommencer")
+        return redirect('change_password_request')
     
     if request.method == 'POST':
+        otp_code = request.POST.get('otp_code')
+        
+        if otp_code != stored_otp:
+            messages.error(request, "Code OTP invalide")
+            return redirect('change_password_otp_verify')
+        
+        # OTP correct, changer le mot de passe
         user = request.user
-        profil = get_user_profile(user)
+        user.set_password(new_password)
+        user.save()
         
-        if not profil.otp_secret:
-            profil.otp_secret = pyotp.random_base32()
-            profil.save()
+        if hasattr(user, 'profil'):
+            user.profil.must_change_password = False
+            user.profil.password_changed_at = timezone.now()
+            user.profil.save()
         
-        totp = pyotp.TOTP(profil.otp_secret)
-        otp_code = totp.now()
+        # ✅ Nettoyer la session
+        session_keys = ['change_pw_otp', 'change_pw_otp_expires', 'new_password']
+        for key in session_keys:
+            if key in request.session:
+                del request.session[key]
         
-        request.session['change_pw_otp'] = otp_code
-        request.session['change_pw_otp_expires'] = (timezone.now() + timezone.timedelta(minutes=5)).timestamp()
+        update_session_auth_hash(request, user)
         
-        from .utils import send_otp_email
-        send_otp_email(user, otp_code, "changer votre mot de passe")
+        from .utils import notify_admin_password_change
+        notify_admin_password_change(user)
         
-        messages.success(request, "📧 Un code OTP a été envoyé à votre email")
-        return redirect('change_password_with_otp_after_login')
+        messages.success(request, "Votre mot de passe a été changé avec succès")
+        return redirect('user_profile')
     
-    return render(request, 'inventory/request_otp_pw_change.html')
-
+    return render(request, 'inventory/change_password_otp_verify.html')
 
 def change_password_with_otp_after_login(request):
-    """تغيير كلمة السر بعد التحقق من OTP"""
     if not request.user.is_authenticated:
         return redirect('login')
     
@@ -302,7 +317,7 @@ def change_password_with_otp_after_login(request):
     expires = request.session.get('change_pw_otp_expires', 0)
     
     if timezone.now().timestamp() > expires:
-        messages.error(request, "❌ Code OTP expiré")
+        messages.error(request, "Code OTP expire")
         return redirect('request_otp_for_password_change')
     
     if request.method == 'POST':
@@ -311,42 +326,36 @@ def change_password_with_otp_after_login(request):
         confirm_password = request.POST.get('confirm_password')
         
         if otp_code != stored_otp:
-            messages.error(request, "❌ Code OTP invalide")
+            messages.error(request, "Code OTP invalide")
             return render(request, 'inventory/change_password_otp.html', {'require_otp': True})
         
         if new_password != confirm_password:
-            messages.error(request, "❌ Les mots de passe ne correspondent pas")
+            messages.error(request, "Les mots de passe ne correspondent pas")
             return render(request, 'inventory/change_password_otp.html', {'require_otp': False})
         
         if len(new_password) < 8:
-            messages.error(request, "❌ 8 caractères minimum")
+            messages.error(request, "8 caracteres minimum")
             return render(request, 'inventory/change_password_otp.html', {'require_otp': False})
         
-        # Changer le mot de passe
         user = request.user
         user.set_password(new_password)
         user.save()
         
-        # Mettre à jour le profil
         if hasattr(user, 'profil'):
             user.profil.must_change_password = False
             user.profil.password_changed_at = timezone.now()
             user.profil.save()
         
-        # Nettoyer la session
         for key in ['change_pw_otp', 'change_pw_otp_expires']:
             if key in request.session:
                 del request.session[key]
         
-        # Re-authentifier
         update_session_auth_hash(request, user)
         
-        messages.success(request, "✅ Votre mot de passe a été changé avec succès")
+        messages.success(request, "Votre mot de passe a ete change avec succes")
         return redirect('home')
     
     return render(request, 'inventory/change_password_otp.html', {'require_otp': True})
-
-
 
 
 # ========== HOME & DASHBOARDS ==========
@@ -383,7 +392,7 @@ def dashboard_admin(request):
     for e in dernieres_entrees:
         total_qte = e.lignes.aggregate(s=Sum('qte_e'))['s'] or 0
         mouvements.append({
-            'designation': f"Entrée #{e.num_e} - {e.fournisseur.designation}",
+            'designation': f"Entree #{e.num_e} - {e.fournisseur.designation}",
             'qte': total_qte,
             'date': e.date_e,
             'type_icon': 'arrow-down-circle',
@@ -455,12 +464,12 @@ def user_profile(request):
                 if len(new_password) >= 8:
                     user.set_password(new_password)
                     update_session_auth_hash(request, user)
-                    messages.success(request, '✅ Mot de passe mis à jour.')
+                    messages.success(request, 'Mot de passe mis a jour.')
                     notify_admin_password_change(user)
                 else:
-                    messages.error(request, '❌ 8 caractères minimum.')
+                    messages.error(request, '8 caracteres minimum.')
             else:
-                messages.error(request, '❌ Les mots de passe ne correspondent pas.')
+                messages.error(request, 'Les mots de passe ne correspondent pas.')
         
         user.save()
         return redirect('user_profile')
@@ -518,9 +527,9 @@ def produit_delete(request, pk):
     if request.method == 'POST':
         try:
             produit.delete()
-            messages.success(request, f"✅ Produit '{produit.designation}' supprimé.")
+            messages.success(request, f"Produit '{produit.designation}' supprime.")
         except ProtectedError:
-            messages.error(request, f"❌ Impossible de supprimer '{produit.designation}'")
+            messages.error(request, f"Impossible de supprimer '{produit.designation}'")
         return redirect('produit_list')
     return render(request, 'inventory/produit_confirm_delete.html', {'produit': produit})
 
@@ -534,7 +543,7 @@ def produit_history(request, pk):
     history = []
     for ligne in entrees:
         history.append({
-            'type': 'Entrée',
+            'type': 'Entree',
             'date': ligne.bon.date_e,
             'quantity': ligne.qte_e,
             'counterparty': ligne.bon.fournisseur.designation,
@@ -709,7 +718,7 @@ def client_delete(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':
         client.delete()
-        messages.success(request, f"✅ Client '{client.designation}' supprimé")
+        messages.success(request, f"Client '{client.designation}' supprime")
         return redirect('client_list')
     return render(request, 'inventory/client_confirm_delete.html', {'client': client})
 
@@ -765,7 +774,7 @@ def fournisseur_delete(request, pk):
     fournisseur = get_object_or_404(Fournisseur, pk=pk)
     if request.method == 'POST':
         fournisseur.delete()
-        messages.success(request, f"✅ Fournisseur '{fournisseur.designation}' supprimé")
+        messages.success(request, f"Fournisseur '{fournisseur.designation}' supprime")
         return redirect('fournisseur_list')
     return render(request, 'inventory/fournisseur_confirm_delete.html', {'fournisseur': fournisseur})
 
@@ -802,12 +811,10 @@ def user_create(request):
         is_staff = request.POST.get('is_staff') == 'on'
         is_superuser = request.POST.get('is_superuser') == 'on'
         
-        # التحقق من وجود المستخدم
         if User.objects.filter(username=username).exists():
-            messages.error(request, f"❌ Nom d'utilisateur '{username}' déjà pris")
+            messages.error(request, f"Nom d'utilisateur '{username}' deja pris")
             return redirect('user_create')
         
-        # إنشاء المستخدم
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -815,12 +822,10 @@ def user_create(request):
             last_name=last_name
         )
         
-        # تعيين الصلاحيات
         user.is_staff = is_staff or is_superuser
         user.is_superuser = is_superuser
         user.save()
         
-        # توليد كلمة سر مؤقتة
         import secrets
         import string
         alphabet = string.ascii_letters + string.digits
@@ -828,7 +833,6 @@ def user_create(request):
         user.set_password(temp_password)
         user.save()
         
-        # إنشاء البروفايل
         profil, created = Utilisateur.objects.get_or_create(
             user=user,
             defaults={
@@ -840,19 +844,18 @@ def user_create(request):
             }
         )
         
-        # إرسال إيميل للمستخدم
         from .utils import send_welcome_email, notify_admin_new_user
         send_welcome_email(user, temp_password)
         notify_admin_new_user(user, temp_password)
         
-        # تخزين في session
         request.session['new_user_id'] = user.id
         request.session['new_user_temp_password'] = temp_password
         
-        messages.success(request, f"✅ Utilisateur '{username}' créé avec succès")
+        messages.success(request, f"Utilisateur '{username}' cree avec succes")
         return redirect('user_created_info')
     
     return render(request, 'inventory/user_form.html', {'title': 'Ajouter un utilisateur'})
+
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_create_user(request):
@@ -867,7 +870,7 @@ def admin_create_user(request):
             get_user_profile(user)
             send_welcome_email(user, temp_password)
             
-            messages.success(request, f"✅ Utilisateur '{user.username}' créé")
+            messages.success(request, f"Utilisateur '{user.username}' cree")
             return redirect('user_list')
     else:
         form = AdminUserCreationForm()
@@ -875,7 +878,6 @@ def admin_create_user(request):
 
 
 def user_created_info(request):
-    """صفحة عرض معلومات المستخدم الجديد"""
     user_id = request.session.get('new_user_id')
     temp_password = request.session.get('new_user_temp_password')
     
@@ -884,7 +886,6 @@ def user_created_info(request):
     
     user = get_object_or_404(User, pk=user_id)
     
-    # مسح الجلسة بعد العرض
     for key in ['new_user_id', 'new_user_temp_password']:
         if key in request.session:
             del request.session[key]
@@ -894,6 +895,7 @@ def user_created_info(request):
         'temp_password': temp_password,
         'now': timezone.now()
     })
+
 
 @user_passes_test(lambda u: u.is_superuser)
 def user_edit(request, pk):
@@ -914,7 +916,7 @@ def user_edit(request, pk):
             user.save()
         profil.save()
         
-        messages.success(request, f"✅ Utilisateur '{user.username}' mis à jour")
+        messages.success(request, f"Utilisateur '{user.username}' mis a jour")
         return redirect('user_list')
     
     return render(request, 'inventory/user_form.html', {
@@ -944,7 +946,7 @@ def user_edit_secure(request, pk):
             user.save()
         profil.save()
         
-        messages.success(request, f"✅ Utilisateur '{user.username}' mis à jour")
+        messages.success(request, f"Utilisateur '{user.username}' mis a jour")
         return redirect('user_list')
     
     return render(request, 'inventory/user_edit_secure.html', {'user': user, 'profil': profil})
@@ -955,11 +957,11 @@ def delete_user(request, pk):
     user = get_object_or_404(User, pk=pk)
     
     if user == request.user:
-        messages.error(request, "❌ Vous ne pouvez pas supprimer votre propre compte")
+        messages.error(request, "Vous ne pouvez pas supprimer votre propre compte")
         return redirect('user_list')
     
     if user.is_superuser and User.objects.filter(is_superuser=True).count() <= 1:
-        messages.error(request, "❌ Impossible de supprimer le dernier administrateur")
+        messages.error(request, "Impossible de supprimer le dernier administrateur")
         return redirect('user_list')
     
     if request.method == 'POST':
@@ -967,7 +969,7 @@ def delete_user(request, pk):
         if hasattr(user, 'profil'):
             user.profil.delete()
         user.delete()
-        messages.success(request, f"✅ Utilisateur '{username}' supprimé")
+        messages.success(request, f"Utilisateur '{username}' supprime")
         return redirect('user_list')
     
     return render(request, 'inventory/user_confirm_delete.html', {'user_obj': user})
@@ -975,7 +977,6 @@ def delete_user(request, pk):
 
 @user_passes_test(lambda u: u.is_superuser)
 def toggle_user_ban(request, user_id):
-    """Activer ou désactiver le bannissement d'un utilisateur"""
     profil = get_object_or_404(Utilisateur, id=user_id)
     
     if request.method == 'POST':
@@ -987,13 +988,13 @@ def toggle_user_ban(request, user_id):
             if duration and duration.isdigit():
                 profil.ban_until = timezone.now() + timezone.timedelta(minutes=int(duration))
             else:
-                profil.ban_until = None  # Bannissement permanent
-            messages.success(request, f"✅ Utilisateur '{profil.user.username}' a été banni.")
+                profil.ban_until = None
+            messages.success(request, f"Utilisateur '{profil.user.username}' a ete banni.")
         elif action == 'unban':
             profil.is_banned = False
             profil.ban_until = None
             profil.failed_login_attempts = 0
-            messages.success(request, f"✅ Utilisateur '{profil.user.username}' a été débanni.")
+            messages.success(request, f"Utilisateur '{profil.user.username}' a ete debanni.")
         
         profil.save()
         return redirect('user_list')
@@ -1042,12 +1043,12 @@ def bon_entree_create(request):
         qtes = request.POST.getlist('qte[]')
         
         if not fournisseur_id:
-            messages.error(request, '❌ Sélectionnez un fournisseur')
+            messages.error(request, 'Selectionnez un fournisseur')
             return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
         
         fournisseur = Fournisseur.objects.filter(pk=fournisseur_id).first()
         if not fournisseur:
-            messages.error(request, '❌ Fournisseur introuvable')
+            messages.error(request, 'Fournisseur introuvable')
             return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
         
         utilisateur_obj = get_user_profile(request.user)
@@ -1062,22 +1063,22 @@ def bon_entree_create(request):
             try:
                 qte = int(qte_str)
             except ValueError:
-                messages.error(request, f"❌ Quantité invalide ligne {i+1}")
+                messages.error(request, f"Quantite invalide ligne {i+1}")
                 return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
             
             if qte <= 0:
-                messages.error(request, f"❌ Quantité doit être > 0 ligne {i+1}")
+                messages.error(request, f"Quantite doit etre > 0 ligne {i+1}")
                 return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
             
             produit = Produit.objects.filter(pk=prod_id).first()
             if not produit:
-                messages.error(request, f"❌ Produit introuvable ligne {i+1}")
+                messages.error(request, f"Produit introuvable ligne {i+1}")
                 return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
             
             lignes_data.append((produit, qte))
         
         if not lignes_data:
-            messages.error(request, '❌ Aucune ligne valide')
+            messages.error(request, 'Aucune ligne valide')
             return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
         
         bon = BonEntree.objects.create(fournisseur=fournisseur, utilisateur=utilisateur_obj, date_e=timezone.now())
@@ -1087,7 +1088,7 @@ def bon_entree_create(request):
             produit.qte_stock += qte
             produit.save()
         
-        messages.success(request, f"✅ Bon d'entrée #{bon.num_e} créé")
+        messages.success(request, f"Bon d'entree #{bon.num_e} cree")
         return redirect('bon_entree_list')
     
     return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
@@ -1097,7 +1098,7 @@ def bon_entree_create(request):
 def bon_entree_detail(request, pk):
     bon = get_object_or_404(BonEntree, pk=pk)
     if not request.user.is_superuser and bon.utilisateur.user != request.user:
-        return HttpResponseForbidden("Accès interdit")
+        return HttpResponseForbidden("Acces interdit")
     return render(request, 'inventory/bon_entree_detail.html', {'bon': bon, 'lignes': bon.lignes.all()})
 
 
@@ -1112,7 +1113,7 @@ def bon_entree_delete(request, pk):
                 ligne.produit.qte_stock -= ligne.qte_e
                 ligne.produit.save()
             bon.delete()
-        messages.success(request, f"✅ Bon d'entrée #{pk} supprimé")
+        messages.success(request, f"Bon d'entree #{pk} supprime")
         return redirect('bon_entree_list')
     return render(request, 'inventory/bon_entree_confirm_delete.html', {'bon': bon})
 
@@ -1148,12 +1149,12 @@ def bon_sortie_create(request):
         qtes = request.POST.getlist('qte[]')
         
         if not client_id:
-            messages.error(request, '❌ Sélectionnez un client')
+            messages.error(request, 'Selectionnez un client')
             return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
         
         client = Client.objects.filter(pk=client_id).first()
         if not client:
-            messages.error(request, '❌ Client introuvable')
+            messages.error(request, 'Client introuvable')
             return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
         
         utilisateur_obj = get_user_profile(request.user)
@@ -1168,26 +1169,26 @@ def bon_sortie_create(request):
             try:
                 qte = int(qte_str)
             except ValueError:
-                messages.error(request, f"❌ Quantité invalide ligne {i+1}")
+                messages.error(request, f"Quantite invalide ligne {i+1}")
                 return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
             
             if qte <= 0:
-                messages.error(request, f"❌ Quantité doit être > 0 ligne {i+1}")
+                messages.error(request, f"Quantite doit etre > 0 ligne {i+1}")
                 return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
             
             produit = Produit.objects.filter(pk=prod_id).first()
             if not produit:
-                messages.error(request, f"❌ Produit introuvable ligne {i+1}")
+                messages.error(request, f"Produit introuvable ligne {i+1}")
                 return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
             
             if qte > produit.qte_stock:
-                messages.error(request, f"❌ Stock insuffisant pour '{produit.designation}'. Disponible: {produit.qte_stock}")
+                messages.error(request, f"Stock insuffisant pour '{produit.designation}'. Disponible: {produit.qte_stock}")
                 return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
             
             lignes_data.append((produit, qte))
         
         if not lignes_data:
-            messages.error(request, '❌ Aucune ligne valide')
+            messages.error(request, 'Aucune ligne valide')
             return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
         
         bon = BonSortie.objects.create(client=client, utilisateur=utilisateur_obj, date_s=timezone.now())
@@ -1201,9 +1202,9 @@ def bon_sortie_create(request):
                 low_stock_products.append(produit.designation)
         
         if low_stock_products:
-            messages.warning(request, f"⚠️ Stock faible : {', '.join(low_stock_products)}")
+            messages.warning(request, f"Stock faible : {', '.join(low_stock_products)}")
         
-        messages.success(request, f"✅ Bon de sortie #{bon.num_s} créé")
+        messages.success(request, f"Bon de sortie #{bon.num_s} cree")
         return redirect('bon_sortie_detail', pk=bon.pk)
     
     return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
@@ -1213,7 +1214,7 @@ def bon_sortie_create(request):
 def bon_sortie_detail(request, pk):
     bon = get_object_or_404(BonSortie, pk=pk)
     if not request.user.is_superuser and bon.utilisateur.user != request.user:
-        return HttpResponseForbidden("Accès interdit")
+        return HttpResponseForbidden("Acces interdit")
     return render(request, 'inventory/bon_sortie_detail.html', {'bon': bon, 'lignes': bon.lignes.all()})
 
 
@@ -1228,7 +1229,7 @@ def bon_sortie_delete(request, pk):
                 ligne.produit.qte_stock += ligne.qte_s
                 ligne.produit.save()
             bon.delete()
-        messages.success(request, f"✅ Bon de sortie #{pk} supprimé")
+        messages.success(request, f"Bon de sortie #{pk} supprime")
         return redirect('bon_sortie_list')
     return render(request, 'inventory/bon_sortie_confirm_delete.html', {'bon': bon})
 
@@ -1254,7 +1255,7 @@ def setup_admin_otp(request):
             profil.otp_enabled = False
             profil.otp_secret = None
             profil.save()
-            messages.success(request, "✅ OTP désactivé")
+            messages.success(request, "OTP desactive")
             return redirect('home')
     
     return render(request, 'inventory/admin_otp_setup.html', {'otp_enabled': profil.otp_enabled})
@@ -1279,7 +1280,7 @@ def admin_otp_verify(request):
                     del request.session['pre_otp_user_id']
                     return redirect('home')
                 else:
-                    messages.error(request, "❌ Code OTP invalide")
+                    messages.error(request, "Code OTP invalide")
     else:
         form = AdminOTPForm()
     
@@ -1311,7 +1312,6 @@ def admin_report(request):
                 stats['total_entrees'] = entrees.count()
                 stats['total_sorties'] = sorties.count()
                 
-                # Top produits
                 product_entries = LigneEntree.objects.filter(bon__in=entrees).values('produit__code_p', 'produit__designation').annotate(total_in=Sum('qte_e'))
                 product_exits = LigneSortie.objects.filter(bon__in=sorties).values('produit__code_p', 'produit__designation').annotate(total_out=Sum('qte_s'))
                 
@@ -1336,7 +1336,6 @@ def admin_report(request):
                     data['total_moved'] = data['total_in'] + data['total_out']
                 top_products = sorted(product_totals.values(), key=lambda x: x['total_out'], reverse=True)[:5]
                 
-                # Top fournisseurs
                 fournisseur_totals = LigneEntree.objects.filter(bon__in=entrees).values(
                     'bon__fournisseur__num_f', 'bon__fournisseur__designation'
                 ).annotate(total_qte=Sum('qte_e')).order_by('-total_qte')[:5]
@@ -1348,7 +1347,6 @@ def admin_report(request):
                         'total_qte': f['total_qte'],
                     })
                 
-                # Top clients
                 client_totals = LigneSortie.objects.filter(bon__in=sorties).values(
                     'bon__client__code_cl', 'bon__client__designation'
                 ).annotate(total_qte=Sum('qte_s')).order_by('-total_qte')[:5]
@@ -1393,9 +1391,9 @@ def data_dashboard(request):
     }
     return render(request, 'inventory/data_dashboard.html', {'stats': stats})
 
+
 # ========== OTP PASSWORD CHANGE ==========
 def request_password_change_otp(request):
-    """طلب OTP لتغيير كلمة السر"""
     if request.method == 'POST':
         username = request.POST.get('username')
         try:
@@ -1414,18 +1412,17 @@ def request_password_change_otp(request):
             request.session['reset_otp_expires'] = (timezone.now() + timezone.timedelta(minutes=5)).timestamp()
             
             from .utils import send_otp_email
-            send_otp_email(user, otp_code, "réinitialiser votre mot de passe")
+            send_otp_email(user, otp_code, "reinitialiser votre mot de passe")
             
-            messages.success(request, "📧 Un code OTP a été envoyé à votre email")
+            messages.success(request, "Un code OTP a ete envoye a votre email")
             return redirect('change_password_with_otp')
         except User.DoesNotExist:
-            messages.error(request, "❌ Utilisateur non trouvé")
+            messages.error(request, "Utilisateur non trouve")
     
     return render(request, 'inventory/request_otp.html')
 
 
 def change_password_with_otp(request):
-    """تغيير كلمة السر مع التحقق من OTP"""
     user_id = request.session.get('reset_user_id')
     
     if not user_id:
@@ -1436,7 +1433,7 @@ def change_password_with_otp(request):
     expires = request.session.get('reset_otp_expires', 0)
     
     if timezone.now().timestamp() > expires:
-        messages.error(request, "❌ Code OTP expiré")
+        messages.error(request, "Code OTP expire")
         return redirect('request_password_change_otp')
     
     if request.method == 'POST':
@@ -1445,15 +1442,15 @@ def change_password_with_otp(request):
         confirm_password = request.POST.get('confirm_password')
         
         if otp_code != stored_otp:
-            messages.error(request, "❌ Code OTP invalide")
+            messages.error(request, "Code OTP invalide")
             return render(request, 'inventory/change_password.html', {'require_otp': True})
         
         if new_password != confirm_password:
-            messages.error(request, "❌ Les mots de passe ne correspondent pas")
+            messages.error(request, "Les mots de passe ne correspondent pas")
             return render(request, 'inventory/change_password.html', {'require_otp': False})
         
         if len(new_password) < 8:
-            messages.error(request, "❌ 8 caractères minimum")
+            messages.error(request, "8 caracteres minimum")
             return render(request, 'inventory/change_password.html', {'require_otp': False})
         
         user.set_password(new_password)
@@ -1467,12 +1464,15 @@ def change_password_with_otp(request):
             if key in request.session:
                 del request.session[key]
         
-        messages.success(request, "✅ Mot de passe changé avec succès")
+        messages.success(request, "Mot de passe change avec succes")
         return redirect('login')
     
     return render(request, 'inventory/change_password.html', {'require_otp': True})
 
+
 # ========== CHANGE PASSWORD WITH OTP ==========
+@login_required
+
 @login_required
 def change_password_request(request):
     """الخطوة 1: طلب تغيير كلمة السر مع التحقق من القديمة"""
@@ -1481,102 +1481,92 @@ def change_password_request(request):
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
         
-        # التحقق من صحة كلمة السر القديمة
         if not request.user.check_password(old_password):
-            messages.error(request, "❌ Mot de passe actuel incorrect")
+            messages.error(request, "Mot de passe actuel incorrect")
             return redirect('change_password_request')
         
-        # التحقق من تطابق كلمة السر الجديدة
         if new_password != confirm_password:
-            messages.error(request, "❌ Les mots de passe ne correspondent pas")
+            messages.error(request, "Les mots de passe ne correspondent pas")
             return redirect('change_password_request')
         
-        # التحقق من طول كلمة السر
         if len(new_password) < 8:
-            messages.error(request, "❌ Le mot de passe doit contenir au moins 8 caractères")
+            messages.error(request, "Le mot de passe doit contenir au moins 8 caractères")
             return redirect('change_password_request')
         
-        # تخزين كلمة السر الجديدة في session
-        request.session['new_password'] = new_password
+        # ✅ تخزين كلمة السر الجديدة في cache
+        cache_key = f"pending_pw_{request.user.id}"
+        cache.set(cache_key, new_password, 300)  # تخزين لمدة 5 دقائق
         
-        # توليد وإرسال OTP
-        user = request.user
-        profil = get_user_profile(user)
+        request.session['pending_cache_key'] = cache_key
         
-        if not profil.otp_secret:
-            profil.otp_secret = pyotp.random_base32()
-            profil.save()
-        
-        totp = pyotp.TOTP(profil.otp_secret)
-        otp_code = totp.now()
-        
-        request.session['change_pw_otp'] = otp_code
-        request.session['change_pw_otp_expires'] = (timezone.now() + timezone.timedelta(minutes=5)).timestamp()
-        
-        # إرسال OTP بالبريد
-        from .utils import send_otp_email
-        send_otp_email(user, otp_code, "changer votre mot de passe")
-        
-        messages.success(request, "📧 Un code OTP a été envoyé à votre email")
-        return redirect('change_password_otp_verify')
+        return redirect('request_otp_for_password_change')
     
     return render(request, 'inventory/change_password_request.html')
 
 
+
+
 @login_required
 def change_password_otp_verify(request):
-    """الخطوة 2: التحقق من OTP وتغيير كلمة السر"""
+    """التحقق من OTP وتغيير كلمة السر"""
     stored_otp = request.session.get('change_pw_otp')
     expires = request.session.get('change_pw_otp_expires', 0)
-    new_password = request.session.get('new_password')
     
-    if not stored_otp or not new_password:
-        messages.error(request, "❌ Session expirée, veuillez recommencer")
+    # ✅ جلب كلمة السر من cache
+    cache_key = request.session.get('pending_cache_key')
+    pending_password = cache.get(cache_key) if cache_key else None
+    
+    # ✅ التحقق من وجود البيانات
+    if not stored_otp:
+        messages.error(request, "Session expirée, veuillez recommencer")
+        return redirect('change_password_request')
+    
+    if not pending_password:
+        messages.error(request, "Session expirée, veuillez recommencer")
         return redirect('change_password_request')
     
     if timezone.now().timestamp() > expires:
-        messages.error(request, "❌ Code OTP expiré, veuillez recommencer")
+        messages.error(request, "Code OTP expiré, veuillez recommencer")
         return redirect('change_password_request')
     
     if request.method == 'POST':
         otp_code = request.POST.get('otp_code')
         
         if otp_code != stored_otp:
-            messages.error(request, "❌ Code OTP invalide")
+            messages.error(request, "Code OTP invalide")
             return redirect('change_password_otp_verify')
         
         # OTP correct, changer le mot de passe
         user = request.user
-        user.set_password(new_password)
+        user.set_password(pending_password)
         user.save()
         
-        # Mettre à jour le profil
         if hasattr(user, 'profil'):
             user.profil.must_change_password = False
             user.profil.password_changed_at = timezone.now()
             user.profil.save()
         
-        # Nettoyer la session
-        for key in ['change_pw_otp', 'change_pw_otp_expires', 'new_password']:
+        # ✅ Nettoyer cache et session
+        if cache_key:
+            cache.delete(cache_key)
+        
+        session_keys = ['change_pw_otp', 'change_pw_otp_expires', 'pending_cache_key']
+        for key in session_keys:
             if key in request.session:
                 del request.session[key]
         
-        # Re-authentifier
         update_session_auth_hash(request, user)
         
-        # إشعار للأدمن
         from .utils import notify_admin_password_change
         notify_admin_password_change(user)
         
-        messages.success(request, "✅ Votre mot de passe a été changé avec succès")
-        return redirect('home')
+        messages.success(request, "Votre mot de passe a été changé avec succès")
+        return redirect('user_profile')
     
     return render(request, 'inventory/change_password_otp_verify.html')
 
-
 # ========== RESET PASSWORD VIA EMAIL (Forgot) ==========
 def reset_password_request(request):
-    """طلب إعادة تعيين كلمة السر عبر البريد"""
     if request.method == 'POST':
         email = request.POST.get('email')
         try:
@@ -1584,7 +1574,6 @@ def reset_password_request(request):
             if hasattr(user, 'profil'):
                 profil = user.profil
                 
-                # Générer un token unique
                 token = secrets.token_urlsafe(32)
                 profil.reset_password_token = token
                 profil.reset_token_expires = timezone.now() + timezone.timedelta(hours=24)
@@ -1594,27 +1583,26 @@ def reset_password_request(request):
                 
                 from .utils import send_email_to_user
                 send_email_to_user(user, 
-                    '🔐 Réinitialisation de votre mot de passe',
-                    f'Bonjour {user.username},\n\nCliquez sur le lien suivant pour réinitialiser votre mot de passe:\n{reset_link}\n\nCe lien expire dans 24 heures.'
+                    'Reinitialisation de votre mot de passe',
+                    f'Bonjour {user.username},\n\nCliquez sur le lien suivant pour reinitialiser votre mot de passe:\n{reset_link}\n\nCe lien expire dans 24 heures.'
                 )
                 
-                messages.success(request, "📧 Un email de réinitialisation a été envoyé")
+                messages.success(request, "Un email de reinitialisation a ete envoye")
                 return redirect('login')
         except User.DoesNotExist:
             pass
-        messages.success(request, "📧 Si cet email existe, un lien de réinitialisation a été envoyé")
+        messages.success(request, "Si cet email existe, un lien de reinitialisation a ete envoye")
         return redirect('login')
     
     return render(request, 'inventory/reset_password_request.html')
 
 
 def reset_password_with_otp(request, token):
-    """إعادة تعيين كلمة السر مع OTP"""
     try:
         profil = Utilisateur.objects.get(reset_password_token=token, reset_token_expires__gt=timezone.now())
         user = profil.user
     except Utilisateur.DoesNotExist:
-        messages.error(request, "❌ Lien invalide ou expiré")
+        messages.error(request, "Lien invalide ou expire")
         return redirect('login')
     
     if request.method == 'POST':
@@ -1622,19 +1610,17 @@ def reset_password_with_otp(request, token):
         confirm_password = request.POST.get('confirm_password')
         
         if new_password != confirm_password:
-            messages.error(request, "❌ Les mots de passe ne correspondent pas")
+            messages.error(request, "Les mots de passe ne correspondent pas")
             return render(request, 'inventory/reset_password_with_otp.html', {'token': token})
         
         if len(new_password) < 8:
-            messages.error(request, "❌ 8 caractères minimum")
+            messages.error(request, "8 caracteres minimum")
             return render(request, 'inventory/reset_password_with_otp.html', {'token': token})
         
-        # Stocker le nouveau mot de passe
         request.session['reset_new_password'] = new_password
         request.session['reset_user_id'] = user.id
         request.session['reset_token'] = token
         
-        # Envoyer OTP
         if not profil.otp_secret:
             profil.otp_secret = pyotp.random_base32()
             profil.save()
@@ -1646,7 +1632,7 @@ def reset_password_with_otp(request, token):
         request.session['reset_otp_expires'] = (timezone.now() + timezone.timedelta(minutes=5)).timestamp()
         
         from .utils import send_otp_email
-        send_otp_email(user, otp_code, "réinitialiser votre mot de passe")
+        send_otp_email(user, otp_code, "reinitialiser votre mot de passe")
         
         return redirect('reset_password_otp_verify')
     
@@ -1654,7 +1640,6 @@ def reset_password_with_otp(request, token):
 
 
 def reset_password_otp_verify(request):
-    """التحقق من OTP وإتمام إعادة تعيين كلمة السر"""
     user_id = request.session.get('reset_user_id')
     new_password = request.session.get('reset_new_password')
     stored_otp = request.session.get('reset_otp')
@@ -1662,61 +1647,49 @@ def reset_password_otp_verify(request):
     token = request.session.get('reset_token')
     
     if not user_id or not new_password or not stored_otp:
-        messages.error(request, "❌ Session expirée")
+        messages.error(request, "Session expiree")
         return redirect('login')
     
     if timezone.now().timestamp() > expires:
-        messages.error(request, "❌ Code OTP expiré")
+        messages.error(request, "Code OTP expire")
         return redirect('login')
     
     if request.method == 'POST':
         otp_code = request.POST.get('otp_code')
         
         if otp_code != stored_otp:
-            messages.error(request, "❌ Code OTP invalide")
+            messages.error(request, "Code OTP invalide")
             return render(request, 'inventory/reset_password_otp_verify.html')
         
-        # Changer le mot de passe
         user = get_object_or_404(User, pk=user_id)
         user.set_password(new_password)
         user.save()
         
-        # Nettoyer le token
         if hasattr(user, 'profil'):
             user.profil.reset_password_token = None
             user.profil.reset_token_expires = None
             user.profil.must_change_password = False
             user.profil.save()
         
-        # Nettoyer la session
         for key in ['reset_user_id', 'reset_new_password', 'reset_otp', 'reset_otp_expires', 'reset_token']:
             if key in request.session:
                 del request.session[key]
         
-        messages.success(request, "✅ Votre mot de passe a été réinitialisé avec succès")
+        messages.success(request, "Votre mot de passe a ete reinitialise avec succes")
         return redirect('login')
     
     return render(request, 'inventory/reset_password_otp_verify.html')
 
+
+# ========== GENERATE PDF REPORT ==========
 from django.http import HttpResponse
 from django.template.loader import get_template
-from django.utils import timezone
 from xhtml2pdf import pisa
 import io
-from .models import BonEntree, BonSortie, LigneEntree, LigneSortie
-from django.db.models import Sum
-from django.utils.dateparse import parse_date
-from django.utils import timezone
 
 def generate_pdf_report(request):
-    """Generate PDF report for the selected period"""
-    
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-    
-    from .models import BonEntree, BonSortie, LigneEntree, LigneSortie
-    from django.db.models import Sum
-    from django.utils.dateparse import parse_date
     
     entrees = BonEntree.objects.none()
     sorties = BonSortie.objects.none()
@@ -1735,7 +1708,6 @@ def generate_pdf_report(request):
             stats['total_entrees'] = entrees.count()
             stats['total_sorties'] = sorties.count()
             
-            # Top produits
             product_entries = LigneEntree.objects.filter(bon__in=entrees).values('produit__code_p', 'produit__designation').annotate(total_in=Sum('qte_e'))
             product_exits = LigneSortie.objects.filter(bon__in=sorties).values('produit__code_p', 'produit__designation').annotate(total_out=Sum('qte_s'))
             
@@ -1760,7 +1732,6 @@ def generate_pdf_report(request):
                 data['total_moved'] = data['total_in'] + data['total_out']
             top_products = sorted(product_totals.values(), key=lambda x: x['total_out'], reverse=True)[:10]
             
-            # Top fournisseurs
             fournisseur_totals = LigneEntree.objects.filter(bon__in=entrees).values(
                 'bon__fournisseur__num_f', 'bon__fournisseur__designation'
             ).annotate(total_qte=Sum('qte_e')).order_by('-total_qte')[:10]
@@ -1772,7 +1743,6 @@ def generate_pdf_report(request):
                     'total_qte': f['total_qte'] or 0,
                 })
             
-            # Top clients
             client_totals = LigneSortie.objects.filter(bon__in=sorties).values(
                 'bon__client__code_cl', 'bon__client__designation'
             ).annotate(total_qte=Sum('qte_s')).order_by('-total_qte')[:10]
@@ -1784,7 +1754,6 @@ def generate_pdf_report(request):
                     'total_qte': c['total_qte'] or 0,
                 })
     
-    # ========== IMPORTANT: CONTEXT AVEC USER ==========
     context = {
         'start_date': start_date,
         'end_date': end_date,
@@ -1795,12 +1764,8 @@ def generate_pdf_report(request):
         'top_fournisseurs': top_fournisseurs,
         'top_clients': top_clients,
         'now': timezone.now(),
-        'user': request.user,  # ← تأكد من وجود هذا السطر
+        'user': request.user,
     }
-    
-    from django.template.loader import get_template
-    import io
-    from xhtml2pdf import pisa
     
     template = get_template('inventory/report_pdf.html')
     html = template.render(context)
@@ -1809,10 +1774,47 @@ def generate_pdf_report(request):
     pdf = pisa.pisaDocument(io.BytesIO(html.encode("UTF-8")), result)
     
     if not pdf.err:
-        from django.http import HttpResponse
         response = HttpResponse(result.getvalue(), content_type='application/pdf')
         filename = f"rapport_{start_date}_{end_date}.pdf" if start_date and end_date else "rapport.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
     
     return HttpResponse("Erreur lors de la generation du PDF", status=500)
+
+def request_otp_for_password_change(request):
+    """طلب OTP لتغيير كلمة السر بعد تسجيل الدخول"""
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    # التحقق من وجود كلمة السر في cache
+    cache_key = request.session.get('pending_cache_key')
+    pending_password = cache.get(cache_key) if cache_key else None
+    
+    if not pending_password:
+        messages.error(request, "Session expirée, veuillez recommencer")
+        return redirect('change_password_request')
+    
+    # ✅ معالجة POST (إرسال OTP)
+    if request.method == 'POST':
+        user = request.user
+        profil = get_user_profile(user)
+        
+        if not profil.otp_secret:
+            profil.otp_secret = pyotp.random_base32()
+            profil.save()
+        
+        totp = pyotp.TOTP(profil.otp_secret)
+        otp_code = totp.now()
+        
+        request.session['change_pw_otp'] = otp_code
+        request.session['change_pw_otp_expires'] = (timezone.now() + timezone.timedelta(minutes=5)).timestamp()
+        
+        from .utils import send_otp_email
+        send_otp_email(user, otp_code, "changer votre mot de passe")
+        
+        # ✅ دائماً نعيد التوجيه إلى صفحة التحقق من OTP
+        messages.success(request, "Un code OTP a été envoyé à votre email")
+        return redirect('change_password_otp_verify')
+    
+    # ✅ GET request - عرض الصفحة
+    return render(request, 'inventory/request_otp_pw_change.html')

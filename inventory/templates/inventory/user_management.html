@@ -1,11 +1,102 @@
 {% extends 'inventory/base.html' %}
+{% block title %}Administration des utilisateurs{% endblock %}
 {% block content %}
-<h2>Administration des utilisateurs</h2>
-<p>Uniquement accessible au superutilisateur.</p>
 
+<style>
+    .panel {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    .panel-header {
+        background: #0f2b4d;
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+    }
+    .panel-body {
+        padding: 1.5rem;
+    }
+    .btn-primary-custom {
+        background: #0f2b4d;
+        color: white;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.5rem 1.5rem;
+        transition: all 0.2s;
+    }
+    .btn-primary-custom:hover {
+        background: #1a4a7a;
+        transform: translateY(-2px);
+    }
+    .btn-danger-custom {
+        background: #b91c1c;
+        color: white;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.3rem 1rem;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+    .btn-danger-custom:hover {
+        background: #991b1b;
+    }
+    .btn-warning-custom {
+        background: #d97706;
+        color: white;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.3rem 1rem;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+    .btn-warning-custom:hover {
+        background: #b45309;
+    }
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-custom th, .table-custom td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+    }
+    .table-custom th {
+        background: #f8fafc;
+        font-weight: 600;
+    }
+    .badge-success {
+        background: #dcfce7;
+        color: #15803d;
+        padding: 0.2rem 0.5rem;
+        border-radius: 2rem;
+        font-size: 0.7rem;
+    }
+    .badge-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 0.2rem 0.5rem;
+        border-radius: 2rem;
+        font-size: 0.7rem;
+    }
+</style>
+
+<div class="mb-4">
+    <h2 class="fw-bold" style="color: #0f2b4d;">
+        <i class="bi bi-people-fill me-2"></i>Administration des utilisateurs
+    </h2>
+    <p class="text-muted">Uniquement accessible au superutilisateur.</p>
+</div>
+
+<!-- Formulaire de création/modification -->
 <div class="panel">
-<<<<<<< Updated upstream
-    <div class="panel-header"><strong>{% if is_editing %}Modifier l'utilisateur{% else %}Créer un nouvel utilisateur{% endif %}</strong></div>
+    <div class="panel-header">
+        <i class="bi bi-person-plus-fill me-2"></i>
+        {% if is_editing %}Modifier l'utilisateur{% else %}Créer un nouvel utilisateur{% endif %}
+    </div>
     <div class="panel-body">
         <form method="post">
             {% csrf_token %}
@@ -21,110 +112,105 @@
 
             {% for field in form %}
                 {% if field.field.widget.input_type == 'checkbox' %}
-                    {# تنسيق خاص لمربعات الاختيار (Staff/Superuser) #}
                     <div class="form-check mb-3">
                         {{ field }}
                         <label class="form-check-label" for="{{ field.id_for_label }}">
                             {{ field.label }}
                         </label>
-                        
                         {% if field.errors %}
                             {% for error in field.errors %}
-                                <div class="text-danger" style="font-size: 0.8rem;">{{ error }}</div>
+                                <div class="text-danger small">{{ error }}</div>
                             {% endfor %}
                         {% endif %}
-                        
                         {% if field.help_text %}
-                            <div class="form-text" style="font-size: 0.75rem; color: #666;">{{ field.help_text|safe }}</div>
+                            <div class="form-text small text-muted">{{ field.help_text|safe }}</div>
                         {% endif %}
                     </div>
                 {% else %}
-                    {# تنسيق الحقول النصية العادية #}
                     <div class="mb-3">
-                        {{ field.label_tag }}
+                        <label class="form-label fw-semibold">{{ field.label }}</label>
                         {{ field }}
-                        
                         {% if field.errors %}
                             {% for error in field.errors %}
-                                <div class="text-danger" style="font-size: 0.8rem;">{{ error }}</div>
+                                <div class="text-danger small">{{ error }}</div>
                             {% endfor %}
                         {% endif %}
-
                         {% if field.help_text %}
-                            <div class="form-text" style="font-size: 0.75rem; color: #666;">{{ field.help_text|safe }}</div>
+                            <div class="form-text small text-muted">{{ field.help_text|safe }}</div>
                         {% endif %}
                     </div>
                 {% endif %}
             {% endfor %}
 
-            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">{% if is_editing %}Mettre à jour{% else %}Enregistrer{% endif %}</button>
-=======
-    <div class="panel-header"><strong>Créer un nouvel utilisateur</strong></div>
-    <div class="panel-body">
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="button">Enregistrer</button>
->>>>>>> Stashed changes
+            <button type="submit" class="btn-primary-custom">
+                <i class="bi bi-save me-2"></i>{% if is_editing %}Mettre à jour{% else %}Enregistrer{% endif %}
+            </button>
+            <a href="{% url 'user_management' %}" class="btn btn-outline-secondary rounded-pill ms-2">
+                <i class="bi bi-arrow-left me-2"></i>Annuler
+            </a>
         </form>
     </div>
 </div>
 
-<div class="panel" style="margin-top: 16px;">
-    <div class="panel-header"><strong>Liste des utilisateurs</strong></div>
-    <div class="panel-body">
-        <table class="table">
-            <thead>
-<<<<<<< Updated upstream
-                <tr>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Staff</th>
-                    <th>Superuser</th>
-                    <th>Action</th>
-                </tr>
-=======
-                <tr><th>Nom</th><th>Email</th><th>Staff</th><th>Superuser</th><th>Action</th></tr>
->>>>>>> Stashed changes
-            </thead>
-            <tbody>
-                {% for u in users %}
+<!-- Liste des utilisateurs -->
+<div class="panel">
+    <div class="panel-header">
+        <i class="bi bi-list-ul me-2"></i>Liste des utilisateurs
+    </div>
+    <div class="panel-body p-0">
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Staff</th>
+                        <th>Superuser</th>
+                        <th>Action</th>
+                    </thead>
+                <tbody>
+                    {% for u in users %}
                     <tr>
                         <td>{{ u.username }}</td>
-                        <td>{{ u.email }}</td>
-<<<<<<< Updated upstream
+                        <td>{{ u.email|default:"—" }}</td>
                         <td>
-                            {% if u.is_staff %} ✅ {% else %} ❌ {% endif %}
+                            {% if u.is_staff %}
+                                <span class="badge-success"><i class="bi bi-check-circle-fill me-1"></i>Oui</span>
+                            {% else %}
+                                <span class="badge-danger"><i class="bi bi-x-circle-fill me-1"></i>Non</span>
+                            {% endif %}
                         </td>
                         <td>
-                            {% if u.is_superuser %} ✅ {% else %} ❌ {% endif %}
+                            {% if u.is_superuser %}
+                                <span class="badge-success"><i class="bi bi-shield-lock-fill me-1"></i>Admin</span>
+                            {% else %}
+                                <span class="badge-danger"><i class="bi bi-person me-1"></i>Non</span>
+                            {% endif %}
                         </td>
                         <td>
                             {% if not u.is_superuser %}
-                                <a class="button" href="{% url 'user_management' %}?edit={{ u.pk }}">Modifier</a>
-                                <a class="button danger" href="{% url 'delete_user' u.pk %}">Supprimer</a>
+                                <a href="{% url 'user_management' %}?edit={{ u.pk }}" class="btn-warning-custom me-1">
+                                    <i class="bi bi-pencil-square"></i> Modifier
+                                </a>
+                                <a href="{% url 'delete_user' u.pk %}" class="btn-danger-custom">
+                                    <i class="bi bi-trash3"></i> Supprimer
+                                </a>
                             {% else %}
-                                <span class="text-muted">Admin</span>
-=======
-                        <td>{{ u.is_staff }}</td>
-                        <td>{{ u.is_superuser }}</td>
-                        <td>
-                            {% if not u.is_superuser %}
-                                <a class="button danger" href="{% url 'delete_user' u.pk %}">Supprimer</a>
-                            {% else %}
-                                -
->>>>>>> Stashed changes
+                                <span class="text-muted"><i class="bi bi-shield-lock-fill me-1"></i>Admin</span>
                             {% endif %}
                         </td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-2"></i>Aucun utilisateur trouvé
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<<<<<<< Updated upstream
 {% endblock %}
-=======
-{% endblock %}
->>>>>>> Stashed changes

@@ -3,356 +3,242 @@
 {% block content %}
 
 <style>
-    /* ========== STYLE PROFESSIONNEL POUR RAPPORT ========== */
-    .report-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        background: white;
-        padding: 2rem;
-    }
-    
-    .report-header {
-        text-align: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #0f2b4d;
-    }
-    
-    .report-header h1 {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #0f2b4d;
-        margin-bottom: 0.25rem;
-    }
-    
-    .report-header p {
-        color: #64748b;
-        font-size: 0.85rem;
-    }
-    
-    .report-period {
-        background: #f8fafc;
-        padding: 0.75rem;
-        text-align: center;
-        margin-bottom: 1.5rem;
-        border-radius: 0.5rem;
-        font-weight: 500;
-    }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .stat-box {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        text-align: center;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .stat-box .number {
-        font-size: 2.5rem;
-        font-weight: 800;
-    }
-    
-    .stat-box .label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        color: #64748b;
-        letter-spacing: 1px;
-    }
-    
-    .section-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #0f2b4d;
-        margin: 1.5rem 0 1rem 0;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #e2e8f0;
-    }
-    
-    .professional-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 1rem;
-        font-size: 0.85rem;
-    }
-    
-    .professional-table th {
-        background: #f1f5f9;
-        padding: 0.75rem;
-        text-align: left;
-        font-weight: 600;
-        color: #0f2b4d;
-        border-bottom: 2px solid #e2e8f0;
-    }
-    
-    .professional-table td {
-        padding: 0.75rem;
-        border-bottom: 1px solid #e2e8f0;
-        color: #334155;
-    }
-    
-    .professional-table tr:hover {
-        background: #f8fafc;
-    }
-    
-    .text-right {
-        text-align: right;
-    }
-    
-    .badge-entree {
-        background: #dcfce7;
-        color: #15803d;
-        padding: 0.25rem 0.75rem;
-        border-radius: 2rem;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-    
-    .badge-sortie {
-        background: #fee2e2;
-        color: #b91c1c;
-        padding: 0.25rem 0.75rem;
-        border-radius: 2rem;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-    
-    .footer-note {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid #e2e8f0;
-        text-align: center;
-        font-size: 0.7rem;
-        color: #94a3b8;
-    }
-    
-    .btn-print {
-        background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
+    .btn-pdf {
+        background-color: #dc2626;
         color: white;
         border: none;
         border-radius: 2rem;
-        padding: 0.6rem 1.5rem;
-        margin-bottom: 1rem;
-        cursor: pointer;
-        transition: all 0.2s;
+        padding: 0.5rem 1.5rem;
+        text-decoration: none;
+        display: inline-block;
     }
-    
-    .btn-print:hover {
-        transform: translateY(-2px);
-        filter: brightness(1.05);
+    .btn-pdf:hover {
+        background-color: #b91c1c;
     }
-    
-    @media print {
-        .no-print {
-            display: none !important;
-        }
-        .report-container {
-            padding: 0;
-            margin: 0;
-        }
-        .stat-box {
-            break-inside: avoid;
-        }
-        .professional-table {
-            break-inside: avoid;
-        }
+    .btn-search {
+        background: #0f2b4d;
+        color: white;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.5rem 1.5rem;
+    }
+    .btn-search:hover {
+        background: #1a4a7a;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-custom th, .table-custom td {
+        border: 1px solid #e2e8f0;
+        padding: 8px;
+        text-align: left;
+    }
+    .table-custom th {
+        background: #f8fafc;
+    }
+    .badge-green {
+        background: #dcfce7;
+        color: #15803d;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+    .badge-red {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 2px 8px;
+        border-radius: 20px;
     }
 </style>
 
-<div class="report-container">
- <!-- Bouton génération PDF (n'apparaît pas dans l'impression) -->
-<div class="no-print text-end mb-3">
-    {% if start_date and end_date %}
-    <a href="{% url 'generate_pdf_report' %}?start_date={{ start_date }}&end_date={{ end_date }}" 
-       class="btn-pdf" 
-       target="_blank" 
-       style="background-color: #dc3545; color: white; padding: 8px 20px; border-radius: 50px; text-decoration: none; display: inline-block; transition: 0.3s; border: none;"
-       onmouseover="this.style.backgroundColor='#b02a37'" 
-       onmouseout="this.style.backgroundColor='#dc3545'">
-        <i class="bi bi-file-pdf me-2"></i> Exporter en PDF
+<!-- Titre -->
+<div class="mb-4">
+    <h2 class="fw-bold" style="color: #0f2b4d;">
+        <i class="bi bi-bar-chart-steps me-2"></i>Rapport d'activité
+    </h2>
+    <p class="text-muted">Analyse des mouvements de stock sur une période</p>
+</div>
+
+<!-- Formulaire période -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Date début</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Date fin</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date|default:'' }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn-search w-100">
+                    <i class="bi bi-search me-2"></i>Générer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Message si pas de période -->
+{% if not start_date or not end_date %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle me-2"></i>
+    Veuillez sélectionner une période pour générer le rapport
+</div>
+{% endif %}
+
+<!-- Résultats -->
+{% if start_date and end_date and not error %}
+
+<!-- Statistiques -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <span class="text-muted">Bons d'entrée</span>
+                    <h2 class="fw-bold" style="color: #15803d;">{{ stats.total_entrees|default:0 }}</h2>
+                </div>
+                <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                    <i class="bi bi-box-arrow-in-down fs-2 text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <span class="text-muted">Bons de sortie</span>
+                    <h2 class="fw-bold" style="color: #b91c1c;">{{ stats.total_sorties|default:0 }}</h2>
+                </div>
+                <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                    <i class="bi bi-box-arrow-right fs-2 text-danger"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top produits -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white fw-bold">
+        <i class="bi bi-trophy-fill me-2"></i>Top produits
+    </div>
+    <div class="card-body p-0">
+        <table class="table-custom">
+            <thead>
+                <tr><th>Produit</th><th>Entrées</th><th>Sorties</th><th>Total</th></thead>
+            <tbody>
+                {% for p in top_products|slice:":10" %}
+                <tr>
+                    <td>{{ p.designation|default:"-" }}</td>
+                    <td><span class="badge-green">{{ p.total_in|default:0 }}</span></td>
+                    <td><span class="badge-red">{{ p.total_out|default:0 }}</span></td>
+                    <td><strong>{{ p.total_moved|default:0 }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center">Aucune donnée</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Top fournisseurs -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white fw-bold">
+        <i class="bi bi-building me-2"></i>Top fournisseurs
+    </div>
+    <div class="card-body p-0">
+        <table class="table-custom">
+            <thead><tr><th>Fournisseur</th><th>Total</th></thead>
+            <tbody>
+                {% for f in top_fournisseurs|slice:":10" %}
+                <tr><td>{{ f.name|default:"-" }}</td><td>{{ f.total_qte|default:0 }} u</td></tr>
+                {% empty %}<tr><td colspan="2" class="text-center">Aucune donnée</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Top clients -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white fw-bold">
+        <i class="bi bi-people-fill me-2"></i>Top clients
+    </div>
+    <div class="card-body p-0">
+        <table class="table-custom">
+            <thead><tr><th>Client</th><th>Total</th></thead>
+            <tbody>
+                {% for c in top_clients|slice:":10" %}
+                <tr><td>{{ c.name|default:"-" }}</td><td>{{ c.total_qte|default:0 }} u</td></tr>
+                {% empty %}<tr><td colspan="2" class="text-center">Aucune donnée</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Détail des entrées -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white fw-bold">
+        <i class="bi bi-box-arrow-in-down me-2"></i>Détail des entrées
+    </div>
+    <div class="card-body p-0">
+        <table class="table-custom">
+            <thead><tr><th>N°</th><th>Date</th><th>Fournisseur</th></thead>
+            <tbody>
+                {% for bon in entrees|slice:":15" %}
+                <tr>
+                    <td>#{{ bon.num_e }}</td>
+                    <td>{{ bon.date_e|date:"d/m/Y" }}</td>
+                    <td>{{ bon.fournisseur.designation|default:"-" }}</td>
+                </tr>
+                {% empty %}<tr><td colspan="3" class="text-center">Aucune entrée</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Détail des sorties -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white fw-bold">
+        <i class="bi bi-box-arrow-right me-2"></i>Détail des sorties
+    </div>
+    <div class="card-body p-0">
+        <table class="table-custom">
+            <thead><tr><th>N°</th><th>Date</th><th>Client</th></thead>
+            <tbody>
+                {% for bon in sorties|slice:":15" %}
+                <tr>
+                    <td>#{{ bon.num_s }}</td>
+                    <td>{{ bon.date_s|date:"d/m/Y" }}</td>
+                    <td>{{ bon.client.designation|default:"-" }}</td>
+                </tr>
+                {% empty %}<tr><td colspan="3" class="text-center">Aucune sortie</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Bouton PDF -->
+<div class="text-end mt-3">
+    <a href="{% url 'generate_pdf_report' %}?start_date={{ start_date }}&end_date={{ end_date }}" class="btn-pdf" target="_blank">
+        <i class="bi bi-file-pdf me-2"></i>Exporter en PDF
     </a>
-    {% else %}
-    <button class="btn-pdf" 
-            disabled 
-            style="background-color: #dc3545; color: white; padding: 8px 20px; border-radius: 50px; border: none; opacity: 0.5; cursor: not-allowed;">
-        <i class="bi bi-file-pdf me-2"></i> PDF (période requise)
-    </button>
-    {% endif %}
 </div>
-    <!-- Entête du rapport -->
-    <div class="report-header">
-        <h1>📊 RAPPORT D'ACTIVITÉ</h1>
-        <p>Gestion de Stock - Analyse des mouvements</p>
-    </div>
 
-    {% if start_date and end_date %}
-    <div class="report-period">
-        📅 Période : du <strong>{{ start_date }}</strong> au <strong>{{ end_date }}</strong>
-    </div>
-    {% endif %}
+{% endif %}
 
-    {% if not start_date or not end_date %}
-    <div class="report-period" style="background: #fef3c7; color: #b45309;">
-        ⚠️ Veuillez sélectionner une période pour générer le rapport
-    </div>
-    {% endif %}
-
-    {% if error %}
-    <div class="report-period" style="background: #fee2e2; color: #b91c1c;">
-        ❌ {{ error }}
-    </div>
-    {% endif %}
-
-    {% if start_date and end_date and not error %}
-
-    <!-- SECTION 1: STATISTIQUES GÉNÉRALES -->
-    <div class="stats-grid">
-        <div class="stat-box">
-            <div class="number" style="color: #15803d;">{{ stats.total_entrees|default:0 }}</div>
-            <div class="label">Bons d'entrée</div>
-        </div>
-        <div class="stat-box">
-            <div class="number" style="color: #b91c1c;">{{ stats.total_sorties|default:0 }}</div>
-            <div class="label">Bons de sortie</div>
-        </div>
-    </div>
-
-    <!-- SECTION 2: TOP PRODUITS -->
-    <div class="section-title">
-        🏆 PRODUITS LES PLUS COMMANDÉS
-    </div>
-    <table class="professional-table">
-        <thead>
-            <tr>
-                <th>Code</th>
-                <th>Désignation</th>
-                <th class="text-right">Entrées</th>
-                <th class="text-right">Sorties</th>
-                <th class="text-right">Total mouvements</th>
-             </thead>
-        <tbody>
-            {% for p in top_products %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td><strong>{{ p.designation }}</strong></td>
-                <td class="text-right"><span class="badge-entree">{{ p.total_in|default:0 }}</span></td>
-                <td class="text-right"><span class="badge-sortie">{{ p.total_out|default:0 }}</span></td>
-                <td class="text-right"><strong>{{ p.total_moved|default:0 }}</strong></td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5" class="text-center">Aucune donnée disponible</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- SECTION 3: TOP FOURNISSEURS -->
-    <div class="section-title">
-        🏭 PRINCIPAUX FOURNISSEURS
-    </div>
-    <table class="professional-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Fournisseur</th>
-                <th class="text-right">Total livraisons</th>
-             </thead>
-        <tbody>
-            {% for f in top_fournisseurs %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td><strong>{{ f.name }}</strong></td>
-                <td class="text-right">{{ f.total_qte|default:0 }} unités</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="3" class="text-center">Aucune donnée disponible</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- SECTION 4: TOP CLIENTS -->
-    <div class="section-title">
-        👥 PRINCIPAUX CLIENTS
-    </div>
-    <table class="professional-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Client</th>
-                <th class="text-right">Total retraits</th>
-             </thead>
-        <tbody>
-            {% for c in top_clients %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td><strong>{{ c.name }}</strong></td>
-                <td class="text-right">{{ c.total_qte|default:0 }} unités</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="3" class="text-center">Aucune donnée disponible</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- SECTION 5: DÉTAIL DES MOUVEMENTS -->
-    <div class="section-title">
-        📋 DÉTAIL DES MOUVEMENTS
-    </div>
-    
-    <div style="margin-bottom: 1.5rem;">
-        <h4 style="font-size: 0.9rem; color: #15803d; margin-bottom: 0.5rem;">📥 Bons d'entrée</h4>
-        <table class="professional-table">
-            <thead>
-                <tr><th>N° Bon</th><th>Date</th><th>Fournisseur</th><th>Nb produits</th><th>Utilisateur</th></thead>
-            <tbody>
-                {% for bon in entrees %}
-                <tr>
-                    <td><strong>#{{ bon.num_e }}</strong></td>
-                    <td>{{ bon.date_e|date:"d/m/Y H:i" }}</td>
-                    <td>{{ bon.fournisseur.designation }}</td>
-                    <td class="text-right">{{ bon.lignes.all|length }} article(s)</td>
-                    <td>{{ bon.utilisateur.user.username }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" class="text-center">Aucun bon d'entrée</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div>
-        <h4 style="font-size: 0.9rem; color: #b91c1c; margin-bottom: 0.5rem;">📤 Bons de sortie</h4>
-        <table class="professional-table">
-            <thead>
-                <tr><th>N° Bon</th><th>Date</th><th>Client</th><th>Nb produits</th><th>Utilisateur</th></thead>
-            <tbody>
-                {% for bon in sorties %}
-                <tr>
-                    <td><strong>#{{ bon.num_s }}</strong></td>
-                    <td>{{ bon.date_s|date:"d/m/Y H:i" }}</td>
-                    <td>{{ bon.client.designation }}</td>
-                    <td class="text-right">{{ bon.lignes.all|length }} article(s)</td>
-                    <td>{{ bon.utilisateur.user.username }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" class="text-center">Aucun bon de sortie</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pied de page -->
-    <div class="footer-note">
-        Document généré automatiquement le {{ now|date:"d/m/Y à H:i" }}<br>
-        Gestion de Stock - Tous droits réservés
-    </div>
-
-    {% endif %}
-</div>
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
 
 {% endblock %}

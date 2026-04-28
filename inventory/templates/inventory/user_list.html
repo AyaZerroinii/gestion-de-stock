@@ -1,53 +1,124 @@
 {% extends 'inventory/base.html' %}
-{% block content %}
-<h2>Utilisateurs</h2>
-<p>
-    <a class="btn btn-primary rounded-pill px-4" href="{% url 'user_create' %}">
-        Ajouter un utilisateur
-    </a>
-</p>
 
-<div class="row mb-3">
+{% block title %}Utilisateurs{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-gradient mb-1">
+            <i class="bi bi-people-fill me-2"></i>Utilisateurs
+        </h2>
+        <p class="text-muted">Gestion des comptes utilisateurs et permissions</p>
+    </div>
+    <a href="{% url 'user_create' %}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm">
+        <i class="bi bi-plus-circle me-2"></i>Ajouter un utilisateur
+    </a>
+</div>
+
+<!-- Barre de recherche -->
+<div class="row mb-4">
     <div class="col-md-6">
         <form method="get" class="d-flex gap-2">
-            <input type="text" name="q" class="form-control rounded-pill" placeholder="Rechercher par nom ou email..." value="{{ search_query }}">
-            <button type="submit" class="btn btn-outline-primary rounded-pill">Rechercher</button>
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text" name="q" class="form-control rounded-pill ps-5 py-2" 
+                       placeholder="Rechercher par nom ou email..." value="{{ search_query }}">
+            </div>
+            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-search me-1"></i>Rechercher
+            </button>
             {% if search_query %}
-                <a href="{% url 'user_list' %}" class="btn btn-outline-secondary rounded-pill">Réinitialiser</a>
+                <a href="{% url 'user_list' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-x-circle me-1"></i>Réinitialiser
+                </a>
             {% endif %}
         </form>
     </div>
 </div>
 
-<div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
-    <table class="table table-striped">
-        <thead style="position: sticky; top: 0; background-color: #f8fafc; z-index: 1;">
-            <tr>
-                <th>Nom</th>
-                <th>Email</th>
-                <th>Staff</th>
-                <th>Superuser</th>
-                <th>Actions</th>
-            </thead>
-        <tbody>
-            {% for u in users %}
-            <tr>
-                <td>{{ u.username }}</td>
-                <td>{{ u.email }}</td>
-                <td>{% if u.is_staff %}Oui{% else %}Non{% endif %}</td>
-                <td>{% if u.is_superuser %}Oui{% else %}Non{% endif %}</td>
-                <td>
-                    {% if not u.is_superuser %}
-                        <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'user_edit' u.pk %}">Modifier</a>
-                        <a class="btn btn-sm btn-danger rounded-pill px-3" href="{% url 'delete_user' u.pk %}">Supprimer</a>
-                    {% endif %}
-                    <a class="btn btn-sm btn-info rounded-pill px-3" href="{% url 'user_history' u.username %}">Historique</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5">Aucun utilisateur trouvé.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Tableau des utilisateurs -->
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light sticky-top" style="top: 0;">
+                    <tr class="text-muted">
+                        <th class="ps-4">Nom d'utilisateur</th>
+                        <th>Email</th>
+                        <th class="text-center">Staff</th>
+                        <th class="text-center">Superuser</th>
+                        <th class="text-center pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="ps-4 fw-semibold">
+                            <i class="bi bi-person-circle me-2 text-muted"></i>{{ u.username }}
+                        </td>
+                        <td>{{ u.email|default:"—" }}</td>
+                        <td class="text-center">
+                            {% if u.is_staff %}
+                                <span class="badge bg-success rounded-pill px-3"><i class="bi bi-check-lg"></i> Oui</span>
+                            {% else %}
+                                <span class="badge bg-secondary rounded-pill px-3"><i class="bi bi-x-lg"></i> Non</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if u.is_superuser %}
+                                <span class="badge bg-danger rounded-pill px-3"><i class="bi bi-shield-lock-fill"></i> Admin</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark rounded-pill px-3">Utilisateur</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center pe-4">
+                            <div class="d-flex gap-2 justify-content-center">
+                                {% if not u.is_superuser %}
+                                    <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Modifier">
+                                        <i class="bi bi-pencil-square"></i> Modifier
+                                    </a>
+                                    <a href="{% url 'delete_user' u.pk %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Supprimer">
+                                        <i class="bi bi-trash3"></i> Supprimer
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'user_history' u.username %}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="Historique">
+                                    <i class="bi bi-clock-history"></i> Historique
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Aucun utilisateur trouvé
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 pt-3 pb-3 text-muted small">
+        <i class="bi bi-info-circle me-1"></i> Total: {{ users|length }} utilisateur(s)
+    </div>
 </div>
+
+<style>
+    .text-gradient {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .table td, .table th {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+    }
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+</style>
 {% endblock %}

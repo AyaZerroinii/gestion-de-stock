@@ -1,0 +1,74 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Connexion{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                            <i class="bi bi-box-seam-fill fs-1 text-primary"></i>
+                        </div>
+                        <h2 class="fw-bold text-gradient">Connexion</h2>
+                        <p class="text-muted">Gestion de Stock</p>
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3" role="alert">
+                                <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle-fill{% else %}check-circle-fill{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nom d'utilisateur</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text" name="username" class="form-control border-start-0 rounded-end-3" placeholder="Entrez votre nom" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Mot de passe</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" name="password" class="form-control border-start-0 rounded-end-3" placeholder="Entrez votre mot de passe" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+                        </button>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <a href="{% url 'forgot_password' %}" class="text-decoration-none small">
+                            <i class="bi bi-key"></i> Mot de passe oublié ?
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gradient {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+</style>
+{% endblock %}

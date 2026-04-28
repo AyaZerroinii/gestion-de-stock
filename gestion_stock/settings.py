@@ -1,7 +1,9 @@
-from pathlib import Path
 import os
+from pathlib import Path
+from dotenv import load_dotenv  # <--- أضيفي هذا السطر
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR, '.env')) # <--- وهذا السطر لتحميل الملف
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-replace_me')
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1')

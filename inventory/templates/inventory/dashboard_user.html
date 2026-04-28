@@ -1,131 +1,266 @@
 {% extends 'inventory/base.html' %}
+{% block title %}Tableau de bord{% endblock %}
 {% block content %}
-<div class="dashboard-wrapper">
-    <div class="container py-5">
-        <!-- En-tête -->
-        <div class="row mb-5">
-            <div class="col-12 text-center">
-                <div class="header-glow">
-                    <h1 class="display-4 fw-bold text-primary-dark">Gestion de Stock</h1>
-                    <p class="lead text-secondary">Tableau de bord – Bienvenue, {{ user.get_full_name|default:user.username }}</p>
-                    <div class="mt-2">
-                        <span class="badge bg-light text-muted px-3 py-2 rounded-pill">
-                            <i class="bi bi-calendar3 me-1"></i> {% now "l j F Y" %}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold text-gradient mb-0">Tableau de bord</h1>
+                    <p class="text-muted mt-2 mb-0">
+                        <i class="bi bi-person-circle me-1"></i> Bienvenue, {{ user.get_full_name|default:user.username }}
+                    </p>
+                </div>
+                <div class="mt-2 mt-sm-0">
+                    <span class="badge bg-light text-dark rounded-pill px-3 py-2">
+                        <i class="bi bi-calendar3 me-1"></i> {% now "l j F Y" %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cartes statistiques (4 cartes) -->
+<div class="row g-4 mb-5">
+    <!-- Entrées récentes -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'bon_entree_list' %}" class="text-decoration-none">
+            <div class="card stat-card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="text-secondary text-uppercase small fw-semibold">Entrées récentes</span>
+                            <h2 class="mt-2 fw-bold display-6 text-primary">{{ recent_entrees|length }}</h2>
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">
+                                <i class="bi bi-box-arrow-in-down me-1"></i> Voir tout
+                            </span>
+                        </div>
+                        <div class="stat-icon bg-soft-primary">
+                            <i class="bi bi-arrow-down-circle fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Sorties récentes -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'bon_sortie_list' %}" class="text-decoration-none">
+            <div class="card stat-card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="text-secondary text-uppercase small fw-semibold">Sorties récentes</span>
+                            <h2 class="mt-2 fw-bold display-6 text-danger">{{ recent_sorties|length }}</h2>
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">
+                                <i class="bi bi-box-arrow-right me-1"></i> Voir tout
+                            </span>
+                        </div>
+                        <div class="stat-icon bg-soft-danger">
+                            <i class="bi bi-arrow-up-circle fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Total produits -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card stat-card h-100 border-0 shadow-sm" data-bs-toggle="modal" data-bs-target="#productListModal" style="cursor: pointer;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase small fw-semibold">Total produits</span>
+                        <h2 class="mt-2 fw-bold display-6 text-success">{{ total_produits }}</h2>
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill">
+                            <i class="bi bi-grid me-1"></i> Liste
                         </span>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cartes statistiques (cliquables) -->
-        <div class="row g-4 mb-5">
-            <div class="col-md-3 col-sm-6">
-                <a href="{% url 'bon_entree_list' %}" class="text-decoration-none">
-                    <div class="card stat-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="stat-icon bg-primary-soft">
-                                    <i class="bi bi-arrow-down-circle fs-2 text-primary"></i>
-                                </div>
-                                <span class="badge bg-light text-primary rounded-pill px-3">Voir tout</span>
-                            </div>
-                            <h2 class="mt-3 fw-bold display-6">{{ recent_entrees|length }}</h2>
-                            <p class="text-muted text-uppercase small mb-0">Entrées récentes</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <a href="{% url 'bon_sortie_list' %}" class="text-decoration-none">
-                    <div class="card stat-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="stat-icon bg-danger-soft">
-                                    <i class="bi bi-arrow-up-circle fs-2 text-danger"></i>
-                                </div>
-                                <span class="badge bg-light text-danger rounded-pill px-3">Voir tout</span>
-                            </div>
-                            <h2 class="mt-3 fw-bold display-6">{{ recent_sorties|length }}</h2>
-                            <p class="text-muted text-uppercase small mb-0">Sorties récentes</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stat-card h-100 border-0 shadow-sm" data-bs-toggle="modal" data-bs-target="#productListModal" style="cursor: pointer;">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="stat-icon bg-success-soft">
-                                <i class="bi bi-box-seam fs-2 text-success"></i>
-                            </div>
-                            <span class="badge bg-light text-success rounded-pill px-3">Liste</span>
-                        </div>
-                        <h2 class="mt-3 fw-bold display-6">{{ total_produits }}</h2>
-                        <p class="text-muted text-uppercase small mb-0">Total produits</p>
+                    <div class="stat-icon bg-soft-success">
+                        <i class="bi bi-box-seam fs-2"></i>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <a href="{% url 'produit_list' %}" class="text-decoration-none">
-                    <div class="card stat-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="stat-icon bg-warning-soft">
-                                    <i class="bi bi-exclamation-triangle fs-2 text-warning"></i>
-                                </div>
-                                <span class="badge bg-light text-warning rounded-pill px-3">Gérer</span>
-                            </div>
-                            <h2 class="mt-3 fw-bold display-6">{{ low_stock_count }}</h2>
-                            <p class="text-muted text-uppercase small mb-0">Stock faible</p>
+        </div>
+    </div>
+
+    <!-- Stock faible -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'produit_list' %}" class="text-decoration-none">
+            <div class="card stat-card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="text-secondary text-uppercase small fw-semibold">Stock faible</span>
+                            <h2 class="mt-2 fw-bold display-6 text-warning">{{ low_stock_count }}</h2>
+                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">
+                                <i class="bi bi-gear me-1"></i> Gérer
+                            </span>
+                        </div>
+                        <div class="stat-icon bg-soft-warning">
+                            <i class="bi bi-exclamation-triangle fs-2"></i>
                         </div>
                     </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Actions rapides (2 cartes) -->
+<div class="row g-4 mb-5">
+    <div class="col-md-6">
+        <a href="{% url 'bon_entree_create' %}" class="text-decoration-none">
+            <div class="card action-card h-100 border-0 shadow-sm">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="flex-shrink-0 me-4">
+                        <div class="action-icon bg-soft-primary">
+                            <i class="bi bi-plus-circle fs-1 text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="fw-bold mb-1">Nouvelle entrée</h4>
+                        <p class="text-muted mb-0">Ajouter des produits au stock</p>
+                    </div>
+                    <i class="bi bi-arrow-right-circle fs-2 text-muted"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'bon_sortie_create' %}" class="text-decoration-none">
+            <div class="card action-card h-100 border-0 shadow-sm">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="flex-shrink-0 me-4">
+                        <div class="action-icon bg-soft-danger">
+                            <i class="bi bi-dash-circle fs-1 text-danger"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="fw-bold mb-1">Nouvelle sortie</h4>
+                        <p class="text-muted mb-0">Retirer des produits du stock</p>
+                    </div>
+                    <i class="bi bi-arrow-right-circle fs-2 text-muted"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Liste des entrées récentes détaillée -->
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 pb-0">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-box-arrow-in-down text-primary me-2"></i>Dernières entrées
+                </h5>
+                <p class="text-muted small mt-1">Historique des ajouts au stock</p>
+            </div>
+            <div class="card-body pt-3">
+                {% if recent_entrees %}
+                    <div class="list-group list-group-flush">
+                        {% for bon in recent_entrees %}
+                            <a href="{% url 'bon_entree_detail' bon.pk %}" class="list-group-item list-group-item-action border-0 rounded-3 mb-2 bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-receipt text-primary me-2"></i>
+                                        <strong>#{{ bon.num_e }}</strong>
+                                        <span class="text-muted ms-2">{{ bon.fournisseur.designation }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-success rounded-pill">
+                                            {{ bon.date_e|date:"d/m/Y H:i" }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mt-2 small text-muted">
+                                    {% for ligne in bon.lignes.all|slice:":3" %}
+                                        <span class="badge bg-light text-dark border me-1 mb-1">
+                                            {{ ligne.produit.designation }} ({{ ligne.qte_e }})
+                                        </span>
+                                    {% endfor %}
+                                    {% if bon.lignes.all|length > 3 %}
+                                        <span class="badge bg-secondary">+{{ bon.lignes.all|length|add:"-3" }}</span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p class="mt-2">Aucune entrée récente</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white border-0 pt-0 pb-4">
+                <a href="{% url 'bon_entree_list' %}" class="btn btn-outline-primary rounded-pill w-100">
+                    <i class="bi bi-eye me-2"></i>Voir toutes les entrées
                 </a>
             </div>
         </div>
+    </div>
 
-        <!-- Actions rapides -->
-        <div class="row g-4">
-            <div class="col-md-6">
-                <a href="{% url 'bon_entree_create' %}" class="text-decoration-none">
-                    <div class="card action-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4 d-flex align-items-center">
-                            <div class="flex-shrink-0 me-4">
-                                <div class="action-icon bg-primary-soft">
-                                    <i class="bi bi-plus-circle fs-1 text-primary"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h4 class="fw-bold mb-1">Nouvelle entrée</h4>
-                                <p class="text-muted mb-0">Ajouter des produits au stock</p>
-                            </div>
-                            <i class="bi bi-arrow-right-circle fs-2 text-muted"></i>
-                        </div>
-                    </div>
-                </a>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 pb-0">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-box-arrow-right text-danger me-2"></i>Dernières sorties
+                </h5>
+                <p class="text-muted small mt-1">Historique des retraits du stock</p>
             </div>
-            <div class="col-md-6">
-                <a href="{% url 'bon_sortie_create' %}" class="text-decoration-none">
-                    <div class="card action-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4 d-flex align-items-center">
-                            <div class="flex-shrink-0 me-4">
-                                <div class="action-icon bg-danger-soft">
-                                    <i class="bi bi-dash-circle fs-1 text-danger"></i>
+            <div class="card-body pt-3">
+                {% if recent_sorties %}
+                    <div class="list-group list-group-flush">
+                        {% for bon in recent_sorties %}
+                            <a href="{% url 'bon_sortie_detail' bon.pk %}" class="list-group-item list-group-item-action border-0 rounded-3 mb-2 bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-receipt text-danger me-2"></i>
+                                        <strong>#{{ bon.num_s }}</strong>
+                                        <span class="text-muted ms-2">{{ bon.client.designation }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-warning rounded-pill">
+                                            {{ bon.date_s|date:"d/m/Y H:i" }}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h4 class="fw-bold mb-1">Nouvelle sortie</h4>
-                                <p class="text-muted mb-0">Retirer des produits du stock</p>
-                            </div>
-                            <i class="bi bi-arrow-right-circle fs-2 text-muted"></i>
-                        </div>
+                                <div class="mt-2 small text-muted">
+                                    {% for ligne in bon.lignes.all|slice:":3" %}
+                                        <span class="badge bg-light text-dark border me-1 mb-1">
+                                            {{ ligne.produit.designation }} ({{ ligne.qte_s }})
+                                        </span>
+                                    {% endfor %}
+                                    {% if bon.lignes.all|length > 3 %}
+                                        <span class="badge bg-secondary">+{{ bon.lignes.all|length|add:"-3" }}</span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        {% endfor %}
                     </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p class="mt-2">Aucune sortie récente</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white border-0 pt-0 pb-4">
+                <a href="{% url 'bon_sortie_list' %}" class="btn btn-outline-danger rounded-pill w-100">
+                    <i class="bi bi-eye me-2"></i>Voir toutes les sorties
                 </a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal : Liste des produits avec cartes améliorées -->
+<!-- Modal : Liste des produits -->
 <div class="modal fade" id="productListModal" tabindex="-1" aria-labelledby="productListModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -136,43 +271,36 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <!-- Barre de recherche (sans icône) -->
                 <div class="mb-4">
-                    <input type="text" id="productSearchInput" class="form-control form-control-lg rounded-pill" placeholder="Rechercher un produit">
+                    <input type="text" id="productSearchInput" class="form-control form-control-lg rounded-pill" placeholder="🔍 Rechercher un produit...">
                 </div>
-
-                <!-- Grille de cartes -->
                 <div class="row g-3" id="productCardsContainer">
                     {% for produit in all_products %}
                     <div class="col-md-4 col-lg-3 product-card-item" data-name="{{ produit.designation|lower }}">
                         <div class="card h-100 border-0 shadow-sm rounded-4 product-card {% if produit.qte_stock <= produit.stock_alerte %}border-danger{% endif %}">
                             <div class="card-body d-flex flex-column align-items-center text-center p-3">
-                                <!-- Icône plus petite -->
                                 <div class="mb-2">
-                                    <i class="bi bi-archive fs-3 text-secondary"></i>
+                                    <i class="bi bi-box-seam fs-2 text-secondary"></i>
                                 </div>
-                                <!-- Titre plus grand et bien visible -->
-                                <h5 class="card-title fw-bold mb-2">{{ produit.designation }}</h5>
-                                <!-- Badge de quantité -->
+                                <h6 class="card-title fw-bold mb-2">{{ produit.designation }}</h6>
                                 <div class="mt-2">
-                                    <span class="badge {% if produit.qte_stock <= produit.stock_alerte %}bg-danger{% else %}bg-success{% endif %} rounded-pill px-3 py-2 fs-6">
+                                    <span class="badge {% if produit.qte_stock <= produit.stock_alerte %}bg-danger{% else %}bg-success{% endif %} rounded-pill px-3 py-2">
                                         {{ produit.qte_stock }} unité(s)
                                     </span>
                                     {% if produit.qte_stock <= produit.stock_alerte %}
                                         <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Stock faible"></i>
                                     {% endif %}
                                 </div>
+                                <small class="text-muted mt-2">Code: {{ produit.code_p }}</small>
                             </div>
                         </div>
                     </div>
                     {% empty %}
                     <div class="col-12 text-center text-muted py-5">
-                        Aucun produit enregistré.
+                        <i class="bi bi-box-seam fs-1"></i>
+                        <p class="mt-2">Aucun produit enregistré</p>
                     </div>
                     {% endfor %}
-                </div>
-                <div class="mt-4 text-muted small text-center">
-                    <i class="bi bi-info-circle"></i> Les produits en stock faible apparaissent avec une bordure rouge.
                 </div>
             </div>
             <div class="modal-footer border-0 py-3">
@@ -183,91 +311,48 @@
 </div>
 
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-    }
-    .dashboard-wrapper {
-        background-color: #b0c8f0;
-        min-height: 100vh;
-        padding-bottom: 2rem;
-    }
-    .container {
-        max-width: 1400px;
-    }
-    .header-glow {
-        background: #ffffff;
-        border-radius: 1.5rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        border: 1px solid rgba(0,0,0,0.03);
-    }
-    .text-primary-dark {
-        color: #1e3a8a;
+    .text-gradient {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
     }
     .stat-card, .action-card {
-        background: #ffffff;
         transition: all 0.25s ease;
-        border-radius: 1.25rem;
+        cursor: pointer;
     }
     .stat-card:hover, .action-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15) !important;
+    }
+    .action-card {
+        background: white;
+        border-radius: 1.25rem;
     }
     .stat-icon, .action-icon {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0,0,0,0.04);
         border-radius: 1rem;
     }
     .stat-icon {
-        width: 56px;
-        height: 56px;
+        width: 55px;
+        height: 55px;
     }
     .action-icon {
         width: 64px;
         height: 64px;
         border-radius: 1.25rem;
     }
-    .bg-primary-soft { background-color: rgba(13,110,253,0.1); }
-    .bg-danger-soft  { background-color: rgba(220,53,69,0.1); }
-    .bg-success-soft { background-color: rgba(25,135,84,0.1); }
-    .bg-warning-soft { background-color: rgba(255,193,7,0.1); }
-    .badge.bg-light {
-        background-color: #f3f4f6 !important;
-        color: #1f2937 !important;
-        font-weight: 500;
+    .bg-soft-primary { background-color: #eef2ff; }
+    .bg-soft-danger { background-color: #fee2e2; }
+    .bg-soft-success { background-color: #dcfce7; }
+    .bg-soft-warning { background-color: #fff3e3; }
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
     }
-    .display-4, .display-6 {
-        font-weight: 700;
-    }
-    .text-muted {
-        color: #6c757d !important;
-    }
-    .btn-primary {
-        background-color: #1e3a8a;
-        border: none;
-        padding: 0.5rem 1.5rem;
-        font-weight: 500;
-    }
-    .btn-primary:hover {
-        background-color: #1e3a8a;
-        filter: brightness(1.05);
-    }
-    .btn-outline-secondary {
-        border-color: #cbd5e1;
-        color: #334155;
-    }
-    .btn-outline-secondary:hover {
-        background-color: #f1f5f9;
-        border-color: #94a3b8;
-    }
-    /* Cartes produits améliorées */
     .product-card {
         transition: transform 0.2s, box-shadow 0.2s;
-        cursor: default;
     }
     .product-card:hover {
         transform: translateY(-4px);
@@ -276,46 +361,34 @@
     .border-danger {
         border: 1px solid #dc3545 !important;
     }
-    .product-card .card-title {
-        font-size: 1.1rem;
-        line-height: 1.3;
-        min-height: 2.6rem;
+    .list-group-item-action {
+        transition: all 0.2s;
     }
-    .product-card .badge {
-        font-size: 0.9rem;
-        padding: 0.4rem 0.8rem;
-    }
-    .modal-xl {
-        max-width: 1000px;
-    }
-    @media (max-width: 768px) {
-        .modal-xl {
-            max-width: 95%;
-        }
-        .product-card-item {
-            width: 50%;
-        }
-    }
-    @media (max-width: 576px) {
-        .product-card-item {
-            width: 100%;
-        }
+    .list-group-item-action:hover {
+        transform: translateX(5px);
+        background-color: #eef2ff !important;
     }
 </style>
 
 <script>
-    // Recherche dynamique
-    document.getElementById('productSearchInput').addEventListener('keyup', function() {
-        let filter = this.value.toLowerCase();
-        let items = document.querySelectorAll('.product-card-item');
-        items.forEach(item => {
-            let name = item.getAttribute('data-name');
-            if (name.includes(filter)) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        });
+    // Recherche dynamique dans le modal des produits
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('productSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                let filter = this.value.toLowerCase();
+                let items = document.querySelectorAll('.product-card-item');
+                items.forEach(item => {
+                    let name = item.getAttribute('data-name');
+                    if (name.includes(filter)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
     });
 </script>
+
 {% endblock %}

@@ -119,3 +119,95 @@ class AdminUserCreationForm(forms.ModelForm):
             user.save()
         return user
 
+from django import forms
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.models import User
+from django.core.validators import MinLengthValidator
+import re
+
+class CustomUserCreationForm(UserCreationForm):
+    """Formulaire de création d'utilisateur par l'admin"""
+    email = forms.EmailField(required=True)
+    
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Générer un mot de passe temporaire
+        temp_password = User.objects.make_random_password(length=10)
+        user.set_password(temp_password)
+        if commit:
+            user.save()
+            # Créer le profil Utilisateur associé
+            from .models import Utilisateur
+            Utilisateur.objects.create(
+                username=user.username,
+                password=user.password,
+                must_change_password=True,  # 🔐 Forcer le changement
+                role='user'
+            )
+        return user, temp_password
+
+
+class ForcePasswordChangeForm(forms.Form):
+    """Formulaire pour forcer le changement de mot de passe"""
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe'}),
+        validators=[MinLengthValidator(8)],
+        label='Nouveau mot de passe'
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer le mot de passe'}),
+        label='Confirmer le mot de passe'
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+        
+        if new_password and confirm_password and new_password != confirm_password:
+            raise forms.ValidationError("Les mots de passe ne correspondent pas.")
+        
+        # Vérifier la complexité
+        if new_password:
+            if len(new_password) < 8:
+                raise forms.ValidationError("Le mot de passe doit contenir au moins 8 caractères.")
+            if not any(c.isupper() for c in new_password):
+                raise forms.ValidationError("Le mot de passe doit contenir au moins une majuscule.")
+            if not any(c.isdigit() for c in new_password):
+                raise forms.ValidationError("Le mot de passe doit contenir au moins un chiffre.")
+        
+        return cleaned_data
+
+
+class ForgotPasswordForm(forms.Form):
+    """Formulaire pour demander réinitialisation"""
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Entrez votre email'}))
+
+
+class ResetPasswordForm(forms.Form):
+    """Formulaire pour réinitialiser le mot de passe"""
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe'}),
+        validators=[MinLengthValidator(8)]
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer le mot de passe'})
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('new_password') != cleaned_data.get('confirm_password'):
+            raise forms.ValidationError("Les mots de passe ne correspondent pas.")
+        return cleaned_data
+
+
+class AdminOTPForm(forms.Form):
+    """Formulaire pour l'OTP admin"""
+    otp_code = forms.CharField(
+        max_length=6,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Code à 6 chiffres'})
+    )

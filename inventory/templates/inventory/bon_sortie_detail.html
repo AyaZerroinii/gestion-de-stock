@@ -1,70 +1,42 @@
 {% extends 'inventory/base.html' %}
 {% block content %}
 <style>
-@media print {
-    body * {
-        visibility: hidden;
+    @media print {
+        @page { margin: 0; }
+        body { margin: 10mm; }
+        body * { visibility: hidden; }
+        .print-container, .print-container * { visibility: visible; }
+        .print-container { position: absolute; top: 0; right: 0; width: 100%; direction: rtl; font-family: 'Arial', 'Tahoma', sans-serif; padding: 20px; }
+        .no-print { display: none; }
+        .signature { margin-top: 40px; text-align: right; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .table th, .table td { direction: rtl; }
     }
-    .print-container, .print-container * {
-        visibility: visible;
-    }
-    .print-container {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100%;
-        direction: rtl;
-        font-family: 'Arial', 'Tahoma', sans-serif;
-        padding: 20px;
-    }
-    .no-print {
-        display: none;
-    }
-    .signature {
-        margin-top: 40px;
-        text-align: right;
-    }
-    .table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .table th, .table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: center;
-    }
-    /* الأعمدة تظهر من اليمين لليسار: #، اسم المنتج، الكمية */
-    .table th, .table td {
-        direction: rtl;
-    }
-    /* الأرقام (الرقم التسلسلي والكمية) نعكس اتجاهها لتظهر بشكل صحيح */
-    .table td:first-child, .table td:last-child,
-    .table th:first-child, .table th:last-child {
-        direction: ltr;
-        unicode-bidi: embed;
-    }
-}
 </style>
 
 <div class="print-container">
-    <div class="card">
-        <div class="card-header text-center bg-light">
-            <button class="btn btn-primary no-print" onclick="window.print()">طباعة</button>
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0 text-center no-print">
+            <button class="btn btn-danger rounded-pill px-4" onclick="window.print()">
+                <i class="bi bi-printer me-2"></i>Imprimer
+            </button>
+            <a href="{% url 'bon_sortie_list' %}" class="btn btn-outline-secondary rounded-pill px-4 ms-2">
+                <i class="bi bi-arrow-left me-2"></i>Retour
+            </a>
         </div>
         <div class="card-body" style="direction: rtl; text-align: right;">
-            <!-- الترويسة الرسمية -->
             <div class="text-center mb-4">
-                <h3>الجمهورية الجزائرية الديمقراطية الشعبية</h3>
-                <h4>وزارة التربية الوطنية</h4>
+                <h3 class="fw-bold">الجمهورية الجزائرية الديمقراطية الشعبية</h3>
+                <h4 class="text-muted">وزارة التربية الوطنية</h4>
                 <h5>مصلحة المستخدمين</h5>
-                <hr style="width: 50%; margin: 0 auto;">
-                <h2>وصل خروج من المخزن</h2>
+                <hr style="width: 50%; margin: 0 auto;" class="my-3">
+                <h2 class="fw-bold text-danger">وصل خروج من المخزن</h2>
             </div>
 
-            <!-- معلومات أساسية -->
             <div class="row mb-4">
                 <div class="col-6">
-                    <p><strong>رقم الوصل:</strong> {{ bon.num_s }}</p>
+                    <p><strong>رقم الوصل:</strong> <span class="badge bg-danger">{{ bon.num_s }}</span></p>
                     <p><strong>التاريخ:</strong> {{ bon.date_s|date:"Y-m-d H:i" }}</p>
                 </div>
                 <div class="col-6">
@@ -73,9 +45,8 @@
                 </div>
             </div>
 
-            <!-- جدول المنتجات -->
             <table class="table table-bordered">
-                <thead>
+                <thead class="table-light">
                     <tr>
                         <th>#</th>
                         <th>اسم المنتج</th>
@@ -86,27 +57,25 @@
                     {% for ligne in lignes %}
                     <tr>
                         <td class="text-center">{{ forloop.counter }}</td>
-                        <td class="text-right">{{ ligne.produit.designation }}</td>
-                        <td class="text-center">{{ ligne.qte_s }}</td>
+                        <td>{{ ligne.produit.designation }}</td>
+                        <td class="text-center fw-bold">{{ ligne.qte_s }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
 
-            <!-- تذييل بالتوقيع -->
             <div class="signature mt-5">
                 <div class="row">
                     <div class="col-6">
                         <p><strong>مدير مصلحة المستخدمين</strong></p>
-                        <p>التوقيع: </p>
+                        <p>التوقيع: _________________</p>
                     </div>
                     <div class="col-6 text-left">
                         <p><strong>ختم المؤسسة</strong></p>
-                        
+                        <p>_________________</p>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>

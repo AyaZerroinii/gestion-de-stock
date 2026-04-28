@@ -1,328 +1,35 @@
 {% extends 'inventory/base.html' %}
+{% block title %}Rapport d'activité{% endblock %}
 {% block content %}
-<div class="dashboard-wrapper">
-    <div class="container py-5">
-        <!-- Header -->
-        <div class="row mb-5">
-            <div class="col-12 text-center">
-                <div class="header-glow">
-                    <h1 class="display-4 fw-bold text-primary-dark">
-                        <i class="bi bi-bar-chart-steps"></i> Rapport d'activité
-                    </h1>
-                    <p class="lead text-secondary">Analyse complète des mouvements de stock sur une période</p>
-                </div>
-            </div>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 p-3">
+            <h1 class="h3 mb-0"><i class="bi bi-bar-chart-steps text-primary me-2"></i>Rapport d'activité</h1>
+            <p class="text-muted">Analyse des mouvements entre fournisseurs et clients</p>
         </div>
-
-        <!-- Date Filter Card -->
-        <div class="card shadow-lg border-0 rounded-4 mb-5">
-            <div class="card-body p-4">
-                <form method="get" class="row g-4 align-items-end">
-                    <div class="col-md-4">
-                        <label for="start_date" class="form-label fw-semibold">
-                            <i class="bi bi-calendar-check"></i> Date de début
-                        </label>
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-lg rounded-3" value="{{ start_date|default:'' }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="end_date" class="form-label fw-semibold">
-                            <i class="bi bi-calendar-x"></i> Date de fin
-                        </label>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-lg rounded-3" value="{{ end_date|default:'' }}">
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm">
-                            <i class="bi bi-search"></i> Générer le rapport
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        {% if error %}
-            <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endif %}
-
-        {% if start_date and end_date and not error %}
-            <!-- Summary Cards -->
-            <div class="row g-4 mb-5">
-                <div class="col-md-6">
-                    <div class="card stat-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4 d-flex align-items-center">
-                            <div class="stat-icon bg-primary-soft me-4">
-                                <i class="bi bi-box-arrow-in-down fs-1 text-primary"></i>
-                            </div>
-                            <div>
-                                <h5 class="text-muted mb-1">Bons d'entrée</h5>
-                                <h2 class="display-5 fw-bold mb-0">{{ stats.total_entrees }}</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card stat-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4 d-flex align-items-center">
-                            <div class="stat-icon bg-danger-soft me-4">
-                                <i class="bi bi-box-arrow-right fs-1 text-danger"></i>
-                            </div>
-                            <div>
-                                <h5 class="text-muted mb-1">Bons de sortie</h5>
-                                <h2 class="display-5 fw-bold mb-0">{{ stats.total_sorties }}</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Top Rankings Section -->
-            <div class="row g-4 mb-5">
-                <!-- Top Produits -->
-                <div class="col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-gradient-primary text-white rounded-top-4 py-3">
-                            <h5 class="mb-0 fw-bold"><i class="bi bi-trophy-fill me-2"></i> Top 5 produits</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            {% if top_products %}
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Produit</th>
-                                                <th class="text-center">Entrées</th>
-                                                <th class="text-center">Sorties</th>
-                                                <th class="text-center">Total</th>
-                                            </thead>
-                                        <tbody>
-                                            {% for p in top_products %}
-                                            <tr>
-                                                <td>{{ p.designation }}</td>
-                                                <td class="text-center text-success">{{ p.total_in }}</td>
-                                                <td class="text-center text-danger fw-bold">{{ p.total_out }}</td>
-                                                <td class="text-center">{{ p.total_moved }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="card-footer bg-transparent text-muted small">
-                                </div>
-                            {% else %}
-                                <div class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1"></i>
-                                    <p class="mt-2">Aucune donnée disponible</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Top Fournisseurs -->
-                <div class="col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-gradient-info text-white rounded-top-4 py-3">
-                            <h5 class="mb-0 fw-bold"><i class="bi bi-building me-2"></i> Top 5 fournisseurs</h5>
-                        </div>
-                        <div class="card-body p-3">
-                            {% if top_fournisseurs %}
-                                {% for f in top_fournisseurs %}
-                                    <div class="mb-3 p-3 border rounded-3 bg-light">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <strong class="fs-5">{{ f.name }}</strong>
-                                            <span class="badge bg-primary rounded-pill">{{ f.total_qte }} unités</span>
-                                        </div>
-                                        <div class="small text-muted mb-1">Produits livrés :</div>
-                                        <ul class="list-unstyled ms-3 mb-0">
-                                            {% for prod in f.products %}
-                                                <li><i class="bi bi-box-seam text-info me-2"></i> {{ prod.produit__designation }} : <strong>{{ prod.qte }}</strong> unités</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1"></i>
-                                    <p class="mt-2">Aucune donnée disponible</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Top Clients -->
-                <div class="col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-gradient-warning text-dark rounded-top-4 py-3">
-                            <h5 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i> Top 5 clients</h5>
-                        </div>
-                        <div class="card-body p-3">
-                            {% if top_clients %}
-                                {% for client in top_clients %}
-                                    <div class="mb-3 p-3 border rounded-3 bg-light">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <strong class="fs-5">{{ client.name }}</strong>
-                                            <span class="badge bg-warning rounded-pill">{{ client.total_qte }} unités</span>
-                                        </div>
-                                        <div class="small text-muted mb-1">Produits commandés :</div>
-                                        <ul class="list-unstyled ms-3 mb-0">
-                                            {% for prod in client.products %}
-                                                <li><i class="bi bi-cart-check text-success me-2"></i> {{ prod.produit__designation }} : <strong>{{ prod.qte }}</strong> unités</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1"></i>
-                                    <p class="mt-2">Aucune donnée disponible</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detailed Tables Section -->
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="card h-100 border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-gradient-info text-white rounded-top-4 py-3">
-                            <h5 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i> Détail des entrées</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            {% if entrees %}
-                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light sticky-top">
-                                            <tr>
-                                                <th>N°</th>
-                                                <th>Date</th>
-                                                <th>Fournisseur</th>
-                                                <th>Produits</th>
-                                                <th>User</th>
-                                            </thead>
-                                        <tbody>
-                                            {% for bon in entrees %}
-                                            <tr>
-                                                <td><a href="{% url 'bon_entree_detail' bon.pk %}" class="text-decoration-none fw-bold">#{{ bon.num_e }}</a></td>
-                                                <td>{{ bon.date_e|date:"d/m/Y H:i" }}</td>
-                                                <td>{{ bon.fournisseur.designation }}</td>
-                                                <td>
-                                                    <div class="small">
-                                                        {% for ligne in bon.lignes.all %}
-                                                            <span class="badge bg-secondary me-1 mb-1">{{ ligne.produit.designation }} ({{ ligne.qte_e }})</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                </td>
-                                                <td>{{ bon.utilisateur.username }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1"></i>
-                                    <p class="mt-2">Aucun bon d'entrée dans cette période</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="card h-100 border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-gradient-warning text-dark rounded-top-4 py-3">
-                            <h5 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i> Détail des sorties</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            {% if sorties %}
-                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light sticky-top">
-                                            <tr>
-                                                <th>N°</th>
-                                                <th>Date</th>
-                                                <th>Client</th>
-                                                <th>Produits</th>
-                                                <th>User</th>
-                                            </thead>
-                                        <tbody>
-                                            {% for bon in sorties %}
-                                            <tr>
-                                                <td><a href="{% url 'bon_sortie_detail' bon.pk %}" class="text-decoration-none fw-bold">#{{ bon.num_s }}</a></td>
-                                                <td>{{ bon.date_s|date:"d/m/Y H:i" }}</td>
-                                                <td>{{ bon.client.designation }}</td>
-                                                <td>
-                                                    <div class="small">
-                                                        {% for ligne in bon.lignes.all %}
-                                                            <span class="badge bg-secondary me-1 mb-1">{{ ligne.produit.designation }} ({{ ligne.qte_s }})</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                </td>
-                                                <td>{{ bon.utilisateur.username }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1"></i>
-                                    <p class="mt-2">Aucun bon de sortie dans cette période</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
     </div>
 </div>
 
-<style>
-    /* Custom gradient backgrounds */
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    }
-    .bg-gradient-info {
-        background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%);
-    }
-    .bg-gradient-warning {
-        background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
-    }
-    .rounded-top-4 {
-        border-top-left-radius: 1rem;
-        border-top-right-radius: 1rem;
-    }
-    .sticky-top {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-    .dashboard-wrapper {
-        background-color: #b0c8f0;
-        min-height: 100vh;
-        padding-bottom: 2rem;
-    }
-    .header-glow {
-        background: #ffffff;
-        border-radius: 1.5rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        border: 1px solid rgba(0,0,0,0.03);
-    }
-    .stat-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important;
-    }
-    .bg-primary-soft { background-color: rgba(13,110,253,0.1); }
-    .bg-danger-soft  { background-color: rgba(220,53,69,0.1); }
-</style>
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-body p-4">
+        <form method="get" class="row g-4 align-items-end">
+            <div class="col-md-4"><label class="form-label fw-semibold">Date début</label><input type="date" name="start_date" class="form-control rounded-3" value="{{ start_date|default:'' }}"></div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Date fin</label><input type="date" name="end_date" class="form-control rounded-3" value="{{ end_date|default:'' }}"></div>
+            <div class="col-md-4"><button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="bi bi-search"></i> Générer</button></div>
+        </form>
+    </div>
+</div>
+
+{% if start_date and end_date %}
+<div class="row g-4 mb-4">
+    <div class="col-md-6"><div class="card shadow-sm border-0 rounded-4 p-3 text-center"><h5 class="text-muted">Bons d'entrée</h5><h2 class="fw-bold text-success">{{ stats.total_entrees }}</h2></div></div>
+    <div class="col-md-6"><div class="card shadow-sm border-0 rounded-4 p-3 text-center"><h5 class="text-muted">Bons de sortie</h5><h2 class="fw-bold text-danger">{{ stats.total_sorties }}</h2></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4"><div class="card h-100 border-0 shadow-sm rounded-4"><div class="card-header bg-white fw-bold">📦 Top produits</div><div class="card-body p-0">{% include "includes/_top_table.html" with items=top_products %}</div></div></div>
+    <div class="col-lg-4"><div class="card h-100 border-0 shadow-sm rounded-4"><div class="card-header bg-white fw-bold">🏭 Top fournisseurs</div><div class="card-body p-0">{% include "includes/_top_table.html" with items=top_fournisseurs %}</div></div></div>
+    <div class="col-lg-4"><div class="card h-100 border-0 shadow-sm rounded-4"><div class="card-header bg-white fw-bold">👥 Top clients</div><div class="card-body p-0">{% include "includes/_top_table.html" with items=top_clients %}</div></div></div>
+</div>
+{% endif %}
 {% endblock %}

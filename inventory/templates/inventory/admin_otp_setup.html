@@ -1,0 +1,27 @@
+{% extends 'inventory/base.html' %}
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 500px;">
+    <div class="card-body p-4 text-center">
+        <i class="bi bi-shield-check fs-1 text-primary mb-3 d-block"></i>
+        <h2 class="fw-bold mb-3">Authentification à deux facteurs</h2>
+        {% if otp_uri %}
+            <p>Scannez ce code QR avec Google Authenticator :</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ otp_uri|urlencode }}" class="img-fluid mb-3">
+            <p class="small text-muted">Code secret: <strong>{{ secret }}</strong></p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="disable" class="btn btn-danger rounded-pill">Désactiver OTP</button>
+            </form>
+        {% else %}
+            <p>Activez l'authentification à deux facteurs pour sécuriser votre compte.</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="enable" class="btn btn-primary rounded-pill px-4">Activer OTP</button>
+                {% if otp_enabled %}
+                    <button type="submit" name="disable" class="btn btn-danger rounded-pill px-4 ms-2">Désactiver</button>
+                {% endif %}
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

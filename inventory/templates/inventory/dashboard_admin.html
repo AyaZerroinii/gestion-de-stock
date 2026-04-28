@@ -1,142 +1,97 @@
 ﻿{% extends 'inventory/base.html' %}
+{% block title %}Dashboard Admin{% endblock %}
 {% block content %}
-<div class="dashboard-wrapper">
-    <div class="container py-5">
-        <div class="row mb-5">
-            <div class="col-12 text-center">
-                <div class="header-glow">
-                    <h1 class="display-4 fw-bold text-primary-dark">Administrateur</h1>
-                    <p class="lead text-secondary">Vue générale des utilisateurs, clients et fournisseurs</p>
+<div class="row g-4 mb-5">
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'produit_list' %}" class="text-decoration-none">
+            <div class="card stat-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-secondary text-uppercase small fw-semibold">Total produits</span>
+                        <h2 class="mt-2 fw-bold">{{ total_produits }}</h2>
+                        <span class="badge bg-success bg-opacity-10 text-success">Catalogue</span>
+                    </div>
+                    <div class="stat-icon bg-soft-primary"><i class="bi bi-box-seam fs-2"></i></div>
                 </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'produit_list' %}?stock=low" class="text-decoration-none">
+            <div class="card stat-card p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="text-secondary text-uppercase small fw-semibold">Alerte stock</span>
+                        <h2 class="mt-2 fw-bold text-warning">{{ low_stock }}</h2>
+                        <span class="badge bg-danger bg-opacity-10 text-danger">Réapprovisionner</span>
+                    </div>
+                    <div class="stat-icon bg-soft-danger"><i class="bi bi-exclamation-triangle fs-2"></i></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'bon_entree_list' %}" class="text-decoration-none">
+            <div class="card stat-card p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="text-secondary text-uppercase small fw-semibold">Entrées (mois)</span>
+                        <h2 class="mt-2 fw-bold text-info">{{ entrees_mois }}</h2>
+                    </div>
+                    <div class="stat-icon bg-soft-success"><i class="bi bi-arrow-down-circle fs-2"></i></div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'bon_sortie_list' %}" class="text-decoration-none">
+            <div class="card stat-card p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="text-secondary text-uppercase small fw-semibold">Sorties (mois)</span>
+                        <h2 class="mt-2 fw-bold text-primary">{{ sorties_mois }}</h2>
+                    </div>
+                    <div class="stat-icon bg-soft-warning"><i class="bi bi-arrow-up-circle fs-2"></i></div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 pb-0 fw-bold"><i class="bi bi-clock-history"></i> Derniers mouvements</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for move in derniers_mouvements %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                        <span><i class="bi bi-{{ move.type_icon }} me-2 text-{{ move.color }}"></i> {{ move.designation }}</span>
+                        <span class="badge bg-light">{{ move.qte }} unités</span>
+                        <small class="text-muted">{{ move.date|date:"d/m H:i" }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">Aucun mouvement récent</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
-
-        <div class="row g-4 mb-5">
-            <div class="col-md-6 col-sm-12">
-                <div class="card stat-card h-100 border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="stat-icon bg-primary-soft">
-                                <i class="bi bi-box-seam fs-2 text-primary"></i>
-                            </div>
-                            <span class="badge bg-light text-primary rounded-pill px-3">Total</span>
-                        </div>
-                        <h2 class="mt-3 fw-bold display-6">{{ total_produits }}</h2>
-                        <p class="text-muted text-uppercase small mb-0">Total produits</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-sm-12">
-                <div class="card stat-card h-100 border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="stat-icon bg-warning-soft">
-                                <i class="bi bi-exclamation-triangle fs-2 text-warning"></i>
-                            </div>
-                            <span class="badge bg-light text-warning rounded-pill px-3">Alerte</span>
-                        </div>
-                        <h2 class="mt-3 fw-bold display-6">{{ low_stock }}</h2>
-                        <p class="text-muted text-uppercase small mb-0">Stock faible</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4 mb-5">
-            <div class="col-lg-4 col-sm-6">
-                <a href="{% url 'user_list' %}" class="text-decoration-none">
-                    <div class="card stat-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4 text-center">
-                            <div class="stat-icon bg-success-soft mx-auto mb-3">
-                                <i class="bi bi-people fs-2 text-success"></i>
-                            </div>
-                            <h5 class="fw-bold mb-1">Utilisateurs</h5>
-                            <p class="text-muted small mb-0">Gérer les comptes</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-lg-4 col-sm-6">
-                <a href="{% url 'client_list' %}" class="text-decoration-none">
-                    <div class="card stat-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4 text-center">
-                            <div class="stat-icon bg-primary-soft mx-auto mb-3">
-                                <i class="bi bi-people-fill fs-2 text-primary"></i>
-                            </div>
-                            <h5 class="fw-bold mb-1">Clients</h5>
-                            <p class="text-muted small mb-0">Gérer les clients</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-lg-4 col-sm-6">
-                <a href="{% url 'fournisseur_list' %}" class="text-decoration-none">
-                    <div class="card stat-card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4 text-center">
-                            <div class="stat-icon bg-danger-soft mx-auto mb-3">
-                                <i class="bi bi-truck fs-2 text-danger"></i>
-                            </div>
-                            <h5 class="fw-bold mb-1">Fournisseurs</h5>
-                            <p class="text-muted small mb-0">Gérer les fournisseurs</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card stat-card h-100 border-0 shadow-sm">
-                    <div class="card-header bg-white border-0 pb-0">
-                        <h5 class="mb-0">Dernières Entrées</h5>
-                        <p class="text-muted small mb-0">Fil d'activité des entrées récentes</p>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="overflow-auto" style="max-height: 420px;">
-                            {% for bon in recent_entrees %}
-                                <div class="bg-light border rounded-4 p-3 mb-3">
-                                    <a href="{% url 'bon_entree_detail' bon.pk %}" class="text-decoration-none text-dark">
-                                        <div class="d-flex justify-content-between align-items-start gap-3">
-                                            <div>
-                                                <h6 class="fw-semibold mb-1">{{ bon.fournisseur.designation }}</h6>
-                                                <p class="mb-0 text-muted small">Entrée enregistrée dans le stock</p>
-                                            </div>
-                                            <small class="text-muted">{{ bon.date_e }}</small>
-                                        </div>
-                                    </a>
-                                </div>
-                            {% empty %}
-                                <div class="text-muted">Aucune entrée récente</div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card stat-card h-100 border-0 shadow-sm">
-                    <div class="card-header bg-white border-0 pb-0">
-                        <h5 class="mb-0">Dernières Sorties</h5>
-                        <p class="text-muted small mb-0">Fil d'activité des sorties récentes</p>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="overflow-auto" style="max-height: 420px;">
-                            {% for bon in recent_sorties %}
-                                <div class="bg-light border rounded-4 p-3 mb-3">
-                                    <a href="{% url 'bon_sortie_detail' bon.pk %}" class="text-decoration-none text-dark">
-                                        <div class="d-flex justify-content-between align-items-start gap-3">
-                                            <div>
-                                                <h6 class="fw-semibold mb-1">{{ bon.client.designation }}</h6>
-                                                <p class="mb-0 text-muted small">Sortie de stock enregistrée</p>
-                                            </div>
-                                            <small class="text-muted">{{ bon.date_s }}</small>
-                                        </div>
-                                    </a>
-                                </div>
-                            {% empty %}
-                                <div class="text-muted">Aucune sortie récente</div>
-                            {% endfor %}
-                        </div>
-                    </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 pb-0 fw-bold"><i class="bi bi-exclamation-diamond"></i> Produits critiques</div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr><th>Produit</th><th>Stock</th><th>Alerte</th><th></th></thead>
+                        <tbody>
+                            {% for p in produits_critiques %}
+                            <tr><td>{{ p.designation }}</td><td class="text-danger fw-bold">{{ p.qte_stock }}</td><td>{{ p.stock_alerte }}</td>
+                            <td><a href="{% url 'bon_entree_create' %}?product={{ p.pk }}" class="btn btn-sm btn-outline-primary rounded-pill">Appro.</a></td></tr>
+                            {% empty %}<tr><td colspan="4" class="text-muted">Aucun stock critique</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

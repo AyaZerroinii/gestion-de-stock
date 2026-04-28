@@ -6,16 +6,21 @@
         <div class="card shadow-sm border-0 rounded-4">
             <div class="card-body p-4 p-lg-5">
                 <div class="text-center mb-4">
-                    <h2 class="fw-bold text-primary-dark">
-                        <i class="bi bi-box-arrow-right"></i> Créer Bon de Sortie
-                    </h2>
+                    <div class="bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-box-arrow-right fs-1 text-danger"></i>
+                    </div>
+                    <h2 class="fw-bold text-gradient-danger">Créer Bon de Sortie</h2>
                     <p class="text-muted">Enregistrer la sortie de produits vers un client</p>
                 </div>
 
-                {% if error %}
-                    <div class="alert alert-danger d-flex align-items-center" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
-                    </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3" role="alert">
+                            <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle-fill{% else %}check-circle-fill{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
                 {% endif %}
 
                 <form method="post" id="bonSortieForm">
@@ -23,9 +28,9 @@
 
                     <div class="mb-4">
                         <label for="client" class="form-label fw-semibold">
-                            <i class="bi bi-person"></i> Client
+                            <i class="bi bi-person me-1"></i> Client <span class="text-danger">*</span>
                         </label>
-                        <select name="client" id="client" class="form-select" required>
+                        <select name="client" id="client" class="form-select rounded-3 py-2" required>
                             <option value="" disabled selected>-- Sélectionner un client --</option>
                             {% for c in clients %}
                                 <option value="{{ c.pk }}">{{ c.designation }}</option>
@@ -35,7 +40,7 @@
 
                     <div class="mb-4">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-archive"></i> Produits et quantités
+                            <i class="bi bi-archive me-1"></i> Produits et quantités <span class="text-danger">*</span>
                         </label>
                         <div class="table-responsive">
                             <table class="table table-bordered align-middle">
@@ -43,23 +48,28 @@
                                     <tr>
                                         <th>Produit</th>
                                         <th style="width: 140px;">Quantité</th>
-                                        <th style="width: 80px;">Action</th>
-                                    </thead>
+                                        <th>Stock dispo</th>
+                                        <th style="width: 60px;">Action</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="lignesContainer">
                                     <tr class="ligne">
                                         <td>
-                                            <select name="produit[]" class="form-select" required>
+                                            <select name="produit[]" class="form-select rounded-3 produit-select" required>
                                                 <option value="" disabled selected>-- Choisir --</option>
                                                 {% for p in produits %}
-                                                    <option value="{{ p.pk }}">{{ p.designation }}</option>
+                                                    <option value="{{ p.pk }}" data-stock="{{ p.qte_stock }}">{{ p.designation }} (Stock: {{ p.qte_stock }})</option>
                                                 {% endfor %}
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="qte[]" class="form-control" min="1" value="1" required>
+                                            <input type="number" name="qte[]" class="form-control rounded-3 qte-input" min="1" value="1" required>
+                                        </td>
+                                        <td class="stock-display text-center">
+                                            <span class="badge bg-light text-dark">—</span>
                                         </td>
                                         <td class="text-center">
-                                            <button type="button" class="btn btn-outline-danger btn-sm removeRow" title="Supprimer">
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill removeRow" title="Supprimer">
                                                 <i class="bi bi-trash3"></i>
                                             </button>
                                         </td>
@@ -67,17 +77,17 @@
                                 </tbody>
                             </table>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="addRow">
-                            <i class="bi bi-plus-circle"></i> Ajouter un produit
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill mt-2" id="addRow">
+                            <i class="bi bi-plus-circle me-1"></i> Ajouter un produit
                         </button>
                     </div>
 
-                    <div class="d-flex justify-content-between gap-2">
-                        <button type="submit" class="btn btn-primary px-4 py-2">
-                            <i class="bi bi-save"></i> Enregistrer
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-danger rounded-pill px-5 py-2">
+                            <i class="bi bi-save me-2"></i>Enregistrer
                         </button>
-                        <a href="{% url 'bon_sortie_list' %}" class="btn btn-outline-secondary px-4 py-2">
-                            <i class="bi bi-x-circle"></i> Annuler
+                        <a href="{% url 'bon_sortie_list' %}" class="btn btn-outline-secondary rounded-pill px-5 py-2">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
                         </a>
                     </div>
                 </form>
@@ -87,65 +97,92 @@
 </div>
 
 <script>
+    // Afficher le stock disponible quand on sélectionne un produit
+    function updateStockDisplay(selectElement) {
+        const row = selectElement.closest('.ligne');
+        const stockDisplay = row.querySelector('.stock-display');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const stock = selectedOption.getAttribute('data-stock') || 0;
+        stockDisplay.innerHTML = `<span class="badge ${stock < 10 ? 'bg-danger' : 'bg-success'} rounded-pill">${stock} unités</span>`;
+    }
+
+    // Initialiser les affichages de stock
+    document.querySelectorAll('.produit-select').forEach(select => {
+        if (select.value) updateStockDisplay(select);
+        select.addEventListener('change', function() { updateStockDisplay(this); });
+    });
+
+    // Ajouter une ligne
     document.getElementById('addRow').addEventListener('click', function() {
         const container = document.getElementById('lignesContainer');
         const newRow = container.querySelector('.ligne').cloneNode(true);
         newRow.querySelectorAll('input, select').forEach(field => field.value = '');
         newRow.querySelector('select').selectedIndex = 0;
         newRow.querySelector('input').value = 1;
+        newRow.querySelector('.stock-display').innerHTML = '<span class="badge bg-light text-dark">—</span>';
         container.appendChild(newRow);
+        
+        // Réattacher les événements
+        newRow.querySelector('.produit-select').addEventListener('change', function() { updateStockDisplay(this); });
     });
 
+    // Supprimer une ligne
     document.getElementById('lignesContainer').addEventListener('click', function(e) {
         if (e.target.closest('.removeRow')) {
             const row = e.target.closest('.ligne');
             if (document.querySelectorAll('.ligne').length > 1) {
                 row.remove();
             } else {
-                alert("Il doit rester au moins une ligne de produit.");
+                alert("❌ Il doit rester au moins une ligne de produit.");
             }
         }
+    });
+
+    // Validation avant soumission
+    document.getElementById('bonSortieForm').addEventListener('submit', function(e) {
+        let hasError = false;
+        document.querySelectorAll('.ligne').forEach(row => {
+            const select = row.querySelector('.produit-select');
+            const qteInput = row.querySelector('.qte-input');
+            const selectedOption = select.options[select.selectedIndex];
+            const stockDispo = parseInt(selectedOption.getAttribute('data-stock')) || 0;
+            const qteDemandee = parseInt(qteInput.value) || 0;
+            
+            if (select.value && qteDemandee > stockDispo) {
+                alert(`❌ Stock insuffisant pour "${selectedOption.text.split('(')[0]}". Disponible: ${stockDispo} unités.`);
+                hasError = true;
+                qteInput.focus();
+            }
+        });
+        if (hasError) e.preventDefault();
     });
 </script>
 
 <style>
-    /* جعل الخلفية الزرقاء تغطي كامل المساحة المتاحة */
     .fullscreen-blue {
-        background-color: #b0c8f0;
-        min-height: calc(100vh - 72px); /* خصم ارتفاع النافبار */
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        min-height: calc(100vh - 73px);
         width: 100%;
         display: flex;
-        justify-content: center; /* توسيط أفقي */
-        align-items: center;     /* توسيط عمودي */
-        padding: 2rem 0;         /* مسافة بسيطة من الأعلى والأسفل */
+        justify-content: center;
+        align-items: center;
+        padding: 2rem 0;
     }
-
     .content-center {
         width: 100%;
-        max-width: 95%; /* جعل عرض البطاقة معقولاً (ليس 1200px) */
+        max-width: 1000px;
         padding: 0 1rem;
-        transition: all 0.3s ease;
     }
-    .table {
-        font-size: 1.05rem;
-    }
-
-    /* ضمان أن الـ Card تظهر بشكل صحيح */
     .card {
-          width: 100%;
-       border-radius: 1.5rem;
+        border-radius: 1.5rem;
         border: none;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
     }
-    .card-body {
-        padding: 3rem !important; /* زيادة الحشو الداخلي */
-    }
-
-    /* إلغاء أي هوامش إضافية قد تأتي من الحاويات الأب */
-    body.no-container-margins .content-area > .container {
-        padding: 0 !important;
-        margin: 0 !important;
-        max-width: 100% !important;
+    .text-gradient-danger {
+        background: linear-gradient(135deg, #b91c1c, #dc2626);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
     }
 </style>
 {% endblock %}

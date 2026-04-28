@@ -1,57 +1,51 @@
 {% extends 'inventory/base.html' %}
-{% block title %}Utilisateur créé{% endblock %}
+{% block title %}Nouvel utilisateur créé{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <div class="card border-0 shadow-lg rounded-4">
             <div class="card-header bg-success text-white text-center py-3 rounded-top-4">
                 <i class="bi bi-check-circle-fill fs-1"></i>
-                <h3 class="mb-0 mt-2">Utilisateur créé avec succès !</h3>
+                <h3 class="mb-0 mt-2">✅ Utilisateur créé avec succès !</h3>
             </div>
             <div class="card-body p-4">
+                <div class="alert alert-info">
+                    <i class="bi bi-envelope me-2"></i>
+                    <strong>Un email a été envoyé à l'utilisateur</strong> avec son mot de passe temporaire.
+                    <br>Un email a également été envoyé à l'administrateur.
+                </div>
+                
                 <div class="text-center mb-4">
                     <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
                         <i class="bi bi-person-plus fs-1 text-success"></i>
                     </div>
+                    <h4>Informations du compte</h4>
                 </div>
                 
                 <table class="table table-bordered">
-                    <tr>
-                        <th style="width: 40%;">Nom d'utilisateur</th>
-                        <td><strong>{{ user.username }}</strong></td>
-                    </tr>
-                    <tr>
-                        <th>Email</th>
-                        <td>{{ user.email }}</td>
-                    </tr>
-                    <tr>
-                        <th>Rôle</th>
-                        <td>
-                            {% if user.is_superuser %}Administrateur
-                            {% elif user.is_staff %}Staff
-                            {% else %}Utilisateur{% endif %}
-                        </td>
-                    </tr>
-                    <tr class="table-warning">
-                        <th>🔐 Mot de passe temporaire</th>
-                        <td><code class="fs-5">{{ temp_password }}</code></td>
-                    </tr>
-                    <tr>
-                        <th>Date de création</th>
-                        <td>{{ now|date:"d/m/Y H:i:s" }}</td>
-                    </tr>
+                    <tr><th style="width: 40%;">Nom d'utilisateur</th><td><strong>{{ user.username }}</strong></td></tr>
+                    <tr><th>Email</th><td>{{ user.email }}</td></tr>
+                    <tr><th>Rôle</th><td>{{ user.profil.role }}</td></tr>
+                    <tr class="table-warning"><th>🔑 Mot de passe temporaire</th><td><code class="fs-5">{{ temp_password }}</code></td></tr>
+                    <tr><th>📅 Date de création</th><td>{{ now|date:"d/m/Y à H:i:s" }}</td></tr>
                 </table>
                 
-                <div class="alert alert-info">
+                <div class="alert alert-warning">
                     <i class="bi bi-info-circle me-2"></i>
-                    <strong>Note importante :</strong> L'utilisateur devra changer son mot de passe lors de sa première connexion.
+                    <strong>Instructions pour l'utilisateur :</strong>
+                    <ol class="mt-2 mb-0">
+                        <li>Se connecter avec le mot de passe temporaire</li>
+                        <li>Recevoir un code OTP par email</li>
+                        <li>Saisir le code OTP pour vérification</li>
+                        <li>Choisir un nouveau mot de passe sécurisé</li>
+                    </ol>
                 </div>
                 
-                <div class="d-grid gap-2">
-                    <button onclick="window.print()" class="btn btn-primary rounded-pill">
-                        <i class="bi bi-printer me-2"></i>Imprimer les informations
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                    <button onclick="window.print()" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-printer me-2"></i>Imprimer
                     </button>
-                    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary rounded-pill">
+                    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary rounded-pill px-4">
                         <i class="bi bi-arrow-left me-2"></i>Retour à la liste
                     </a>
                 </div>
@@ -62,12 +56,12 @@
 
 <style>
     @media print {
-        .no-print, .btn, .navbar, .sidebar, .btn-close, .alert-info {
+        .btn, .navbar, .sidebar, .alert-info, .no-print {
             display: none !important;
         }
         .card {
-            box-shadow: none !important;
             border: 1px solid #ddd !important;
+            box-shadow: none !important;
         }
     }
 </style>

@@ -167,3 +167,34 @@ def save_user_profile(sender, instance, **kwargs):
     """حفظ البروفايل عند حفظ المستخدم"""
     if hasattr(instance, 'profil'):
         instance.profil.save()
+
+def is_account_locked(self):
+    """Vérifier si le compte est bloqué"""
+    if self.is_banned:
+        if self.ban_until and self.ban_until > timezone.now():
+            return True, f"Compte bloqué jusqu'au {self.ban_until.strftime('%d/%m/%Y %H:%M')}"
+        elif self.ban_until is None:
+            return True, "Compte définitivement bloqué. Contactez l'administrateur."
+    return False, None
+
+def is_account_locked(self):
+    """Vérifier si le compte est bloqué"""
+    if self.is_banned:
+        if self.ban_until and self.ban_until > timezone.now():
+            return True, f"Compte bloqué jusqu'au {self.ban_until.strftime('%d/%m/%Y %H:%M')}"
+        elif self.ban_until is None:
+            return True, "Compte définitivement bloqué. Contactez l'administrateur."
+    return False, None
+
+def increment_failed_attempts(self):
+    """Incrémenter les tentatives échouées"""
+    self.failed_login_attempts += 1
+    if self.failed_login_attempts >= 5:
+        self.is_banned = True
+        self.ban_until = timezone.now() + timezone.timedelta(minutes=30)
+    self.save()
+
+def reset_failed_attempts(self):
+    """Réinitialiser les tentatives échouées"""
+    self.failed_login_attempts = 0
+    self.save()

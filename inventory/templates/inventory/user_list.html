@@ -47,56 +47,84 @@
                         <th>Email</th>
                         <th class="text-center">Staff</th>
                         <th class="text-center">Superuser</th>
+                        <th class="text-center">Statut</th>
                         <th class="text-center pe-4">Actions</th>
-                    </tr>
+                     </tr>
                 </thead>
                 <tbody>
                     {% for u in users %}
-                    <tr>
+                    <tr class="{% if u.profil.is_banned %}table-danger{% endif %}">
                         <td class="ps-4 fw-semibold">
                             <i class="bi bi-person-circle me-2 text-muted"></i>{{ u.username }}
-                        </td>
-                        <td>{{ u.email|default:"—" }}</td>
+                            {% if u.profil.is_banned %}
+                                <i class="bi bi-lock-fill text-danger ms-1" title="Compte bloqué"></i>
+                            {% endif %}
+                         </td>
+                         <td>{{ u.email|default:"—" }}</td>
                         <td class="text-center">
                             {% if u.is_staff %}
                                 <span class="badge bg-success rounded-pill px-3"><i class="bi bi-check-lg"></i> Oui</span>
                             {% else %}
                                 <span class="badge bg-secondary rounded-pill px-3"><i class="bi bi-x-lg"></i> Non</span>
                             {% endif %}
-                        </td>
+                         </td>
                         <td class="text-center">
                             {% if u.is_superuser %}
                                 <span class="badge bg-danger rounded-pill px-3"><i class="bi bi-shield-lock-fill"></i> Admin</span>
                             {% else %}
                                 <span class="badge bg-light text-dark rounded-pill px-3">Utilisateur</span>
                             {% endif %}
-                        </td>
+                         </td>
+                        <td class="text-center">
+                            {% if u.profil.is_banned %}
+                                <span class="badge bg-danger rounded-pill px-3">
+                                    <i class="bi bi-lock-fill me-1"></i>Bloqué
+                                </span>
+                                {% if u.profil.ban_until %}
+                                    <br><small class="text-muted">jusqu'au {{ u.profil.ban_until|date:"d/m H:i" }}</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-success rounded-pill px-3">
+                                    <i class="bi bi-unlock-fill me-1"></i>Actif
+                                </span>
+                            {% endif %}
+                         </td>
                         <td class="text-center pe-4">
-                            <div class="d-flex gap-2 justify-content-center">
+                            <div class="d-flex gap-2 justify-content-center flex-wrap">
                                 {% if not u.is_superuser %}
-                                    <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Modifier">
+                                    <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Modifier">
                                         <i class="bi bi-pencil-square"></i> Modifier
                                     </a>
-                                    <a href="{% url 'delete_user' u.pk %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Supprimer">
+                                    <!-- Bouton Block/Unblock -->
+                                    {% if u.profil.is_banned %}
+                                        <a href="{% url 'toggle_user_ban' u.profil.id %}" class="btn btn-sm btn-outline-success rounded-pill px-2" title="Débloquer">
+                                            <i class="bi bi-unlock"></i> Débloquer
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'toggle_user_ban' u.profil.id %}" class="btn btn-sm btn-outline-warning rounded-pill px-2" title="Bloquer">
+                                            <i class="bi bi-lock"></i> Bloquer
+                                        </a>
+                                    {% endif %}
+                                    <a href="{% url 'delete_user' u.pk %}" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Supprimer">
                                         <i class="bi bi-trash3"></i> Supprimer
                                     </a>
                                 {% endif %}
-                                <a href="{% url 'user_history' u.username %}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="Historique">
+                                <a href="{% url 'user_history' u.username %}" class="btn btn-sm btn-outline-info rounded-pill px-2" title="Historique">
                                     <i class="bi bi-clock-history"></i> Historique
                                 </a>
                             </div>
-                        </td>
-                    </tr>
+                         </td>
+                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-5">
+                     <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
                             <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                             Aucun utilisateur trouvé
-                        </td>
-                    </tr>
+                         </td>
+                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
+             </table>
         </div>
     </div>
     <div class="card-footer bg-white border-0 pt-3 pb-3 text-muted small">
@@ -106,7 +134,7 @@
 
 <style>
     .text-gradient {
-        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        background: linear-gradient(135deg, #16394f, #071b28);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
@@ -119,6 +147,9 @@
         position: sticky;
         top: 0;
         z-index: 10;
+    }
+    .table-danger {
+        background-color: #fee2e2 !important;
     }
 </style>
 {% endblock %}

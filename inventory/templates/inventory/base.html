@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Google Fonts (Inter) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+
     <style>
         * {
             margin: 0;
@@ -21,6 +22,76 @@
             background: #f4f7fc;
             overflow-x: hidden;
         }
+        /* ========== CHANGEMENT DES COULEURS DES BOUTONS ========== */
+/* Bouton principal (primary) */
+.btn-primary {
+    background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%) !important;
+    border: none !important;
+}
+.btn-primary:hover {
+    background: linear-gradient(145deg, #1a3d5c 0%, #0f2b4d 100%) !important;
+    transform: translateY(-2px);
+}
+
+/* Bouton danger (rouge) */
+.btn-danger {
+    background-color: #b91c1c !important;
+    border: none !important;
+}
+.btn-danger:hover {
+    background-color: #991b1b !important;
+}
+
+/* Bouton warning (orange/jaune) */
+.btn-warning {
+    background-color: #d97706 !important;
+    border: none !important;
+    color: white !important;
+}
+.btn-warning:hover {
+    background-color: #b45309 !important;
+}
+
+/* Bouton success (vert) */
+.btn-success {
+    background-color: #2d6a4f !important;
+    border: none !important;
+}
+.btn-success:hover {
+    background-color: #1f543d !important;
+}
+
+/* Bouton outline secondary */
+.btn-outline-secondary {
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+}
+.btn-outline-secondary:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #0f2b4d !important;
+    color: #0f2b4d !important;
+}
+
+/* Boutons arrondis */
+.btn {
+    border-radius: 2rem !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s !important;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
         /* ========== NAVBAR ========== */
         .navbar-custom {
             background: #ffffff;
@@ -33,8 +104,8 @@
         }
         .navbar-brand {
             font-weight: 800;
-            font-size: 1.4rem;
-            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            font-size: 2rem;
+            background: linear-gradient(135deg, #25415e, #0a1a2b);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -43,7 +114,8 @@
             background: none;
             -webkit-background-clip: unset;
             background-clip: unset;
-            color: #2563eb;
+            color: #0f2b3d;
+            font-size: 2rem;
         }
         .btn-sidebar-toggle {
             background: #f1f5f9;
@@ -220,7 +292,7 @@
             justify-content: center;
             border-radius: 1.2rem;
         }
-        .bg-soft-primary { background-color: #eef2ff; color: #1e3a8a; }
+        .bg-soft-primary { background-color: #eef2ff; color: #0f2b3d; }
         .bg-soft-danger { background-color: #fee2e2; color: #b91c1c; }
         .bg-soft-success { background-color: #dcfce7; color: #15803d; }
         .bg-soft-warning { background-color: #fff3e3; color: #b45309; }
@@ -307,23 +379,14 @@
             </div>
             {% endif %}
         </div>
-        <div class="p-3 text-center small text-white-50">© StockFlow v2.0</div>
+       
     </aside>
 
     <main class="content-area">
-        <div class="container-fluid px-4 py-4">
-            {% if messages %}
-                {% for msg in messages %}
-                    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show rounded-4" role="alert">
-                        {{ msg }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-            {% block content %}{% endblock %}
-        </div>
-    </main>
-
+    <div class="container-fluid px-4 py-4">
+        {% block content %}{% endblock %}
+    </div>
+</main>
     <!-- Données des produits en stock faible -->
     <script type="application/json" id="low-stock-data">
         [
@@ -336,6 +399,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         (function() {
             // ========== GESTION SIDEBAR ==========

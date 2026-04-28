@@ -1,35 +1,358 @@
 {% extends 'inventory/base.html' %}
 {% block title %}Rapport d'activité{% endblock %}
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 p-3">
-            <h1 class="h3 mb-0"><i class="bi bi-bar-chart-steps text-primary me-2"></i>Rapport d'activité</h1>
-            <p class="text-muted">Analyse des mouvements entre fournisseurs et clients</p>
+
+<style>
+    /* ========== STYLE PROFESSIONNEL POUR RAPPORT ========== */
+    .report-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 2rem;
+    }
+    
+    .report-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #0f2b4d;
+    }
+    
+    .report-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #0f2b4d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .report-header p {
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+    
+    .report-period {
+        background: #f8fafc;
+        padding: 0.75rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-box {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .stat-box .number {
+        font-size: 2.5rem;
+        font-weight: 800;
+    }
+    
+    .stat-box .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: #64748b;
+        letter-spacing: 1px;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f2b4d;
+        margin: 1.5rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .professional-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .professional-table th {
+        background: #f1f5f9;
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        color: #0f2b4d;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .professional-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+        color: #334155;
+    }
+    
+    .professional-table tr:hover {
+        background: #f8fafc;
+    }
+    
+    .text-right {
+        text-align: right;
+    }
+    
+    .badge-entree {
+        background: #dcfce7;
+        color: #15803d;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .badge-sortie {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .footer-note {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e2e8f0;
+        text-align: center;
+        font-size: 0.7rem;
+        color: #94a3b8;
+    }
+    
+    .btn-print {
+        background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
+        color: white;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.6rem 1.5rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-print:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+    
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        .report-container {
+            padding: 0;
+            margin: 0;
+        }
+        .stat-box {
+            break-inside: avoid;
+        }
+        .professional-table {
+            break-inside: avoid;
+        }
+    }
+</style>
+
+<div class="report-container">
+ <!-- Bouton génération PDF (n'apparaît pas dans l'impression) -->
+<div class="no-print text-end mb-3">
+    {% if start_date and end_date %}
+    <a href="{% url 'generate_pdf_report' %}?start_date={{ start_date }}&end_date={{ end_date }}" 
+       class="btn-pdf" 
+       target="_blank" 
+       style="background-color: #dc3545; color: white; padding: 8px 20px; border-radius: 50px; text-decoration: none; display: inline-block; transition: 0.3s; border: none;"
+       onmouseover="this.style.backgroundColor='#b02a37'" 
+       onmouseout="this.style.backgroundColor='#dc3545'">
+        <i class="bi bi-file-pdf me-2"></i> Exporter en PDF
+    </a>
+    {% else %}
+    <button class="btn-pdf" 
+            disabled 
+            style="background-color: #dc3545; color: white; padding: 8px 20px; border-radius: 50px; border: none; opacity: 0.5; cursor: not-allowed;">
+        <i class="bi bi-file-pdf me-2"></i> PDF (période requise)
+    </button>
+    {% endif %}
+</div>
+    <!-- Entête du rapport -->
+    <div class="report-header">
+        <h1>📊 RAPPORT D'ACTIVITÉ</h1>
+        <p>Gestion de Stock - Analyse des mouvements</p>
+    </div>
+
+    {% if start_date and end_date %}
+    <div class="report-period">
+        📅 Période : du <strong>{{ start_date }}</strong> au <strong>{{ end_date }}</strong>
+    </div>
+    {% endif %}
+
+    {% if not start_date or not end_date %}
+    <div class="report-period" style="background: #fef3c7; color: #b45309;">
+        ⚠️ Veuillez sélectionner une période pour générer le rapport
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="report-period" style="background: #fee2e2; color: #b91c1c;">
+        ❌ {{ error }}
+    </div>
+    {% endif %}
+
+    {% if start_date and end_date and not error %}
+
+    <!-- SECTION 1: STATISTIQUES GÉNÉRALES -->
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="number" style="color: #15803d;">{{ stats.total_entrees|default:0 }}</div>
+            <div class="label">Bons d'entrée</div>
+        </div>
+        <div class="stat-box">
+            <div class="number" style="color: #b91c1c;">{{ stats.total_sorties|default:0 }}</div>
+            <div class="label">Bons de sortie</div>
         </div>
     </div>
-</div>
 
-<div class="card border-0 shadow-sm rounded-4 mb-5">
-    <div class="card-body p-4">
-        <form method="get" class="row g-4 align-items-end">
-            <div class="col-md-4"><label class="form-label fw-semibold">Date début</label><input type="date" name="start_date" class="form-control rounded-3" value="{{ start_date|default:'' }}"></div>
-            <div class="col-md-4"><label class="form-label fw-semibold">Date fin</label><input type="date" name="end_date" class="form-control rounded-3" value="{{ end_date|default:'' }}"></div>
-            <div class="col-md-4"><button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="bi bi-search"></i> Générer</button></div>
-        </form>
+    <!-- SECTION 2: TOP PRODUITS -->
+    <div class="section-title">
+        🏆 PRODUITS LES PLUS COMMANDÉS
     </div>
+    <table class="professional-table">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Désignation</th>
+                <th class="text-right">Entrées</th>
+                <th class="text-right">Sorties</th>
+                <th class="text-right">Total mouvements</th>
+             </thead>
+        <tbody>
+            {% for p in top_products %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ p.designation }}</strong></td>
+                <td class="text-right"><span class="badge-entree">{{ p.total_in|default:0 }}</span></td>
+                <td class="text-right"><span class="badge-sortie">{{ p.total_out|default:0 }}</span></td>
+                <td class="text-right"><strong>{{ p.total_moved|default:0 }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center">Aucune donnée disponible</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- SECTION 3: TOP FOURNISSEURS -->
+    <div class="section-title">
+        🏭 PRINCIPAUX FOURNISSEURS
+    </div>
+    <table class="professional-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fournisseur</th>
+                <th class="text-right">Total livraisons</th>
+             </thead>
+        <tbody>
+            {% for f in top_fournisseurs %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ f.name }}</strong></td>
+                <td class="text-right">{{ f.total_qte|default:0 }} unités</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center">Aucune donnée disponible</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- SECTION 4: TOP CLIENTS -->
+    <div class="section-title">
+        👥 PRINCIPAUX CLIENTS
+    </div>
+    <table class="professional-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th class="text-right">Total retraits</th>
+             </thead>
+        <tbody>
+            {% for c in top_clients %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ c.name }}</strong></td>
+                <td class="text-right">{{ c.total_qte|default:0 }} unités</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center">Aucune donnée disponible</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- SECTION 5: DÉTAIL DES MOUVEMENTS -->
+    <div class="section-title">
+        📋 DÉTAIL DES MOUVEMENTS
+    </div>
+    
+    <div style="margin-bottom: 1.5rem;">
+        <h4 style="font-size: 0.9rem; color: #15803d; margin-bottom: 0.5rem;">📥 Bons d'entrée</h4>
+        <table class="professional-table">
+            <thead>
+                <tr><th>N° Bon</th><th>Date</th><th>Fournisseur</th><th>Nb produits</th><th>Utilisateur</th></thead>
+            <tbody>
+                {% for bon in entrees %}
+                <tr>
+                    <td><strong>#{{ bon.num_e }}</strong></td>
+                    <td>{{ bon.date_e|date:"d/m/Y H:i" }}</td>
+                    <td>{{ bon.fournisseur.designation }}</td>
+                    <td class="text-right">{{ bon.lignes.all|length }} article(s)</td>
+                    <td>{{ bon.utilisateur.user.username }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">Aucun bon d'entrée</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <h4 style="font-size: 0.9rem; color: #b91c1c; margin-bottom: 0.5rem;">📤 Bons de sortie</h4>
+        <table class="professional-table">
+            <thead>
+                <tr><th>N° Bon</th><th>Date</th><th>Client</th><th>Nb produits</th><th>Utilisateur</th></thead>
+            <tbody>
+                {% for bon in sorties %}
+                <tr>
+                    <td><strong>#{{ bon.num_s }}</strong></td>
+                    <td>{{ bon.date_s|date:"d/m/Y H:i" }}</td>
+                    <td>{{ bon.client.designation }}</td>
+                    <td class="text-right">{{ bon.lignes.all|length }} article(s)</td>
+                    <td>{{ bon.utilisateur.user.username }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">Aucun bon de sortie</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pied de page -->
+    <div class="footer-note">
+        Document généré automatiquement le {{ now|date:"d/m/Y à H:i" }}<br>
+        Gestion de Stock - Tous droits réservés
+    </div>
+
+    {% endif %}
 </div>
 
-{% if start_date and end_date %}
-<div class="row g-4 mb-4">
-    <div class="col-md-6"><div class="card shadow-sm border-0 rounded-4 p-3 text-center"><h5 class="text-muted">Bons d'entrée</h5><h2 class="fw-bold text-success">{{ stats.total_entrees }}</h2></div></div>
-    <div class="col-md-6"><div class="card shadow-sm border-0 rounded-4 p-3 text-center"><h5 class="text-muted">Bons de sortie</h5><h2 class="fw-bold text-danger">{{ stats.total_sorties }}</h2></div></div>
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-4"><div class="card h-100 border-0 shadow-sm rounded-4"><div class="card-header bg-white fw-bold">📦 Top produits</div><div class="card-body p-0">{% include "includes/_top_table.html" with items=top_products %}</div></div></div>
-    <div class="col-lg-4"><div class="card h-100 border-0 shadow-sm rounded-4"><div class="card-header bg-white fw-bold">🏭 Top fournisseurs</div><div class="card-body p-0">{% include "includes/_top_table.html" with items=top_fournisseurs %}</div></div></div>
-    <div class="col-lg-4"><div class="card h-100 border-0 shadow-sm rounded-4"><div class="card-header bg-white fw-bold">👥 Top clients</div><div class="card-body p-0">{% include "includes/_top_table.html" with items=top_clients %}</div></div></div>
-</div>
-{% endif %}
 {% endblock %}

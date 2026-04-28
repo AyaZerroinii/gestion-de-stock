@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport d'activité</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'DejaVu Sans', 'DejaVu Serif', 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.3;
+            color: #000;
+        }
+        /* دعم اللغة العربية */
+        .arabic {
+            font-family: 'DejaVu Sans', 'Arial', sans-serif;
+            direction: rtl;
+            unicode-bidi: embed;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
+        }
+        .header h1, .header h2, .header h3 {
+            margin: 3px 0;
+        }
+        .header h1 {
+            font-size: 14pt;
+        }
+        .header h2 {
+            font-size: 12pt;
+        }
+        .header h3 {
+            font-size: 11pt;
+        }
+        .report-info {
+            border: 1px solid #000;
+            padding: 8px;
+            margin-bottom: 20px;
+        }
+        .report-info p {
+            margin: 3px 0;
+        }
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            border-top: 1px solid #000;
+            padding-top: 8px;
+        }
+        /* تحسين الطباعة RT L */
+        .rtl {
+            direction: rtl;
+            unicode-bidi: embed;
+            font-family: 'DejaVu Sans', 'Arial', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>REPUBLIQUE ALGERIENNE DEMOCRATIQUE ET POPULAIRE</h1>
+    <h2>Ministere de l'Education Nationale</h2>
+    <h3>Direction de l'Education de la Wilaya de Batna</h3>
+    <h3>Service du Personnel</h3>
+    <h1>RAPPORT D'ACTIVITE</h1>
+</div>
+
+<div class="report-info">
+    <p><strong>Période :</strong> du {{ start_date|default:"__________" }} au {{ end_date|default:"__________" }}</p>
+    <p><strong>Date d'édition :</strong> {{ now|date:"d/m/Y" }} à {{ now|date:"H:i" }}</p>
+    <p><strong>Généré par :</strong> {{ user.get_full_name|default:user.username }}</p>
+</div>
+
+{% if start_date and end_date %}
+
+<div class="section-title">I. STATISTIQUES GÉNÉRALES</div>
+<table>
+    <tr><th style="width:60%;">Indicateur</th><th style="width:40%;" class="text-center">Nombre</th></tr>
+    <tr><td>Bons d'entrée (BonEntrée)</td><td class="text-center">{{ stats.total_entrees|default:0 }}</td></tr>
+    <tr><td>Bons de sortie (BonSortie)</td><td class="text-center">{{ stats.total_sorties|default:0 }}</td></tr>
+</table>
+
+<div class="section-title">II. TOP 10 PRODUITS</div>
+<table>
+    <tr><th style="width:10%;">N°</th><th style="width:50%;">Produit</th><th style="width:20%;" class="text-center">Entrées</th><th style="width:20%;" class="text-center">Sorties</th></tr>
+    {% for p in top_products %}
+    <tr><td class="text-center">{{ forloop.counter }}</td><td>{{ p.designation|default:"-" }}</td><td class="text-center">{{ p.total_in|default:0 }}</td><td class="text-center">{{ p.total_out|default:0 }}</td></tr>
+    {% empty %}
+    <tr><td colspan="4" class="text-center">Aucune donnée disponible</td></tr>
+    {% endfor %}
+</table>
+
+<div class="section-title">III. TOP 10 FOURNISSEURS</div>
+<table>
+    <tr><th style="width:10%;">N°</th><th style="width:60%;">Fournisseur</th><th style="width:30%;" class="text-center">Total livraisons</th></tr>
+    {% for f in top_fournisseurs %}
+    <tr><td class="text-center">{{ forloop.counter }}</td><td>{{ f.name|default:"-" }}</td><td class="text-center">{{ f.total_qte|default:0 }} u</td></tr>
+    {% empty %}
+    <tr><td colspan="3" class="text-center">Aucune donnée disponible</td></tr>
+    {% endfor %}
+</table>
+
+<div class="section-title">IV. TOP 10 CLIENTS</div>
+<table>
+    <tr><th style="width:10%;">N°</th><th style="width:60%;">Client</th><th style="width:30%;" class="text-center">Total retraits</th></tr>
+    {% for c in top_clients %}
+    <tr><td class="text-center">{{ forloop.counter }}</td><td>{{ c.name|default:"-" }}</td><td class="text-center">{{ c.total_qte|default:0 }} u</td></tr>
+    {% empty %}
+    <tr><td colspan="3" class="text-center">Aucune donnée disponible</td></tr>
+    {% endfor %}
+</table>
+
+<div class="section-title">V. DÉTAIL DES ENTRÉES</div>
+<table>
+    <tr><th>N° Bon</th><th>Date</th><th>Fournisseur</th><th>Nb produits</th></tr>
+    {% for bon in entrees %}
+    <tr><td class="text-center">{{ bon.num_e }}</td><td>{{ bon.date_e|date:"d/m/Y" }}</td><td>{{ bon.fournisseur.designation|default:"-" }}</td><td class="text-center">{{ bon.lignes.all|length }}</td></tr>
+    {% empty %}
+    <tr><td colspan="4" class="text-center">Aucun bon d'entrée</td></tr>
+    {% endfor %}
+</table>
+
+<div class="section-title">VI. DÉTAIL DES SORTIES</div>
+<table>
+    <tr><th>N° Bon</th><th>Date</th><th>Client</th><th>Nb produits</th></tr>
+    {% for bon in sorties %}
+    <tr><td class="text-center">{{ bon.num_s }}</td><td>{{ bon.date_s|date:"d/m/Y" }}</td><td>{{ bon.client.designation|default:"-" }}</td><td class="text-center">{{ bon.lignes.all|length }}</td></tr>
+    {% empty %}
+    <tr><td colspan="4" class="text-center">Aucun bon de sortie</td></tr>
+    {% endfor %}
+</table>
+
+<!-- Signatures -->
+<table style="margin-top: 40px; border: none;">
+    <tr>
+        <td style="border: none; width: 50%; text-align: center; padding-top: 30px;">
+            <strong>Le chef de service</strong><br><br><br>
+            (Signature et cachet)
+        </td>
+        <td style="border: none; width: 50%; text-align: center; padding-top: 30px;">
+            <strong>Le responsable de gestion</strong><br><br><br>
+            (Signature et cachet)
+        </td>
+    </tr>
+</table>
+
+{% else %}
+<div style="border:1px solid #000; padding:10px; text-align:center;">
+    ⚠️ Veuillez sélectionner une période pour générer le rapport.
+</div>
+{% endif %}
+
+<div class="footer">
+    Service du Personnel - Direction de l'Éducation de Batna
+</div>
+
+</body>
+</html>

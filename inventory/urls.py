@@ -2,113 +2,66 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('dashboard-admin/', views.dashboard_admin, name='dashboard_admin'),
-    path('dashboard-user/', views.dashboard_user, name='dashboard_user'),
-    path('waiting-room/', views.waiting_room, name='waiting_room'),
-    path('app/', views.app_home, name='app_home'),
-    path('produits/', views.produit_list, name='produit_list'),
-    path('produits/new/', views.produit_create, name='produit_create'),
-    path('produits/<int:pk>/edit/', views.produit_edit, name='produit_edit'),
-    path('produits/<int:pk>/delete/', views.produit_delete, name='produit_delete'),
-   # path('users/', views.user_management, name='user_management'),
-    path('users/<int:pk>/delete/', views.delete_user, name='delete_user'),
-    path('bon-entrees/', views.bon_entree_list, name='bon_entree_list'),
-    path('bon-entrees/new/', views.bon_entree_create, name='bon_entree_create'),
-    path('bon-entrees/<int:pk>/', views.bon_entree_detail, name='bon_entree_detail'),
-    path('bon-sorties/', views.bon_sortie_list, name='bon_sortie_list'),
-    path('bon-sorties/new/', views.bon_sortie_create, name='bon_sortie_create'),
-    path('bon-sorties/<int:pk>/', views.bon_sortie_detail, name='bon_sortie_detail'),
-    path('clients/', views.client_list, name='client_list'),
-    path('clients/new/', views.client_create, name='client_create'),
-    path('clients/<int:pk>/edit/', views.client_edit, name='client_edit'),
-    path('clients/<int:pk>/delete/', views.client_delete, name='client_delete'),
-    path('fournisseurs/', views.fournisseur_list, name='fournisseur_list'),
-    path('fournisseurs/new/', views.fournisseur_create, name='fournisseur_create'),
-    path('fournisseurs/<int:pk>/edit/', views.fournisseur_edit, name='fournisseur_edit'),
-    path('fournisseurs/<int:pk>/delete/', views.fournisseur_delete, name='fournisseur_delete'),
-    # path('entreprises/', views.entreprise_list, name='entreprise_list'),
-    # path('entreprises/new/', views.entreprise_create, name='entreprise_create'),
-    # path('entreprises/<int:pk>/edit/', views.entreprise_edit, name='entreprise_edit'),
-    # path('entreprises/<int:pk>/delete/', views.entreprise_delete, name='entreprise_delete'),
-    path('data-dashboard/', views.data_dashboard, name='data_dashboard'),
-    path('api/produits/', views.produit_api, name='produit_api'),
-    path('api/produits/<int:pk>/', views.produit_api_detail, name='produit_api_detail'),
-  path('api/notifications/<int:product_id>/read/', views.notification_mark_read, name='notification_mark_read'),
-path('api/notifications/<int:product_id>/delete/', views.notification_mark_deleted, name='notification_mark_deleted'),
-path('bon-entrees/<int:pk>/delete/', views.bon_entree_delete, name='bon_entree_delete'),
-path('bon-sorties/<int:pk>/delete/', views.bon_sortie_delete, name='bon_sortie_delete'),
-path('users/', views.user_list, name='user_list'),
-path('users/create/', views.user_create, name='user_create'),
-path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
-path('users/<int:pk>/delete/', views.delete_user, name='delete_user'),
-path('produits/<int:pk>/history/', views.produit_history, name='produit_history'),
-path('clients/<int:pk>/history/', views.client_history, name='client_history'),
-path('fournisseurs/<int:pk>/history/', views.fournisseur_history, name='fournisseur_history'),
-path('users/<str:username>/history/', views.user_history, name='user_history'),
-path('admin-report/', views.admin_report, name='admin_report'),
-path('profile/', views.user_profile, name='user_profile'),
-# Sécurité
-path('admin/create-user/', views.admin_create_user, name='admin_create_user'),
-path('force-password-change/', views.force_password_change, name='force_password_change'),
-path('forgot-password/', views.forgot_password, name='forgot_password'),
-path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
-path('admin-otp-setup/', views.setup_admin_otp, name='setup_admin_otp'),
-path('admin-otp-verify/', views.admin_otp_verify, name='admin_otp_verify'),
-path('user/<int:user_id>/toggle-ban/', views.toggle_user_ban, name='toggle_user_ban'),
-path('user/<int:pk>/edit-secure/', views.user_edit_secure, name='user_edit_secure'),
-path('login/', views.custom_login, name='login'),
-
-path('user-created-info/', views.user_created_info, name='user_created_info'),
-
-# Authentication
+    # ========== AUTHENTIFICATION ==========
     path('login/', views.custom_login, name='login'),
     path('logout/', views.custom_logout, name='logout'),
-    
-    # Home & Dashboards
-    path('', views.home, name='home'),
-    path('dashboard-admin/', views.dashboard_admin, name='dashboard_admin'),
-    path('dashboard-user/', views.dashboard_user, name='dashboard_user'),
-    path('waiting-room/', views.waiting_room, name='waiting_room'),
-    
-    # Security
+    path('verify-otp/', views.verify_login_otp, name='verify_login_otp'),
     path('force-password-change/', views.force_password_change, name='force_password_change'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
-    path('admin-otp-setup/', views.setup_admin_otp, name='setup_admin_otp'),
-    path('admin-otp-verify/', views.admin_otp_verify, name='admin_otp_verify'),
     
-    # Profile
+    # ========== OTP PASSWORD CHANGE (Connecté) ==========
+    path('change-password/', views.change_password_request, name='change_password_request'),
+    path('change-password-otp/', views.change_password_otp_verify, name='change_password_otp_verify'),
+    path('request-otp-pw-change/', views.request_otp_for_password_change, name='request_otp_for_password_change'),
+    path('change-password-otp-after-login/', views.change_password_with_otp_after_login, name='change_password_with_otp_after_login'),
+    
+    # ========== OTP PASSWORD CHANGE (Non connecté) ==========
+    path('request-password-change-otp/', views.request_password_change_otp, name='request_password_change_otp'),
+    path('change-password-with-otp/', views.change_password_with_otp, name='change_password_with_otp'),
+    
+    # ========== RESET PASSWORD VIA EMAIL ==========
+    path('reset-password-request/', views.reset_password_request, name='reset_password_request'),
+    path('reset-password-otp/<str:token>/', views.reset_password_with_otp, name='reset_password_with_otp'),
+    path('reset-password-otp-verify/', views.reset_password_otp_verify, name='reset_password_otp_verify'),
+    
+    # ========== HOME & DASHBOARDS ==========
+    path('', views.home, name='home'),
+    path('dashboard-admin/', views.dashboard_admin, name='dashboard_admin'),
+    path('dashboard-user/', views.dashboard_user, name='dashboard_user'),
+    path('waiting-room/', views.waiting_room, name='waiting_room'),
+    
+    # ========== PROFILE ==========
     path('profile/', views.user_profile, name='user_profile'),
     
-    # Products
+    # ========== PRODUCTS ==========
     path('produits/', views.produit_list, name='produit_list'),
     path('produits/create/', views.produit_create, name='produit_create'),
     path('produits/<int:pk>/edit/', views.produit_edit, name='produit_edit'),
     path('produits/<int:pk>/delete/', views.produit_delete, name='produit_delete'),
     path('produits/<int:pk>/history/', views.produit_history, name='produit_history'),
     
-    # Product API
+    # ========== PRODUCT API ==========
     path('api/produits/', views.produit_api, name='produit_api'),
     path('api/produits/<int:pk>/', views.produit_api_detail, name='produit_api_detail'),
     path('api/notifications/<int:product_id>/read/', views.notification_mark_read, name='notification_mark_read'),
     path('api/notifications/<int:product_id>/delete/', views.notification_mark_deleted, name='notification_mark_deleted'),
     
-    # Clients
+    # ========== CLIENTS ==========
     path('clients/', views.client_list, name='client_list'),
     path('clients/create/', views.client_create, name='client_create'),
     path('clients/<int:pk>/edit/', views.client_edit, name='client_edit'),
     path('clients/<int:pk>/delete/', views.client_delete, name='client_delete'),
     path('clients/<int:pk>/history/', views.client_history, name='client_history'),
     
-    # Fournisseurs
+    # ========== FOURNISSEURS ==========
     path('fournisseurs/', views.fournisseur_list, name='fournisseur_list'),
     path('fournisseurs/create/', views.fournisseur_create, name='fournisseur_create'),
     path('fournisseurs/<int:pk>/edit/', views.fournisseur_edit, name='fournisseur_edit'),
     path('fournisseurs/<int:pk>/delete/', views.fournisseur_delete, name='fournisseur_delete'),
     path('fournisseurs/<int:pk>/history/', views.fournisseur_history, name='fournisseur_history'),
     
-    # Users Management
+    # ========== USERS MANAGEMENT ==========
     path('users/', views.user_list, name='user_list'),
     path('users/create/', views.user_create, name='user_create'),
     path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
@@ -117,24 +70,30 @@ path('user-created-info/', views.user_created_info, name='user_created_info'),
     path('users/<int:user_id>/toggle-ban/', views.toggle_user_ban, name='toggle_user_ban'),
     path('admin/create-user/', views.admin_create_user, name='admin_create_user'),
     path('admin/user/<int:pk>/edit-secure/', views.user_edit_secure, name='user_edit_secure'),
+    path('user-created-info/', views.user_created_info, name='user_created_info'),
     
-    # Bons Entrée
+    # ========== ADMIN OTP ==========
+    path('admin-otp-setup/', views.setup_admin_otp, name='setup_admin_otp'),
+    path('admin-otp-verify/', views.admin_otp_verify, name='admin_otp_verify'),
+    
+    # ========== BONS ENTRÉE ==========
     path('bons-entree/', views.bon_entree_list, name='bon_entree_list'),
     path('bons-entree/create/', views.bon_entree_create, name='bon_entree_create'),
     path('bons-entree/<int:pk>/', views.bon_entree_detail, name='bon_entree_detail'),
     path('bons-entree/<int:pk>/delete/', views.bon_entree_delete, name='bon_entree_delete'),
     
-    # Bons Sortie
+    # ========== BONS SORTIE ==========
     path('bons-sortie/', views.bon_sortie_list, name='bon_sortie_list'),
     path('bons-sortie/create/', views.bon_sortie_create, name='bon_sortie_create'),
     path('bons-sortie/<int:pk>/', views.bon_sortie_detail, name='bon_sortie_detail'),
     path('bons-sortie/<int:pk>/delete/', views.bon_sortie_delete, name='bon_sortie_delete'),
     
-    # Reports
+    # ========== REPORTS ==========
     path('admin-report/', views.admin_report, name='admin_report'),
     path('data-dashboard/', views.data_dashboard, name='data_dashboard'),
     
-    # Others
+    # ========== OTHERS ==========
     path('app/', views.app_home, name='app_home'),
-
+    path('generate-pdf/', views.generate_pdf_report, name='generate_pdf_report'),
+    path('user/<int:user_id>/toggle-ban/', views.toggle_user_ban, name='toggle_user_ban'),
 ]

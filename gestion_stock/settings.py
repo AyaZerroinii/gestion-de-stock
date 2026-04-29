@@ -33,6 +33,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'inventory.middleware.CheckBanMiddleware',  # ✅ أضف هذا السطر
 ]
 
 ROOT_URLCONF = 'gestion_stock.urls'

@@ -51,7 +51,15 @@ class Utilisateur(models.Model):
         return self.user.username
     
     def is_account_locked(self):
-        """Vérifier si le compte est bloqué"""
+        """Vérifier si le compte est bloqué (avec mise à jour automatique)"""
+        # ✅ Mettre à jour le statut si la date est dépassée
+        if self.is_banned and self.ban_until and self.ban_until <= timezone.now():
+            self.is_banned = False
+            self.ban_until = None
+            self.failed_login_attempts = 0
+            self.save()
+            return False, None
+        
         if self.is_banned:
             if self.ban_until and self.ban_until > timezone.now():
                 return True, f"Compte bloqué jusqu'au {self.ban_until.strftime('%d/%m/%Y %H:%M')}"
@@ -71,6 +79,15 @@ class Utilisateur(models.Model):
         """Réinitialiser les tentatives échouées"""
         self.failed_login_attempts = 0
         self.save()
+    def update_ban_status(self):
+        """Mettre à jour le statut de bannissement (débloquer si la date est passée)"""
+        if self.is_banned and self.ban_until and self.ban_until <= timezone.now():
+            self.is_banned = False
+            self.ban_until = None
+            self.failed_login_attempts = 0
+            self.save()
+            return True
+        return False
 
 
 class Notification(models.Model):
@@ -206,3 +223,13 @@ def save_user_profile(sender, instance, **kwargs):
     """حفظ البروفايل عند حفظ المستخدم"""
     if hasattr(instance, 'profil'):
         instance.profil.save()
+
+def update_ban_status(self):
+    """Mettre à jour le statut de bannissement (débloquer si la date est passée)"""
+    if self.is_banned and self.ban_until and self.ban_until <= timezone.now():
+        self.is_banned = False
+        self.ban_until = None
+        self.failed_login_attempts = 0
+        self.save()
+        return True
+    return False

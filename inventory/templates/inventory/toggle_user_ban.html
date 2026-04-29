@@ -1,10 +1,10 @@
 {% extends 'inventory/base.html' %}
-{% block title %}Bloquer / Débloquer{% endblock %}
+{% block title %}Gestion du compte{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-5">
         <div class="card border-0 shadow-lg rounded-4">
-            <div class="card-header bg-warning text-dark text-center py-3 rounded-top-4">
+            <div class="card-header" style="background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%); color: white; text-align: center; padding: 1.5rem;">
                 <i class="bi bi-shield-lock fs-1"></i>
                 <h3 class="mb-0 mt-2">Gestion du compte</h3>
             </div>
@@ -17,7 +17,7 @@
                 
                 {% if profil.is_banned %}
                     <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         <strong>Compte actuellement bloqué</strong>
                         {% if profil.ban_until %}
                             <br>Déblocage prévu le : {{ profil.ban_until|date:"d/m/Y à H:i" }}
@@ -41,7 +41,7 @@
                     
                 {% else %}
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
+                        <i class="bi bi-info-circle-fill me-2"></i>
                         <strong>Compte actuellement actif</strong>
                         <br>Vous pouvez bloquer ce compte temporairement ou définitivement.
                     </div>

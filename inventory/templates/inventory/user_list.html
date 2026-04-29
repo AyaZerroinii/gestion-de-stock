@@ -153,3 +153,15 @@
     }
 </style>
 {% endblock %}
+<script>
+    // تحديث حالة الحظر لكل المستخدمين عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/update-all-ban-status/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCsrfToken(),
+                'Content-Type': 'application/json'
+            }
+        });
+    });
+</script>

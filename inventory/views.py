@@ -72,16 +72,19 @@ def custom_login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
+        # Vérifier si l'utilisateur existe
         try:
             user_obj = User.objects.get(username=username)
             if hasattr(user_obj, 'profil'):
+                # ✅ تحديث حالة الحظر أولاً
+                user_obj.profil.update_ban_status()
+                
                 is_locked, lock_message = user_obj.profil.is_account_locked()
                 if is_locked:
-                    messages.error(request, f"[LOCK] {lock_message}")
+                    messages.error(request, f"🔒 {lock_message}")
                     return redirect('login')
         except User.DoesNotExist:
             pass
-        
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
@@ -984,7 +987,11 @@ def delete_user(request, pk):
 
 @user_passes_test(lambda u: u.is_superuser)
 def toggle_user_ban(request, user_id):
+    """Activer ou désactiver le bannissement d'un utilisateur"""
     profil = get_object_or_404(Utilisateur, id=user_id)
+    
+    # ✅ تحديث الحالة قبل العرض
+    profil.update_ban_status()
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -994,20 +1001,23 @@ def toggle_user_ban(request, user_id):
             profil.is_banned = True
             if duration and duration.isdigit():
                 profil.ban_until = timezone.now() + timezone.timedelta(minutes=int(duration))
+                message = f"✅ Utilisateur '{profil.user.username}' banni jusqu'au {profil.ban_until.strftime('%d/%m/%Y %H:%M')}"
             else:
                 profil.ban_until = None
-            messages.success(request, f"Utilisateur '{profil.user.username}' a ete banni.")
+                message = f"✅ Utilisateur '{profil.user.username}' banni définitivement"
+            profil.save()
+            messages.success(request, message)
+            
         elif action == 'unban':
             profil.is_banned = False
             profil.ban_until = None
             profil.failed_login_attempts = 0
-            messages.success(request, f"Utilisateur '{profil.user.username}' a ete debanni.")
+            profil.save()
+            messages.success(request, f"✅ Utilisateur '{profil.user.username}' a été débanni.")
         
-        profil.save()
         return redirect('user_list')
     
     return render(request, 'inventory/toggle_user_ban.html', {'profil': profil})
-
 
 @user_passes_test(lambda u: u.is_superuser)
 def user_history(request, username):
@@ -2253,3 +2263,18 @@ def notification_mark_read(request, product_id):
         status_obj.save()
 
     return JsonResponse({'status': 'ok'})
+
+@user_passes_test(lambda u: u.is_superuser)
+@csrf_exempt
+def update_all_ban_status(request):
+    """Mettre à jour le statut de bannissement de tous les utilisateurs"""
+    from .models import Utilisateur
+    updated = 0
+    for profil in Utilisateur.objects.filter(is_banned=True, ban_until__isnull=False):
+        if profil.ban_until <= timezone.now():
+            profil.is_banned = False
+            profil.ban_until = None
+            profil.failed_login_attempts = 0
+            profil.save()
+            updated += 1
+    return JsonResponse({'status': 'ok', 'updated': updated})

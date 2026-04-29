@@ -102,4 +102,5 @@ urlpatterns = [
     path('confirm-email-with-password/<str:token>/', views.confirm_email_with_password, name='confirm_email_with_password'),
     path('mark-notification-read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
     path('mark-all-notifications-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('update-all-ban-status/', views.update_all_ban_status, name='update_all_ban_status'),
 ]

@@ -459,29 +459,65 @@ def dashboard_user(request):
 # ========== USER PROFILE ==========
 @login_required
 def user_profile(request):
+    user = request.user
+    profil = get_user_profile(user)
+    
     if request.method == 'POST':
-        user = request.user
-        user.username = request.POST.get('username')
-        user.email = request.POST.get('email')
-        user.first_name = request.POST.get('first_name', '')
-        user.last_name = request.POST.get('last_name', '')
+        new_username = request.POST.get('username')
+        new_email = request.POST.get('email')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
         
-        new_password = request.POST.get('new_password')
-        confirm_password = request.POST.get('confirm_password')
+        # ✅ التحقق من أن اسم المستخدم الجديد ليس مستخدماً من قبل مستخدم آخر
+        if new_username != user.username:
+            if User.objects.filter(username=new_username).exclude(pk=user.pk).exists():
+                messages.error(request, f"Le nom d'utilisateur '{new_username}' est déjà pris. Veuillez en choisir un autre.")
+                return redirect('user_profile')
         
-        if new_password:
-            if new_password == confirm_password:
-                if len(new_password) >= 8:
-                    user.set_password(new_password)
-                    update_session_auth_hash(request, user)
-                    messages.success(request, 'Mot de passe mis a jour.')
-                    notify_admin_password_change(user)
-                else:
-                    messages.error(request, '8 caracteres minimum.')
-            else:
-                messages.error(request, 'Les mots de passe ne correspondent pas.')
+        # ✅ التحقق من أن الإيميل الجديد ليس مستخدماً من قبل مستخدم آخر (للمستخدمين العاديين)
+        if new_email != user.email:
+            if User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+                messages.error(request, f"L'email '{new_email}' est déjà utilisé par un autre compte.")
+                return redirect('user_profile')
         
+        # Si l'utilisateur est admin, il peut tout modifier directement
+        if request.user.is_superuser:
+            user.username = new_username
+            user.email = new_email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+            messages.success(request, "Vos informations ont été mises à jour")
+            return redirect('user_profile')
+        
+        # Pour les utilisateurs normaux - Mise à jour du prénom et nom uniquement
+        user.first_name = first_name
+        user.last_name = last_name
         user.save()
+        
+        # Si l'email a changé, nécessite approbation admin
+        if new_email != user.email:
+            # Stocker le nouvel email pour approbation
+            profil.email_change_requested = new_email
+            import secrets
+            token = secrets.token_urlsafe(32)
+            profil.email_change_token = token
+            profil.email_change_request_date = timezone.now()
+            profil.save()
+            
+            # Envoyer notification aux admins
+            from .utils import send_email_to_admins
+            admin_link = request.build_absolute_uri(reverse('approve_email_change', args=[token]))
+            send_email_to_admins(
+                "Demande de changement d'email",
+                f"L'utilisateur '{user.username}' demande de changer son email vers: {new_email}\n\n"
+                f"Cliquez ici pour approuver: {admin_link}"
+            )
+            
+            messages.success(request, "Votre demande de changement d'email a été envoyée à l'administrateur.")
+        else:
+            messages.success(request, "Vos informations ont été mises à jour")
+        
         return redirect('user_profile')
     
     return render(request, 'inventory/user_profile.html')

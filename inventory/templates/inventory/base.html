@@ -602,5 +602,55 @@
         });
     </script>
     {% block extra_js %}{% endblock %}
+    <script>
+    // ========== GESTION SIDEBAR ==========
+    const sidebar = document.getElementById('mainSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    const body = document.body;
+
+    function openSidebar() {
+        body.classList.add('sidebar-open');
+        if (overlay) overlay.classList.add('active');
+    }
+
+    function closeSidebar() {
+        body.classList.remove('sidebar-open');
+        if (overlay) overlay.classList.remove('active');
+    }
+
+    function toggleSidebar() {
+        if (body.classList.contains('sidebar-open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleSidebar();
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            closeSidebar();
+        });
+    }
+
+    // Fermer la sidebar en cliquant à l'extérieur
+    document.addEventListener('click', function(event) {
+        if (!body.classList.contains('sidebar-open')) return;
+        if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+            closeSidebar();
+        }
+    });
+
+    // Fermer la sidebar par défaut au chargement
+    closeSidebar();
+</script>
 </body>
 </html>

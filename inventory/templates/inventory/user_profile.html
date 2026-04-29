@@ -3,146 +3,246 @@
 {% block content %}
 
 <style>
-    .profil-card {
+    .profile-card {
         border: none;
         border-radius: 1.5rem;
-        box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12);
         overflow: hidden;
         background: white;
+        transition: transform 0.2s;
     }
     
-    .profil-card-header {
-        background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
+    .profile-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .profile-header {
+        background: linear-gradient(135deg, #0a1f3a 0%, #163a5c 100%);
         color: white;
         text-align: center;
-        padding: 1.5rem;
+        padding: 1.8rem;
+        position: relative;
     }
     
-    .profil-card-header i {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        border: 3px solid rgba(255, 255, 255, 0.3);
     }
     
-    .profil-card-header h3 {
+    .profile-avatar i {
+        font-size: 3rem;
+    }
+    
+    .profile-header h3 {
         margin-bottom: 0.25rem;
         font-weight: 700;
     }
     
-    .profil-card-header p {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.8rem;
+    .profile-header p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
         margin-bottom: 0;
     }
     
-    .profil-card-body {
-        background-color: #f8fafc;
-        padding: 1.75rem;
-    }
-    
-    .profil-label {
+    .profile-badge {
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #10b981;
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.7rem;
         font-weight: 600;
-        color: #0f2b4d;
-        margin-bottom: 0.5rem;
+        white-space: nowrap;
     }
     
-    .profil-input {
+    .profile-body {
+        background-color: #f8fafc;
+        padding: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-label-custom {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        display: block;
+    }
+    
+    .form-label-custom i {
+        margin-right: 0.5rem;
+        color: #64748b;
+        width: 20px;
+    }
+    
+    .input-custom {
         background-color: white;
         border: 1px solid #e2e8f0;
         border-radius: 0.75rem;
-        padding: 0.65rem 1rem;
+        padding: 0.7rem 1rem;
         transition: all 0.2s;
         width: 100%;
+        font-size: 0.9rem;
     }
     
-    .profil-input:focus {
+    .input-custom:focus {
         border-color: #2c6e9e;
-        box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.1);
+        box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.08);
         outline: none;
     }
     
-    .profil-input:disabled {
+    .input-custom:disabled {
         background-color: #f1f5f9;
         cursor: not-allowed;
     }
     
-    .btn-primary-profil {
+    .input-group-custom {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    
+    .input-group-custom .input-custom {
+        flex: 1;
+    }
+    
+    .btn-request {
+        background-color: #eef2ff;
+        border: 1px solid #e2e8f0;
+        border-radius: 2rem;
+        padding: 0.7rem 1.25rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #1e293b;
+        transition: all 0.2s;
+        white-space: nowrap;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-request:hover {
+        background-color: #0f2b4d;
+        border-color: #0f2b4d;
+        color: white;
+    }
+    
+    .divider {
+        border: none;
+        border-top: 1px solid #e2e8f0;
+        margin: 1.5rem 0;
+    }
+    
+    .btn-change-password {
+        background-color: #032b3b;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.75rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.2s;
+        width: 100%;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+    }
+    
+    .btn-change-password:hover {
+        background-color: #043a4f;
+        transform: translateY(-2px);
+    }
+    
+    .btn-save {
         background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
         border: none;
         border-radius: 2rem;
-        padding: 0.65rem 1.25rem;
-        font-weight: 500;
+        padding: 0.75rem;
+        font-weight: 600;
         color: white;
         transition: all 0.2s;
         width: 100%;
     }
     
-    .btn-primary-profil:hover {
+    .btn-save:hover {
         transform: translateY(-2px);
         filter: brightness(1.05);
     }
     
-    .btn-warning-profil {
-        background-color: #d97706;
-        border: none;
-        border-radius: 2rem;
-        padding: 0.65rem 1.25rem;
-        font-weight: 500;
-        color: white;
-        transition: all 0.2s;
-        width: 100%;
-    }
-    
-    .btn-warning-profil:hover {
-        transform: translateY(-2px);
-        background-color: #b45309;
-    }
-    
-    .btn-outline-profil {
+    .btn-secondary-custom {
         background-color: transparent;
         border: 1px solid #e2e8f0;
         border-radius: 2rem;
-        padding: 0.65rem 1.25rem;
+        padding: 0.75rem;
         font-weight: 500;
         color: #1e293b;
         transition: all 0.2s;
         width: 100%;
         text-align: center;
         text-decoration: none;
-        display: inline-block;
+        display: block;
     }
     
-    .btn-outline-profil:hover {
+    .btn-secondary-custom:hover {
         background-color: #f1f5f9;
         border-color: #0f2b4d;
         color: #0f2b4d;
     }
     
-    .divider-profil {
-        border-color: #e2e8f0;
-        margin: 1.5rem 0;
+    .info-text {
+        font-size: 0.7rem;
+        color: #64748b;
+        margin-top: 0.35rem;
     }
     
-    .link-profil {
-        color: #2c6e9e;
+    .info-text i {
+        margin-right: 0.25rem;
+    }
+    
+    .link-forgot {
+        color: #64748b;
         text-decoration: none;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        transition: color 0.2s;
     }
     
-    .link-profil:hover {
-        text-decoration: underline;
+    .link-forgot:hover {
         color: #0f2b4d;
+        text-decoration: underline;
     }
 </style>
 
 <div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="profil-card">
-            <div class="profil-card-header">
-                <i class="bi bi-person-circle"></i>
+    <div class="col-md-7 col-lg-6">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
                 <h3>Mon Profil</h3>
-                <p>Gestion des informations personnelles</p>
+                <p>Gérez vos informations personnelles</p>
+                <div class="profile-badge">
+                    {% if user.is_superuser %}
+                        <i class="bi bi-shield-lock-fill me-1"></i>Administrateur
+                    {% elif user.is_staff %}
+                        <i class="bi bi-person-badge me-1"></i>Staff
+                    {% else %}
+                        <i class="bi bi-person me-1"></i>Utilisateur
+                    {% endif %}
+                </div>
             </div>
-            <div class="profil-card-body">
+            <div class="profile-body">
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3">
@@ -155,74 +255,88 @@
                 <form method="post">
                     {% csrf_token %}
                     
-                    <div class="mb-3">
-                        <label class="profil-label">
-                            <i class="bi bi-person-badge me-1"></i>Nom d'utilisateur
+                    <div class="form-group">
+                        <label class="form-label-custom">
+                            <i class="bi bi-person-badge"></i>Nom d'utilisateur
                         </label>
-                        <input type="text" name="username" class="profil-input" value="{{ user.username }}" required>
+                        <input type="text" name="username" class="input-custom" value="{{ user.username }}" required>
+                        <div class="info-text">
+                            <i class="bi bi-info-circle"></i>Identifiant unique de connexion
+                        </div>
                     </div>
                     
-                    <!-- Champ Email selon le type d'utilisateur -->
+                    <!-- Email selon le type d'utilisateur -->
                     {% if user.is_superuser %}
-                        <!-- Admin peut modifier directement -->
-                        <div class="mb-3">
-                            <label class="profil-label">
-                                <i class="bi bi-envelope me-1"></i>Email
+                        <div class="form-group">
+                            <label class="form-label-custom">
+                                <i class="bi bi-envelope"></i>Adresse email
                             </label>
-                            <input type="email" name="email" class="profil-input" value="{{ user.email }}" required>
-                            <div class="form-text text-muted small">L'administrateur peut modifier son email directement.</div>
+                            <input type="email" name="email" class="input-custom" value="{{ user.email }}" required>
+                            <div class="info-text">
+                                <i class="bi bi-info-circle"></i>Votre email de contact
+                            </div>
                         </div>
                     {% else %}
-                        <!-- Utilisateur normal doit faire une demande -->
-                        <div class="mb-3">
-                            <label class="profil-label">
-                                <i class="bi bi-envelope me-1"></i>Email
+                        <div class="form-group">
+                            <label class="form-label-custom">
+                                <i class="bi bi-envelope"></i>Adresse email
                             </label>
-                            <div class="input-group">
-                                <input type="email" class="profil-input" value="{{ user.email }}" disabled>
-                                <a href="{% url 'request_email_change' %}" class="btn btn-outline-primary rounded-pill ms-2" style="white-space: nowrap;">
-                                    <i class="bi bi-pencil me-1"></i>Demander un changement
+                            <div class="input-group-custom">
+                                <input type="email" class="input-custom" value="{{ user.email }}" disabled>
+                                <a href="{% url 'request_email_change' %}" class="btn-request">
+                                    <i class="bi bi-pencil-square me-1"></i>Modifier
                                 </a>
                             </div>
-                            <div class="form-text text-muted small">Pour changer votre email, une demande doit être approuvée par l'administrateur.</div>
+                            <div class="info-text">
+                                <i class="bi bi-shield-lock"></i>Une demande sera soumise à l'administrateur
+                            </div>
                         </div>
                     {% endif %}
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="profil-label">
-                                <i class="bi bi-person me-1"></i>Prénom
-                            </label>
-                            <input type="text" name="first_name" class="profil-input" value="{{ user.first_name }}">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label-custom">
+                                    <i class="bi bi-person"></i>Prénom
+                                </label>
+                                <input type="text" name="first_name" class="input-custom" value="{{ user.first_name }}">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="profil-label">
-                                <i class="bi bi-person me-1"></i>Nom
-                            </label>
-                            <input type="text" name="last_name" class="profil-input" value="{{ user.last_name }}">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label-custom">
+                                    <i class="bi bi-person"></i>Nom
+                                </label>
+                                <input type="text" name="last_name" class="input-custom" value="{{ user.last_name }}">
+                            </div>
                         </div>
                     </div>
                     
-                    <hr class="divider-profil">
+                    <hr class="divider">
                     
-                    <!-- زر تغيير كلمة السر -->
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'change_password_request' %}" class="btn-warning-profil">
+                    <div class="form-group">
+                        <a href="{% url 'change_password_request' %}" class="btn-change-password">
                             <i class="bi bi-key me-2"></i>Changer mon mot de passe
                         </a>
-                        <button type="submit" class="btn-primary-profil">
-                            <i class="bi bi-save me-2"></i>Enregistrer
+                        <div class="info-text text-center mt-2">
+                            <i class="bi bi-shield-check"></i> Sécurisez votre compte régulièrement
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn-save">
+                            <i class="bi bi-save me-2"></i>Enregistrer les modifications
                         </button>
-                        <a href="{% url 'home' %}" class="btn-outline-profil">
-                            <i class="bi bi-arrow-left me-2"></i>Retour
+                        <a href="{% url 'home' %}" class="btn-secondary-custom">
+                            <i class="bi bi-arrow-left me-2"></i>Retour au tableau de bord
                         </a>
                     </div>
                 </form>
                 
-                <hr class="divider-profil">
+                <hr class="divider">
                 
                 <div class="text-center">
-                    <a href="{% url 'reset_password_request' %}" class="link-profil">
+                    <a href="{% url 'reset_password_request' %}" class="link-forgot">
                         <i class="bi bi-question-circle me-1"></i>Mot de passe oublié ?
                     </a>
                 </div>

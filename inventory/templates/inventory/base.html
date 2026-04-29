@@ -22,77 +22,63 @@
             background: #f4f7fc;
             overflow-x: hidden;
         }
-        /* ========== CHANGEMENT DES COULEURS DES BOUTONS ========== */
-/* Bouton principal (primary) */
-.btn-primary {
-    background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%) !important;
-    border: none !important;
-}
-.btn-primary:hover {
-    background: linear-gradient(145deg, #1a3d5c 0%, #0f2b4d 100%) !important;
-    transform: translateY(-2px);
-}
-
-/* Bouton danger (rouge) */
-.btn-danger {
-    background-color: #b91c1c !important;
-    border: none !important;
-}
-.btn-danger:hover {
-    background-color: #991b1b !important;
-}
-
-/* Bouton warning (orange/jaune) */
-.btn-warning {
-    background-color: #d97706 !important;
-    border: none !important;
-    color: white !important;
-}
-.btn-warning:hover {
-    background-color: #b45309 !important;
-}
-
-/* Bouton success (vert) */
-.btn-success {
-    background-color: #2d6a4f !important;
-    border: none !important;
-}
-.btn-success:hover {
-    background-color: #1f543d !important;
-}
-
-/* Bouton outline secondary */
-.btn-outline-secondary {
-    border-color: #cbd5e1 !important;
-    color: #475569 !important;
-}
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    display: inline-block;
-}
-.btn-outline-secondary:hover {
-    background-color: #f1f5f9 !important;
-    border-color: #0f2b4d !important;
-    color: #0f2b4d !important;
-}
-
-/* Boutons arrondis */
-.btn {
-    border-radius: 2rem !important;
-    padding: 0.5rem 1.25rem !important;
-    font-weight: 500 !important;
-    transition: all 0.2s !important;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-}
-        /* ========== NAVBAR ========== */
+        .btn-primary {
+            background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%) !important;
+            border: none !important;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(145deg, #1a3d5c 0%, #0f2b4d 100%) !important;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background-color: #b91c1c !important;
+            border: none !important;
+        }
+        .btn-danger:hover {
+            background-color: #991b1b !important;
+        }
+        .btn-warning {
+            background-color: #d97706 !important;
+            border: none !important;
+            color: white !important;
+        }
+        .btn-warning:hover {
+            background-color: #b45309 !important;
+        }
+        .btn-success {
+            background-color: #2d6a4f !important;
+            border: none !important;
+        }
+        .btn-success:hover {
+            background-color: #1f543d !important;
+        }
+        .btn-outline-secondary {
+            border-color: #cbd5e1 !important;
+            color: #475569 !important;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        .btn-outline-secondary:hover {
+            background-color: #f1f5f9 !important;
+            border-color: #0f2b4d !important;
+            color: #0f2b4d !important;
+        }
+        .btn {
+            border-radius: 2rem !important;
+            padding: 0.5rem 1.25rem !important;
+            font-weight: 500 !important;
+            transition: all 0.2s !important;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
         .navbar-custom {
             background: #ffffff;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
@@ -136,7 +122,6 @@
             font-weight: 500;
             font-size: 0.9rem;
         }
-        /* ========== NOTIFICATION BUTTON ========== */
         .notification-btn {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -173,12 +158,14 @@
             overflow-y: auto;
         }
         .notification-item {
-            padding: 0.75rem 1rem;
+            padding: 0.6rem 0.8rem;
             border-bottom: 1px solid #e9ecef;
             transition: background 0.2s;
+            cursor: pointer;
         }
         .notification-item.unread {
             background-color: #e7f1ff;
+            border-left: 3px solid #0f2b4d;
         }
         .notification-item.read {
             background-color: #ffffff;
@@ -186,6 +173,23 @@
         }
         .notification-item:hover {
             background-color: #f8f9fa;
+        }
+        .notification-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        .notification-message {
+            font-size: 0.7rem;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+        }
+        .notification-time {
+            font-size: 0.6rem;
+            color: #94a3b8;
         }
         /* ========== SIDEBAR & OVERLAY ========== */
         .sidebar-overlay {
@@ -271,7 +275,6 @@
                 margin-left: 280px;
             }
         }
-        /* ========== CARDS ========== */
         .stat-card {
             background: white;
             border-radius: 1.5rem;
@@ -310,18 +313,50 @@
                 </a>
             </div>
             <div class="d-flex gap-2 align-items-center">
-                <!-- زر الإشعارات (Notifications) -->
+                <!-- Dropdown des notifications -->
                 <div class="dropdown">
-                    <button class="btn notification-btn dropdown-toggle" type="button" id="notificationDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn notification-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-bell fs-5"></i>
-                        <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
+                        <span class="notification-badge" style="display: {% if unread_notifications_count > 0 %}flex{% else %}none{% endif %};">
+                            {{ unread_notifications_count|default:0 }}
+                        </span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end notification-dropdown p-0" aria-labelledby="notificationDropdownBtn">
-                        <div class="notification-list" id="notificationList">
-                            <div class="text-center text-muted p-3 small">Chargement des notifications...</div>
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown p-0">
+                        <div class="notification-header p-2 border-bottom d-flex justify-content-between align-items-center">
+                            <strong>Notifications</strong>
+                            <button id="markAllReadBtn" class="btn btn-sm btn-link text-decoration-none p-0" style="font-size: 0.7rem;">Tout marquer lu</button>
                         </div>
-                        <div class="border-top p-2 text-center small text-muted">
-                            <i class="bi bi-info-circle"></i> Produits en stock faible
+                        <div class="notification-list" id="notificationsList">
+                            {% for notif in notifications %}
+                                <div class="notification-item {% if not notif.is_read %}unread{% endif %}" data-id="{{ notif.id }}" data-link="{{ notif.link }}" data-type="{{ notif.type }}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1" onclick="markAsReadAndRedirect('{{ notif.id }}', '{{ notif.link }}', '{{ notif.type }}')">
+                                            <div class="notification-title">
+                                                {% if notif.type == 'stock' %}
+                                                    📦 {{ notif.title }}
+                                                {% else %}
+                                                    🔔 {{ notif.title }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="notification-message">{{ notif.message|truncatechars:45 }}</div>
+                                            <div class="notification-time">{{ notif.created_at|date:"d/m H:i" }}</div>
+                                        </div>
+                                        {% if not notif.is_read %}
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill ms-2 mark-read-btn" 
+                                                    data-id="{{ notif.id }}" 
+                                                    data-type="{{ notif.type }}" 
+                                                    style="font-size: 0.65rem; padding: 0.2rem 0.6rem;">
+                                                <i class="bi bi-check2"></i> Lu
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="text-center text-muted p-3">Aucune notification</div>
+                            {% endfor %}
+                        </div>
+                        <div class="border-top p-1 text-center">
+                            <small class="text-muted" style="font-size: 0.6rem;">Système</small>
                         </div>
                     </div>
                 </div>
@@ -379,15 +414,14 @@
             </div>
             {% endif %}
         </div>
-       
     </aside>
 
     <main class="content-area">
-    <div class="container-fluid px-4 py-4">
-        {% block content %}{% endblock %}
-    </div>
-</main>
-    <!-- Données des produits en stock faible -->
+        <div class="container-fluid px-4 py-4">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
     <script type="application/json" id="low-stock-data">
         [
             {% for produit in all_products %}
@@ -401,168 +435,171 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        (function() {
-            // ========== GESTION SIDEBAR ==========
-            const sidebar = document.getElementById('mainSidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebarBtn');
-            const body = document.body;
+        // ========== NOTIFICATIONS STOCK FAIBLE ==========
+        let lowStockProducts = [];
 
-            function openSidebar() { body.classList.add('sidebar-open'); if(overlay) overlay.classList.add('active'); }
-            function closeSidebar() { body.classList.remove('sidebar-open'); if(overlay) overlay.classList.remove('active'); }
-            function toggleSidebar() { body.classList.contains('sidebar-open') ? closeSidebar() : openSidebar(); }
-
-            if(toggleBtn) toggleBtn.onclick = (e) => { e.stopPropagation(); toggleSidebar(); };
-            if(overlay) overlay.onclick = closeSidebar;
-            document.addEventListener('click', (e) => {
-                if (!body.classList.contains('sidebar-open')) return;
-                if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) closeSidebar();
-            });
-            closeSidebar();
-
-            // ========== NOTIFICATIONS ==========
-            let lowStockProducts = [];
-
-            // Récupérer les produits depuis l'API
-            async function fetchLowStockProducts() {
-                try {
-                    const response = await fetch('/api/produits/');
-                    const data = await response.json();
-                    lowStockProducts = data.produits.filter(p => p.qte_stock <= p.stock_alerte);
-                    // Ajouter l'état read (lu ou non) depuis localStorage
-                    const readStates = JSON.parse(localStorage.getItem('notification_read_states') || '{}');
-                    lowStockProducts.forEach(p => {
-                        p.read = readStates[p.code_p] === true;
-                    });
-                    renderNotifications();
-                } catch (err) {
-                    console.error("Erreur chargement produits:", err);
-                }
-            }
-
-            function getCsrfToken() {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; csrftoken=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-                return '';
-            }
-
-            async function markAsRead(productId) {
-                const product = lowStockProducts.find(p => p.code_p === productId);
-                if (product) {
-                    product.read = true;
-                    // Sauvegarder l'état dans localStorage
-                    const readStates = JSON.parse(localStorage.getItem('notification_read_states') || '{}');
-                    readStates[productId] = true;
-                    localStorage.setItem('notification_read_states', JSON.stringify(readStates));
-                    renderNotifications();
-                }
-                
-                // Appeler l'API si disponible
-                try {
-                    await fetch(`/api/notifications/${productId}/read/`, {
-                        method: 'POST',
-                        headers: { 'X-CSRFToken': getCsrfToken() },
-                    });
-                } catch (err) { console.error(err); }
-            }
-
-            async function deleteNotification(productId) {
-                lowStockProducts = lowStockProducts.filter(p => p.code_p !== productId);
-                // Supprimer du localStorage aussi
+        async function fetchLowStockProducts() {
+            try {
+                const response = await fetch('/api/produits/');
+                const data = await response.json();
+                lowStockProducts = data.produits.filter(p => p.qte_stock <= p.stock_alerte);
                 const readStates = JSON.parse(localStorage.getItem('notification_read_states') || '{}');
-                delete readStates[productId];
-                localStorage.setItem('notification_read_states', JSON.stringify(readStates));
-                renderNotifications();
-                
-                try {
-                    await fetch(`/api/notifications/${productId}/delete/`, {
-                        method: 'POST',
-                        headers: { 'X-CSRFToken': getCsrfToken() },
-                    });
-                } catch (err) { console.error(err); }
-            }
-
-            function escapeHtml(str) {
-                if (!str) return '';
-                return str.replace(/[&<>]/g, function(m) {
-                    if (m === '&') return '&amp;';
-                    if (m === '<') return '&lt;';
-                    if (m === '>') return '&gt;';
-                    return m;
+                lowStockProducts.forEach(p => {
+                    p.read = readStates[p.code_p] === true;
                 });
+            } catch (err) {
+                console.error("Erreur chargement produits:", err);
             }
+        }
 
-            function renderNotifications() {
-                const container = document.getElementById('notificationList');
-                const badgeSpan = document.getElementById('notificationBadge');
-                if (!container) return;
+        function getCsrfToken() {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; csrftoken=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
+        }
 
-                const unread = lowStockProducts.filter(p => !p.read);
-                const read = lowStockProducts.filter(p => p.read);
-                let html = '';
-
-                if (lowStockProducts.length === 0) {
-                    html = '<div class="text-center text-muted p-3 small"><i class="bi bi-check-circle-fill"></i> Aucun produit en stock faible.</div>';
-                } else {
-                    unread.forEach(prod => {
-                        html += `<div class="notification-item unread d-flex justify-content-between align-items-start" data-id="${prod.code_p}">
-                                    <div class="flex-grow-1">
-                                        <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-                                        <strong>${escapeHtml(prod.designation)}</strong>
-                                        <span class="badge bg-danger ms-2">${prod.qte_stock} unités</span>
-                                        <div class="small text-muted mt-1">Stock en dessous du seuil d'alerte</div>
-                                    </div>
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill ms-2 mark-read-btn" data-id="${prod.code_p}">
-                                        <i class="bi bi-check2-circle"></i> Lu
-                                    </button>
-                                </div>`;
-                    });
-                    read.forEach(prod => {
-                        html += `<div class="notification-item read d-flex justify-content-between align-items-start" data-id="${prod.code_p}">
-                                    <div class="flex-grow-1">
-                                        <i class="bi bi-check2-circle text-success me-2"></i>
-                                        <span>${escapeHtml(prod.designation)}</span>
-                                        <span class="text-muted ms-2">${prod.qte_stock} unités</span>
-                                    </div>
-                                    <button class="btn btn-sm btn-outline-danger rounded-pill ms-2 delete-btn" data-id="${prod.code_p}">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </div>`;
-                    });
+        // ========== GESTION DES NOTIFICATIONS SYSTÈME ==========
+        
+        function markStockAsRead(productId, buttonElement) {
+            fetch(`/api/notifications/${productId}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/json'
                 }
-
-                container.innerHTML = html;
-
-                // Attacher les événements
-                document.querySelectorAll('.mark-read-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        markAsRead(parseInt(btn.dataset.id));
-                    });
-                });
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteNotification(parseInt(btn.dataset.id));
-                    });
-                });
-
-                // Mettre à jour le badge
-                const unreadCount = unread.length;
-                if (badgeSpan) {
-                    if (unreadCount > 0) {
-                        badgeSpan.style.display = 'flex';
-                        badgeSpan.innerText = unreadCount > 9 ? '9+' : unreadCount;
-                    } else {
-                        badgeSpan.style.display = 'none';
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    const item = buttonElement.closest('.notification-item');
+                    if (item) {
+                        item.classList.remove('unread');
+                        item.classList.add('read');
+                        buttonElement.remove();
                     }
+                    updateBadgeCount();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function markSystemAsRead(notificationId, buttonElement) {
+            fetch(`/mark-notification-read/${notificationId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    const item = buttonElement.closest('.notification-item');
+                    if (item) {
+                        item.classList.remove('unread');
+                        item.classList.add('read');
+                        buttonElement.remove();
+                    }
+                    updateBadgeCount();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function updateBadgeCount() {
+            const unreadItems = document.querySelectorAll('.notification-item.unread');
+            const badge = document.querySelector('.notification-badge');
+            const count = unreadItems.length;
+            
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
                 }
             }
+        }
 
-            // Charger les notifications au démarrage
+        function markAsReadAndRedirect(notificationId, link, type) {
+            let url = '';
+            if (type === 'stock') {
+                url = `/api/notifications/${notificationId}/read/`;
+            } else {
+                url = `/mark-notification-read/${notificationId}/`;
+            }
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    window.location.href = link;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Attacher les événements aux boutons "Lu"
+        function attachMarkReadEvents() {
+            document.querySelectorAll('.mark-read-btn').forEach(btn => {
+                if (btn.hasAttribute('data-listener')) return;
+                btn.setAttribute('data-listener', 'true');
+                
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const notificationId = this.dataset.id;
+                    const notificationType = this.dataset.type;
+                    
+                    if (notificationType === 'stock') {
+                        markStockAsRead(notificationId, this);
+                    } else {
+                        markSystemAsRead(notificationId, this);
+                    }
+                });
+            });
+        }
+
+        // Marquer toutes les notifications comme lues
+        const markAllBtn = document.getElementById('markAllReadBtn');
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', function() {
+                fetch('/mark-all-notifications-read/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+
+        // Observer les changements dans le dropdown
+        const observer = new MutationObserver(function(mutations) {
+            attachMarkReadEvents();
+        });
+        const notificationsList = document.getElementById('notificationsList');
+        if (notificationsList) {
+            observer.observe(notificationsList, { childList: true, subtree: true });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            attachMarkReadEvents();
             fetchLowStockProducts();
-        })();
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>

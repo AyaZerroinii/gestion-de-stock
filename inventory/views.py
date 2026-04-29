@@ -20,6 +20,13 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.cache import cache
 import uuid
+import secrets
+from .utils import send_email_to_user
+from .models import (
+    Entreprise, Produit, Utilisateur, Fournisseur, 
+    Client, BonEntree, LigneEntree, BonSortie, LigneSortie, 
+    NotificationStatus, Notification  # ✅ أضف Notification هنا
+)
 
 from .forms import AdminUserCreationForm, ProduitForm, ForcePasswordChangeForm, ForgotPasswordForm, ResetPasswordForm, AdminOTPForm
 from .models import (
@@ -1818,3 +1825,429 @@ def request_otp_for_password_change(request):
     
     # ✅ GET request - عرض الصفحة
     return render(request, 'inventory/request_otp_pw_change.html')
+
+@login_required
+def request_email_change(request):
+    user = request.user
+    
+    if user.is_superuser:
+        messages.error(request, "Vous êtes administrateur, utilisez le formulaire normal.")
+        return redirect('user_profile')
+    
+    if request.method == 'POST':
+        new_email = request.POST.get('new_email')
+        
+        if User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+            messages.error(request, "Cet email est déjà utilisé par un autre compte.")
+            return redirect('user_profile')
+        
+        # Générer un token unique
+        import secrets
+        token = secrets.token_urlsafe(32)
+        
+        profil = get_user_profile(user)
+        profil.email_change_requested = new_email
+        profil.email_change_token = token
+        profil.email_change_request_date = timezone.now()
+        profil.save()
+        
+        # ✅ Envoyer une notification à TOUS les admins
+        admins = User.objects.filter(is_superuser=True)
+        for admin in admins:
+            if hasattr(admin, 'profil'):
+                Notification.objects.create(
+                    recipient=admin.profil,
+                    type='email_request',
+                    title='Demande de changement d\'email',
+                    message=f"L'utilisateur '{user.username}' demande de changer son email de '{user.email}' vers '{new_email}'.",
+                    link=reverse('approve_email_change', args=[token]),
+                )
+        
+        messages.success(request, "Votre demande a été envoyée. Vous recevrez une notification une fois traitée.")
+        return redirect('user_profile')
+    
+    return render(request, 'inventory/request_email_change.html')
+
+@user_passes_test(lambda u: u.is_superuser)
+def approve_email_change(request, token):
+    """L'admin approuve la demande de changement d'email"""
+    try:
+        profil = Utilisateur.objects.get(email_change_token=token, email_change_requested__isnull=False)
+    except Utilisateur.DoesNotExist:
+        messages.error(request, "Lien invalide ou expiré.")
+        return redirect('user_list')
+    
+    user = profil.user
+    new_email = profil.email_change_requested
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'approve':
+            # ✅ Vérifier que l'email n'est pas déjà utilisé
+            if User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+                messages.error(request, f"L'email '{new_email}' est déjà utilisé par un autre compte.")
+                return redirect('user_list')
+            
+            # ✅ Générer un token pour l'utilisateur
+            import secrets
+            confirm_token = secrets.token_urlsafe(32)
+            
+            # ✅ Stocker le nouvel email dans pending
+            profil.pending_email_new = new_email
+            profil.email_change_token = confirm_token
+            profil.save()
+            
+            # ✅ Envoyer un email de confirmation à l'utilisateur avec lien
+            from .utils import send_email_to_user
+            confirm_link = request.build_absolute_uri(reverse('confirm_email_with_password', args=[confirm_token]))
+            
+            send_email_to_user(
+                user,
+                "Demande de changement d'email approuvée",
+                f"Bonjour {user.username},\n\n"
+                f"L'administrateur a approuvé votre demande de changement d'email vers '{new_email}'.\n\n"
+                f"Cliquez sur le lien suivant pour confirmer avec votre mot de passe :\n{confirm_link}\n\n"
+                f"Ce lien expire dans 24 heures.\n\n"
+                f"Si vous n'avez pas demandé ce changement, ignorez cet email."
+            )
+            
+            # ✅ Notification pour l'utilisateur
+            Notification.objects.create(
+                recipient=profil,
+                type='email_approved',
+                title='Demande approuvée',
+                message=f"Votre demande de changement d'email vers '{new_email}' a été approuvée. Cliquez pour confirmer avec votre mot de passe.",
+                link=reverse('confirm_email_with_password', args=[confirm_token]),
+            )
+            
+            messages.success(request, f"Demande de '{user.username}' approuvée. Un email a été envoyé à l'utilisateur pour finaliser le changement.")
+            
+        elif action == 'reject':
+            # ❌ Refuser la demande
+            profil.email_change_requested = None
+            profil.email_change_token = None
+            profil.email_change_request_date = None
+            profil.save()
+            
+            # Notification de refus
+            Notification.objects.create(
+                recipient=profil,
+                type='email_rejected',
+                title='Demande refusée',
+                message=f"Votre demande de changement d'email vers '{new_email}' a été refusée.",
+                link=reverse('user_profile'),
+            )
+            
+            messages.info(request, f"Demande de changement d'email de '{user.username}' refusée.")
+        
+        return redirect('user_list')
+    
+    return render(request, 'inventory/approve_email_change.html', {
+        'user': user,
+        'new_email': new_email,
+        'token': token
+    })
+
+@login_required
+def admin_secure_change(request):
+    """L'admin doit confirmer avec OTP avant de modifier ses infos"""
+    if not request.user.is_superuser:
+        return redirect('home')
+    
+    user = request.user
+    profil = get_user_profile(user)
+    
+    if request.method == 'POST':
+        # Vérifier l'OTP
+        otp_code = request.POST.get('otp_code')
+        password = request.POST.get('password')
+        
+        if not user.check_password(password):
+            messages.error(request, "Mot de passe incorrect.")
+            return redirect('admin_secure_change')
+        
+        # Générer OTP
+        import random
+        otp = ''.join(random.choices('0123456789', k=6))
+        
+        profil.pending_admin_otp = otp
+        profil.pending_admin_otp_expires = timezone.now() + timezone.timedelta(minutes=5)
+        
+        # Stocker les modifications en session
+        request.session['pending_admin_changes'] = {
+            'username': request.POST.get('username'),
+            'email': request.POST.get('email'),
+            'first_name': request.POST.get('first_name', ''),
+            'last_name': request.POST.get('last_name', ''),
+        }
+        profil.save()
+        
+        # Envoyer OTP par email
+        from .utils import send_otp_email
+        send_otp_email(user, otp, "modifier vos informations personnelles")
+        
+        messages.info(request, "Un code OTP a été envoyé à votre email.")
+        return redirect('admin_confirm_change')
+    
+    return render(request, 'inventory/admin_secure_change.html', {'user': user})
+
+
+@login_required
+def admin_confirm_change(request):
+    """L'admin confirme les modifications avec OTP"""
+    if not request.user.is_superuser:
+        return redirect('home')
+    
+    profil = get_user_profile(request.user)
+    pending_changes = request.session.get('pending_admin_changes', {})
+    
+    if not pending_changes:
+        return redirect('admin_secure_change')
+    
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp_code')
+        
+        if (profil.pending_admin_otp == otp_code and 
+            profil.pending_admin_otp_expires > timezone.now()):
+            
+            # Appliquer les modifications
+            user = request.user
+            user.username = pending_changes.get('username')
+            user.email = pending_changes.get('email')
+            user.first_name = pending_changes.get('first_name', '')
+            user.last_name = pending_changes.get('last_name', '')
+            user.save()
+            
+            # Nettoyer
+            profil.pending_admin_otp = None
+            profil.pending_admin_otp_expires = None
+            profil.save()
+            
+            del request.session['pending_admin_changes']
+            
+            messages.success(request, "Vos informations ont été mises à jour.")
+            return redirect('user_profile')
+        else:
+            messages.error(request, "Code OTP invalide ou expiré.")
+    
+    return render(request, 'inventory/admin_confirm_change.html')
+
+def confirm_new_email(request, token):
+    try:
+        profil = Utilisateur.objects.get(email_change_token=token, email_change_requested__isnull=False)
+    except Utilisateur.DoesNotExist:
+        messages.error(request, "Lien invalide ou expiré.")
+        return redirect('login')
+    
+    user = profil.user
+    new_email = profil.email_change_requested
+    
+    if request.method == 'POST':
+        # Changer l'email
+        user.email = new_email
+        user.save()
+        
+        # ✅ Envoyer notification de confirmation
+        Notification.objects.create(
+            recipient=profil,
+            type='email_confirmed',
+            title='Email confirmé',
+            message=f"Votre email a été changé avec succès vers '{new_email}'.",
+            link=reverse('user_profile'),
+        )
+        
+        # Nettoyer
+        profil.email_change_requested = None
+        profil.email_change_token = None
+        profil.email_change_request_date = None
+        profil.save()
+        
+        messages.success(request, f"Votre email a été changé avec succès vers {new_email}")
+        return redirect('user_profile')
+    
+    return render(request, 'inventory/confirm_new_email.html', {
+        'user': user,
+        'new_email': new_email,
+        'token': token
+    })
+
+def confirm_email_with_password(request, token):
+    """L'utilisateur confirme le changement d'email avec son mot de passe + OTP"""
+    try:
+        profil = Utilisateur.objects.get(email_change_token=token, pending_email_new__isnull=False)
+    except Utilisateur.DoesNotExist:
+        messages.error(request, "Lien invalide ou expiré.")
+        return redirect('login')
+    
+    user = profil.user
+    new_email = profil.pending_email_new
+    
+    # Étape 1: Vérifier le mot de passe
+    if request.method == 'POST':
+        step = request.POST.get('step')
+        
+        if step == 'password':
+            password = request.POST.get('password')
+            
+            if not user.check_password(password):
+                messages.error(request, "Mot de passe incorrect.")
+                return render(request, 'inventory/confirm_email_step1.html', {
+                    'new_email': new_email,
+                    'token': token
+                })
+            
+            # ✅ Mot de passe correct, générer OTP et l'envoyer au nouvel email
+            import pyotp
+            import random
+            
+            # Générer un secret OTP
+            secret = pyotp.random_base32()
+            totp = pyotp.TOTP(secret)
+            otp_code = totp.now()
+            
+            # Stocker en base
+            profil.pending_email_otp_secret = secret
+            profil.pending_email_otp_code = otp_code
+            profil.pending_email_otp_expires = timezone.now() + timezone.timedelta(minutes=10)
+            profil.save()
+            
+            # Envoyer OTP au NOUVEL email
+            from .utils import send_email_to_user
+            # Créer un utilisateur temporaire pour envoyer l'email
+            temp_user = User()
+            temp_user.email = new_email
+            temp_user.username = user.username
+            
+            send_email_to_user(
+                temp_user,
+                "Code de vérification pour votre nouvel email",
+                f"Bonjour {user.username},\n\n"
+                f"Votre code OTP pour confirmer votre nouvel email '{new_email}' est : {otp_code}\n\n"
+                f"Ce code expire dans 10 minutes.\n\n"
+                f"Si vous n'avez pas demandé ce changement, ignorez cet email."
+            )
+            
+            return render(request, 'inventory/confirm_email_step2.html', {
+                'new_email': new_email,
+                'token': token
+            })
+        
+        elif step == 'otp':
+            otp_code = request.POST.get('otp_code')
+            
+            # Vérifier OTP
+            if (profil.pending_email_otp_code == otp_code and 
+                profil.pending_email_otp_expires > timezone.now()):
+                
+                # ✅ Tout est bon, changer l'email
+                user.email = new_email
+                user.save()
+                
+                # Nettoyer tous les champs
+                profil.email_change_requested = None
+                profil.email_change_token = None
+                profil.email_change_request_date = None
+                profil.pending_email_new = None
+                profil.pending_email_otp_secret = None
+                profil.pending_email_otp_code = None
+                profil.pending_email_otp_expires = None
+                profil.save()
+                
+                # Notification de confirmation
+                Notification.objects.create(
+                    recipient=profil,
+                    type='email_confirmed',
+                    title='Email changé avec succès',
+                    message=f"Votre email a été changé vers '{new_email}'.",
+                    link=reverse('user_profile'),
+                )
+                
+                messages.success(request, f"Votre email a été changé avec succès vers {new_email}")
+                return redirect('user_profile')
+            else:
+                messages.error(request, "Code OTP invalide ou expiré.")
+    
+    return render(request, 'inventory/confirm_email_step1.html', {
+        'new_email': new_email,
+        'token': token
+    })
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Marquer une notification comme lue"""
+    try:
+        notification = Notification.objects.get(id=notification_id, recipient=request.user.profil)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'status': 'ok'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notification non trouvée'}, status=404)
+    
+@login_required
+def mark_all_notifications_read(request):
+    """Marquer toutes les notifications comme lues"""
+    try:
+        Notification.objects.filter(recipient=request.user.profil, is_read=False).update(is_read=True)
+        return JsonResponse({'status': 'ok'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+from .models import Notification, Produit, Utilisateur
+
+def check_and_create_low_stock_notifications():
+    """Vérifier les produits en stock faible et créer des notifications"""
+    low_stock_products = Produit.objects.filter(qte_stock__lte=F('stock_alerte'))
+    
+    for produit in low_stock_products:
+        # Vérifier si une notification existe déjà pour ce produit
+        existing_notif = Notification.objects.filter(
+            type='stock_alert',
+            message__icontains=produit.designation
+        ).first()
+        
+        if not existing_notif:
+            # Créer une notification pour tous les utilisateurs (ou juste les admins)
+            for utilisateur in Utilisateur.objects.all():
+                Notification.objects.create(
+                    recipient=utilisateur,
+                    type='stock_alert',
+                    title='⚠️ Stock faible',
+                    message=f"Le produit '{produit.designation}' a un stock faible : {produit.qte_stock} unités.",
+                    link='/produits/',
+                    is_read=False
+                )
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a system notification as read"""
+    try:
+        notification = Notification.objects.get(id=notification_id, recipient=request.user.profil)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'status': 'ok'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'error': 'Notification not found'}, status=404)
+    
+@login_required
+@staff_or_superuser_required
+@csrf_exempt
+@require_POST
+def notification_mark_read(request, product_id):
+    """Mark a low‑stock notification as read for the current user."""
+    try:
+        produit = Produit.objects.get(pk=product_id)
+    except Produit.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
+    utilisateur = get_user_profile(request.user)
+    status_obj, created = NotificationStatus.objects.get_or_create(
+        utilisateur=utilisateur,
+        produit=produit,
+        defaults={'read': True}
+    )
+    if not created:
+        status_obj.read = True
+        status_obj.save()
+
+    return JsonResponse({'status': 'ok'})

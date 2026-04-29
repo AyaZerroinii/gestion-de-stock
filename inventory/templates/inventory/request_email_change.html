@@ -1,0 +1,163 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Demander un changement d'email{% endblock %}
+{% block content %}
+
+<style>
+    .request-card {
+        border: none;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        background: white;
+    }
+    
+    .request-card-header {
+        background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
+        color: white;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .request-card-header i {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .request-card-header h3 {
+        margin-bottom: 0.25rem;
+        font-weight: 700;
+    }
+    
+    .request-card-header p {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        margin-bottom: 0;
+    }
+    
+    .request-card-body {
+        background-color: #f8fafc;
+        padding: 1.75rem;
+    }
+    
+    .form-label-custom {
+        font-weight: 600;
+        color: #0f2b4d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control-custom {
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.65rem 1rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    
+    .form-control-custom:focus {
+        border-color: #2c6e9e;
+        box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.1);
+        outline: none;
+    }
+    
+    .btn-primary-custom {
+        background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
+        border: none;
+        border-radius: 2rem;
+        padding: 0.65rem 1.25rem;
+        font-weight: 500;
+        color: white;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+    
+    .btn-outline-custom {
+        background-color: transparent;
+        border: 1px solid #e2e8f0;
+        border-radius: 2rem;
+        padding: 0.65rem 1.25rem;
+        font-weight: 500;
+        color: #1e293b;
+        transition: all 0.2s;
+        width: 100%;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-outline-custom:hover {
+        background-color: #f1f5f9;
+        border-color: #0f2b4d;
+        color: #0f2b4d;
+    }
+    
+    .info-box {
+        background-color: #eef2ff;
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-box i {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        color: #0f2b4d;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="request-card">
+            <div class="request-card-header">
+                <i class="bi bi-envelope-arrow-up"></i>
+                <h3>Changer mon email</h3>
+                <p>Demande de modification</p>
+            </div>
+            <div class="request-card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="info-box d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <div>
+                        <strong>Email actuel :</strong> {{ user.email }}<br>
+                        <small class="text-secondary">Une demande sera envoyée à l'administrateur pour approbation.</small>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label-custom">
+                            <i class="bi bi-envelope me-1"></i>Nouvel email
+                        </label>
+                        <input type="email" name="new_email" class="form-control-custom" placeholder="nouveau@email.com" required autofocus>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn-primary-custom">
+                            <i class="bi bi-send me-2"></i>Envoyer la demande
+                        </button>
+                        <a href="{% url 'user_profile' %}" class="btn-outline-custom">
+                            <i class="bi bi-arrow-left me-2"></i>Retour
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

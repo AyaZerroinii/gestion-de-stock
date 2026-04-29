@@ -135,52 +135,59 @@
     }
 </style>
 
-<!-- Cartes statistiques -->
-<!-- Cartes statistiques -->
+<!-- Cartes statistiques cliquables -->
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-6">
-        <div class="dashboard-card">
-            <div class="card-body-soft text-center">
-                <div class="stat-number" style="color: #0f2b3d;">{{ total_produits|default:0 }}</div>
-                <div class="stat-label">Total produits</div>
-                <span class="badge mt-2" style="background-color: #eef2ff; color: #0f2b3d;">
-                    <i class="bi bi-box-seam me-1"></i>Catalogue
-                </span>
+        <a href="{% url 'produit_list' %}" class="text-decoration-none">
+            <div class="dashboard-card">
+                <div class="card-body-soft text-center">
+                    <div class="stat-number" style="color: #0f2b3d;">{{ total_produits|default:0 }}</div>
+                    <div class="stat-label">Total produits</div>
+                    <span class="badge mt-2" style="background-color: #eef2ff; color: #0f2b3d;">
+                        <i class="bi bi-box-seam me-1"></i>Catalogue
+                    </span>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-6">
-        <div class="dashboard-card">
-            <div class="card-body-soft text-center">
-                <div class="stat-number" style="color: #b91c1c;">{{ low_stock|default:0 }}</div>
-                <div class="stat-label">Stock faible</div>
-                <span class="badge mt-2" style="background-color: #fee2e2; color: #b91c1c;">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Alerte
-                </span>
+        <a href="{% url 'produit_list' %}?stock=low" class="text-decoration-none">
+            <div class="dashboard-card">
+                <div class="card-body-soft text-center">
+                    <div class="stat-number" style="color: #b91c1c;">{{ low_stock|default:0 }}</div>
+                    <div class="stat-label">Stock faible</div>
+                    <span class="badge mt-2" style="background-color: #fee2e2; color: #b91c1c;">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>Alerte
+                    </span>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-6">
-        <div class="dashboard-card">
-            <div class="card-body-soft text-center">
-                <div class="stat-number" style="color: #15803d;">{{ entrees_mois|default:0 }}</div>
-                <div class="stat-label">Entrées (mois)</div>
-                <span class="badge mt-2" style="background-color: #dcfce7; color: #15803d;">
-                    <i class="bi bi-box-arrow-in-down me-1"></i>Ce mois
-                </span>
+        <a href="{% url 'bon_entree_list' %}" class="text-decoration-none">
+            <div class="dashboard-card">
+                <div class="card-body-soft text-center">
+                    <div class="stat-number" style="color: #15803d;">{{ entrees_mois|default:0 }}</div>
+                    <div class="stat-label">Entrées (mois)</div>
+                    <span class="badge mt-2" style="background-color: #dcfce7; color: #15803d;">
+                        <i class="bi bi-box-arrow-in-down me-1"></i>Ce mois
+                    </span>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-6">
-        <div class="dashboard-card">
-            <div class="card-body-soft text-center">
-                <div class="stat-number" style="color: #c2410c;">{{ sorties_mois|default:0 }}</div>
-                <div class="stat-label">Sorties (mois)</div>
-                <span class="badge mt-2" style="background-color: #ffedd5; color: #c2410c;">
-                    <i class="bi bi-box-arrow-right me-1"></i>Ce mois
-                </span>
+        <a href="{% url 'bon_sortie_list' %}" class="text-decoration-none">
+            <div class="dashboard-card">
+                <div class="card-body-soft text-center">
+                    <div class="stat-number" style="color: #c2410c;">{{ sorties_mois|default:0 }}</div>
+                    <div class="stat-label">Sorties (mois)</div>
+                    <span class="badge mt-2" style="background-color: #ffedd5; color: #c2410c;">
+                        <i class="bi bi-box-arrow-right me-1"></i>Ce mois
+                    </span>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 

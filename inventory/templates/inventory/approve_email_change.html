@@ -1,0 +1,136 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Approuver le changement d'email{% endblock %}
+{% block content %}
+
+<style>
+    .approve-card {
+        border: none;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        background: white;
+    }
+    
+    .approve-card-header {
+        background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
+        color: white;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .approve-card-header i {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .approve-card-header h3 {
+        margin-bottom: 0.25rem;
+        font-weight: 700;
+    }
+    
+    .approve-card-body {
+        background-color: #f8fafc;
+        padding: 1.75rem;
+    }
+    
+    .info-box {
+        background-color: #eef2ff;
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-approve {
+        background-color: #10b981;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.65rem 1.25rem;
+        font-weight: 500;
+        color: white;
+        transition: all 0.2s;
+    }
+    
+    .btn-approve:hover {
+        background-color: #059669;
+        transform: translateY(-2px);
+    }
+    
+    .btn-reject {
+        background-color: #ef4444;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.65rem 1.25rem;
+        font-weight: 500;
+        color: white;
+        transition: all 0.2s;
+    }
+    
+    .btn-reject:hover {
+        background-color: #dc2626;
+        transform: translateY(-2px);
+    }
+    
+    .btn-outline-custom {
+        background-color: transparent;
+        border: 1px solid #e2e8f0;
+        border-radius: 2rem;
+        padding: 0.65rem 1.25rem;
+        font-weight: 500;
+        color: #1e293b;
+        transition: all 0.2s;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-outline-custom:hover {
+        background-color: #f1f5f9;
+        border-color: #0f2b4d;
+        color: #0f2b4d;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="approve-card">
+            <div class="approve-card-header">
+                <i class="bi bi-person-check"></i>
+                <h3>Approbation requise</h3>
+                <p>Changement d'email</p>
+            </div>
+            <div class="approve-card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="info-box">
+                    <p class="mb-1"><strong>Utilisateur :</strong> {{ user.username }}</p>
+                    <p class="mb-1"><strong>Email actuel :</strong> {{ user.email }}</p>
+                    <p class="mb-0"><strong>Nouvel email demandé :</strong> {{ new_email }}</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="action" value="approve" class="btn-approve">
+                            <i class="bi bi-check-circle me-2"></i>Approuver
+                        </button>
+                        <button type="submit" name="action" value="reject" class="btn-reject">
+                            <i class="bi bi-x-circle me-2"></i>Refuser
+                        </button>
+                        <a href="{% url 'user_list' %}" class="btn-outline-custom">
+                            <i class="bi bi-arrow-left me-2"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

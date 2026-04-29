@@ -60,6 +60,11 @@
         outline: none;
     }
     
+    .profil-input:disabled {
+        background-color: #f1f5f9;
+        cursor: not-allowed;
+    }
+    
     .btn-primary-profil {
         background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%);
         border: none;
@@ -112,25 +117,6 @@
         color: #0f2b4d;
     }
     
-    .alert-security {
-        background-color: #eef2ff;
-        border: none;
-        border-radius: 1rem;
-        padding: 1rem;
-        display: flex;
-        align-items: center;
-    }
-    
-    .alert-security i {
-        font-size: 1.5rem;
-        margin-right: 1rem;
-        color: #0f2b4d;
-    }
-    
-    .alert-security strong {
-        color: #0f2b4d;
-    }
-    
     .divider-profil {
         border-color: #e2e8f0;
         margin: 1.5rem 0;
@@ -176,12 +162,31 @@
                         <input type="text" name="username" class="profil-input" value="{{ user.username }}" required>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="profil-label">
-                            <i class="bi bi-envelope me-1"></i>Email
-                        </label>
-                        <input type="email" name="email" class="profil-input" value="{{ user.email }}" required>
-                    </div>
+                    <!-- Champ Email selon le type d'utilisateur -->
+                    {% if user.is_superuser %}
+                        <!-- Admin peut modifier directement -->
+                        <div class="mb-3">
+                            <label class="profil-label">
+                                <i class="bi bi-envelope me-1"></i>Email
+                            </label>
+                            <input type="email" name="email" class="profil-input" value="{{ user.email }}" required>
+                            <div class="form-text text-muted small">L'administrateur peut modifier son email directement.</div>
+                        </div>
+                    {% else %}
+                        <!-- Utilisateur normal doit faire une demande -->
+                        <div class="mb-3">
+                            <label class="profil-label">
+                                <i class="bi bi-envelope me-1"></i>Email
+                            </label>
+                            <div class="input-group">
+                                <input type="email" class="profil-input" value="{{ user.email }}" disabled>
+                                <a href="{% url 'request_email_change' %}" class="btn btn-outline-primary rounded-pill ms-2" style="white-space: nowrap;">
+                                    <i class="bi bi-pencil me-1"></i>Demander un changement
+                                </a>
+                            </div>
+                            <div class="form-text text-muted small">Pour changer votre email, une demande doit être approuvée par l'administrateur.</div>
+                        </div>
+                    {% endif %}
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -200,14 +205,7 @@
                     
                     <hr class="divider-profil">
                     
-                    <div class="alert-security">
-                        <i class="bi bi-shield-lock-fill"></i>
-                        <div>
-                            <strong>Sécurité du mot de passe</strong><br>
-                            <span class="small text-secondary">Pour changer votre mot de passe, cliquez sur le bouton ci-dessous.</span>
-                        </div>
-                    </div>
-                    
+                    <!-- زر تغيير كلمة السر -->
                     <div class="d-grid gap-2">
                         <a href="{% url 'change_password_request' %}" class="btn-warning-profil">
                             <i class="bi bi-key me-2"></i>Changer mon mot de passe

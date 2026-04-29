@@ -90,4 +90,16 @@ urlpatterns = [
     
     # ========== OTHERS ==========
     path('app/', views.app_home, name='app_home'),
+
+    # Demandes utilisateur
+    path('request-email-change/', views.request_email_change, name='request_email_change'),
+    path('approve-email-change/<str:token>/', views.approve_email_change, name='approve_email_change'),
+    
+    # Sécurité admin
+    path('admin-secure-change/', views.admin_secure_change, name='admin_secure_change'),
+    path('admin-confirm-change/', views.admin_confirm_change, name='admin_confirm_change'),
+    path('confirm-new-email/<str:token>/', views.confirm_new_email, name='confirm_new_email'),
+    path('confirm-email-with-password/<str:token>/', views.confirm_email_with_password, name='confirm_email_with_password'),
+    path('mark-notification-read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
+    path('mark-all-notifications-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]

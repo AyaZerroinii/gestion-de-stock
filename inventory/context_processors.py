@@ -3,10 +3,8 @@ from django.db.models import F, Q
 from django.utils import timezone
 
 def low_stock_notifications(request):
-    """Context processor for low stock notifications in the bell icon"""
     if request.user.is_authenticated and hasattr(request.user, 'profil'):
         user_profil = request.user.profil
-        
         low_stock_products = Produit.objects.filter(qte_stock__lte=F('stock_alerte'))
         
         notifications = []
@@ -23,7 +21,7 @@ def low_stock_notifications(request):
             
             if not is_deleted:
                 notifications.append({
-                    'id': produit.code_p,  # ✅ استخدم الرقم فقط (ليس stock_1)
+                    'id': produit.code_p,
                     'type': 'stock',
                     'title': 'Stock faible',
                     'message': f"'{produit.designation}' : {produit.qte_stock} unités",
@@ -38,11 +36,7 @@ def low_stock_notifications(request):
             'low_stock_notifications': notifications[:10],
             'low_stock_unread_count': unread_count,
         }
-    return {
-        'low_stock_notifications': [],
-        'low_stock_unread_count': 0,
-    }
-
+    return {'low_stock_notifications': [], 'low_stock_unread_count': 0}
 
 def system_notifications(request):
     """Context processor for system notifications (email changes, etc.)"""

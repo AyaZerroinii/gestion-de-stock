@@ -98,7 +98,6 @@ class Notification(models.Model):
 
 
 class NotificationStatus(models.Model):
-    """Pour les notifications de stock faible (produits)"""
     utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE)
     produit = models.ForeignKey('Produit', on_delete=models.CASCADE)
     read = models.BooleanField(default=False)

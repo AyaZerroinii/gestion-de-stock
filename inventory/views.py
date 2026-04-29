@@ -2230,17 +2230,19 @@ def mark_notification_read(request, notification_id):
         return JsonResponse({'error': 'Notification not found'}, status=404)
     
 @login_required
-@staff_or_superuser_required
 @csrf_exempt
 @require_POST
 def notification_mark_read(request, product_id):
-    """Mark a low‑stock notification as read for the current user."""
+    """Mark a low‑stock notification as read for the current user ONLY"""
     try:
+        product_id = int(product_id)
         produit = Produit.objects.get(pk=product_id)
-    except Produit.DoesNotExist:
+    except (Produit.DoesNotExist, ValueError, TypeError):
         return JsonResponse({'error': 'Product not found'}, status=404)
 
     utilisateur = get_user_profile(request.user)
+    
+    # ✅ إنشاء أو تحديث الحالة للمستخدم الحالي فقط
     status_obj, created = NotificationStatus.objects.get_or_create(
         utilisateur=utilisateur,
         produit=produit,

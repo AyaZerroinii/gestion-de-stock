@@ -462,27 +462,27 @@
         // ========== GESTION DES NOTIFICATIONS SYSTÈME ==========
         
         function markStockAsRead(productId, buttonElement) {
-            fetch(`/api/notifications/${productId}/read/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCsrfToken(),
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    const item = buttonElement.closest('.notification-item');
-                    if (item) {
-                        item.classList.remove('unread');
-                        item.classList.add('read');
-                        buttonElement.remove();
-                    }
-                    updateBadgeCount();
-                }
-            })
-            .catch(error => console.error('Error:', error));
+    fetch(`/api/notifications/${productId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json'
         }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            const item = buttonElement.closest('.notification-item');
+            if (item) {
+                item.classList.remove('unread');
+                item.classList.add('read');
+                buttonElement.remove();
+            }
+            updateBadgeCount();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
 
         function markSystemAsRead(notificationId, buttonElement) {
             fetch(`/mark-notification-read/${notificationId}/`, {

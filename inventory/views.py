@@ -34,7 +34,7 @@ from .models import (
     Client, BonEntree, LigneEntree, BonSortie, LigneSortie, NotificationStatus
 )
 from .utils import send_welcome_email, notify_admin_password_change, notify_admin_forgot_password
-
+import re
 LOW_STOCK = 50
 
 
@@ -852,56 +852,87 @@ def user_create(request):
         email = request.POST.get('email')
         first_name = request.POST.get('first_name', '')
         last_name = request.POST.get('last_name', '')
-        role = request.POST.get('role', 'user')
         tel = request.POST.get('tel', '')
-        is_staff = request.POST.get('is_staff') == 'on'
-        is_superuser = request.POST.get('is_superuser') == 'on'
+        role = request.POST.get('role', 'user')
         
-        if User.objects.filter(username=username).exists():
-            messages.error(request, f"Nom d'utilisateur '{username}' deja pris")
+        # ✅ التحقق من صحة اسم المستخدم
+        if not username or len(username) < 3:
+            messages.error(request, "Le nom d'utilisateur doit contenir au moins 3 caractères.")
             return redirect('user_create')
         
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            first_name=first_name,
-            last_name=last_name
-        )
+        if not re.match(r'^[a-zA-Z0-9_.-]+$', username):
+            messages.error(request, "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, points, tirets bas et tirets.")
+            return redirect('user_create')
         
-        user.is_staff = is_staff or is_superuser
-        user.is_superuser = is_superuser
-        user.save()
+        # ✅ التحقق من صحة البريد الإلكتروني
+        if not email:
+            messages.error(request, "L'adresse email est requise.")
+            return redirect('user_create')
         
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            messages.error(request, "Veuillez entrer une adresse email valide.")
+            return redirect('user_create')
+        
+        # ✅ التحقق من صحة رقم الهاتف (أرقام فقط)
+        if tel:
+            if not re.match(r'^[0-9\s\+-]+$', tel):
+                messages.error(request, "Le numéro de téléphone ne peut contenir que des chiffres, espaces, + et -.")
+                return redirect('user_create')
+            
+            # إزالة المسافات والرموز للتحقق من الطول
+            tel_clean = re.sub(r'[\s\+-]', '', tel)
+            if len(tel_clean) < 10 or len(tel_clean) > 15:
+                messages.error(request, "Le numéro de téléphone doit contenir entre 10 et 15 chiffres.")
+                return redirect('user_create')
+        
+        # Vérifier si le nom d'utilisateur existe
+        if User.objects.filter(username=username).exists():
+            messages.error(request, f"Le nom d'utilisateur '{username}' existe déjà.")
+            return redirect('user_create')
+        
+        # Vérifier si l'email existe
+        if User.objects.filter(email=email).exists():
+            messages.error(request, f"L'email '{email}' est déjà utilisé par un autre compte.")
+            return redirect('user_create')
+        
+        # توليد كلمة سر عشوائية
         import secrets
         import string
         alphabet = string.ascii_letters + string.digits
         temp_password = ''.join(secrets.choice(alphabet) for _ in range(10))
-        user.set_password(temp_password)
-        user.save()
         
-        profil, created = Utilisateur.objects.get_or_create(
-            user=user,
-            defaults={
-                'must_change_password': True,
-                'role': role,
-                'tel': tel,
-                'is_banned': False,
-                'failed_login_attempts': 0
-            }
+        # Créer l'utilisateur
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            password=temp_password
         )
         
-        from .utils import send_welcome_email, notify_admin_new_user
+        # Définir les permissions selon le rôle
+        user.is_staff = (role in ['staff', 'admin'])
+        user.is_superuser = (role == 'admin')
+        user.save()
+        
+        # Mettre à jour le profil
+        profil = user.profil
+        profil.role = role
+        profil.tel = tel
+        profil.must_change_password = True
+        profil.save()
+        
+        # Envoyer l'email
+        from .utils import send_welcome_email
         send_welcome_email(user, temp_password)
-        notify_admin_new_user(user, temp_password)
         
-        request.session['new_user_id'] = user.id
-        request.session['new_user_temp_password'] = temp_password
-        
-        messages.success(request, f"Utilisateur '{username}' cree avec succes")
-        return redirect('user_created_info')
+        messages.success(request, f"✅ Utilisateur '{username}' créé avec succès.")
+        return redirect('user_list')
     
-    return render(request, 'inventory/user_form.html', {'title': 'Ajouter un utilisateur'})
-
+    return render(request, 'inventory/user_form.html', {
+        'title': "Ajouter un utilisateur",
+        'edit_user': None,
+    })
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_create_user(request):
@@ -942,36 +973,64 @@ def user_created_info(request):
         'now': timezone.now()
     })
 
-
 @user_passes_test(lambda u: u.is_superuser)
 def user_edit(request, pk):
     user = get_object_or_404(User, pk=pk)
     profil = get_user_profile(user)
     
     if request.method == 'POST':
-        user.email = request.POST.get('email')
-        user.first_name = request.POST.get('first_name', '')
-        user.last_name = request.POST.get('last_name', '')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        tel = request.POST.get('tel', '')
+        role = request.POST.get('role', 'user')
+        
+        # ✅ التحقق من صحة البريد الإلكتروني
+        if not email:
+            messages.error(request, "L'adresse email est requise.")
+            return redirect('user_edit', pk=pk)
+        
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            messages.error(request, "Veuillez entrer une adresse email valide.")
+            return redirect('user_edit', pk=pk)
+        
+        # ✅ التحقق من صحة رقم الهاتف
+        if tel:
+            if not re.match(r'^[0-9\s\+-]+$', tel):
+                messages.error(request, "Le numéro de téléphone ne peut contenir que des chiffres, espaces, + et -.")
+                return redirect('user_edit', pk=pk)
+            
+            tel_clean = re.sub(r'[\s\+-]', '', tel)
+            if len(tel_clean) < 10 or len(tel_clean) > 15:
+                messages.error(request, "Le numéro de téléphone doit contenir entre 10 et 15 chiffres.")
+                return redirect('user_edit', pk=pk)
+        
+        # ✅ التحقق من أن البريد الإلكتروني غير مستخدم من قبل مستخدم آخر
+        if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+            messages.error(request, f"L'email '{email}' est déjà utilisé par un autre compte.")
+            return redirect('user_edit', pk=pk)
+        
+        # Mettre à jour les informations
+        user.email = email
+        user.first_name = first_name
+        user.last_name = last_name
+        user.is_staff = (role in ['staff', 'admin'])
+        user.is_superuser = (role == 'admin')
         user.save()
         
-        new_role = request.POST.get('role')
-        if new_role in ['admin', 'staff', 'user']:
-            profil.role = new_role
-            user.is_staff = (new_role in ['admin', 'staff'])
-            user.is_superuser = (new_role == 'admin')
-            user.save()
+        # Mettre à jour le profil
+        profil.role = role
+        profil.tel = tel
         profil.save()
         
-        messages.success(request, f"Utilisateur '{user.username}' mis a jour")
+        messages.success(request, f"✅ Utilisateur '{user.username}' mis à jour avec succès.")
         return redirect('user_list')
     
     return render(request, 'inventory/user_form.html', {
-        'form': AdminUserCreationForm(instance=user),
-        'title': f"Modifier {user.username}",
+        'title': f"Modifier l'utilisateur - {user.username}",
         'edit_user': user,
-        'profil': profil
+        'profil': profil,
     })
-
 
 @user_passes_test(lambda u: u.is_superuser)
 def user_edit_secure(request, pk):

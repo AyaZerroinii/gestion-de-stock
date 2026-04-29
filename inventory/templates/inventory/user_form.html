@@ -1,19 +1,20 @@
 {% extends 'inventory/base.html' %}
-{% block title %}Ajouter un utilisateur{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card border-0 shadow-lg rounded-4">
-            <div class="card-header bg-primary text-white text-center py-3 rounded-top-4">
-                <i class="bi bi-person-plus fs-1"></i>
-                <h3 class="mb-0 mt-2">Ajouter un utilisateur</h3>
+            <div class="card-header" style="background: linear-gradient(145deg, #0f2b4d 0%, #0a1f3a 100%); color: white; text-align: center; padding: 1.5rem;">
+                <i class="bi bi-person-gear fs-1"></i>
+                <h3 class="mb-0 mt-2">{{ title }}</h3>
+                <p class="small text-white-50 mb-0">
+                    {% if edit_user %}
+                        Modifier les informations de l'utilisateur
+                    {% else %}
+                        Créer un nouveau compte utilisateur
+                    {% endif %}
+                </p>
             </div>
             <div class="card-body p-4">
-                <div class="alert alert-info">
-                    <i class="bi bi-envelope me-2"></i>
-                    L'utilisateur recevra un email avec son mot de passe temporaire
-                </div>
-                
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3">
@@ -25,63 +26,110 @@
                 
                 <form method="post">
                     {% csrf_token %}
-                    
+                    {% if edit_user %}
+                        <input type="hidden" name="edit_user_id" value="{{ edit_user.pk }}">
+                    {% endif %}
+
+                    <!-- Nom d'utilisateur -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Nom d'utilisateur <span class="text-danger">*</span></label>
-                        <input type="text" name="username" class="form-control rounded-3" required>
-                        <div class="form-text small">Lettres, chiffres et @/./+/-/_ uniquement.</div>
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-person-badge me-1"></i>Nom d'utilisateur
+                        </label>
+                        <input type="text" name="username" class="form-control form-control-lg rounded-3" 
+                               value="{% if edit_user %}{{ edit_user.username }}{% else %}{{ form.username.value|default:'' }}{% endif %}" 
+                               {% if edit_user %}readonly style="background-color: #f1f5f9;"{% endif %} required>
+                        {% if edit_user %}
+                            <div class="form-text text-muted small">Le nom d'utilisateur ne peut pas être modifié.</div>
+                        {% endif %}
                     </div>
                     
+                    <!-- Email -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control rounded-3" required>
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-envelope me-1"></i>Email
+                        </label>
+                        <input type="email" name="email" class="form-control rounded-3" 
+                               value="{% if edit_user %}{{ edit_user.email }}{% else %}{{ form.email.value|default:'' }}{% endif %}" required>
                     </div>
                     
+                    <!-- Prénom et Nom -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Prénom</label>
-                            <input type="text" name="first_name" class="form-control rounded-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-person me-1"></i>Prénom
+                            </label>
+                            <input type="text" name="first_name" class="form-control rounded-3" 
+                                   value="{% if edit_user %}{{ edit_user.first_name }}{% else %}{{ form.first_name.value|default:'' }}{% endif %}">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Nom</label>
-                            <input type="text" name="last_name" class="form-control rounded-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-person me-1"></i>Nom
+                            </label>
+                            <input type="text" name="last_name" class="form-control rounded-3" 
+                                   value="{% if edit_user %}{{ edit_user.last_name }}{% else %}{{ form.last_name.value|default:'' }}{% endif %}">
                         </div>
                     </div>
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input type="checkbox" name="is_staff" id="is_staff" class="form-check-input">
-                                <label class="form-check-label" for="is_staff">Staff status</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input type="checkbox" name="is_superuser" id="is_superuser" class="form-check-input">
-                                <label class="form-check-label" for="is_superuser">Superuser status</label>
-                            </div>
-                        </div>
-                    </div>
-                    
+                    <!-- Téléphone -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Rôle</label>
-                        <select name="role" class="form-select rounded-3">
-                            <option value="user">Utilisateur</option>
-                            <option value="staff">Staff</option>
-                            <option value="admin">Administrateur</option>
-                        </select>
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-telephone me-1"></i>Téléphone
+                        </label>
+                        <input type="text" name="tel" class="form-control rounded-3" 
+                               value="{% if edit_user and profil %}{{ profil.tel }}{% else %}{{ form.tel.value|default:'' }}{% endif %}">
                     </div>
                     
+                    <!-- Rôle -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold">Téléphone</label>
-                        <input type="text" name="tel" class="form-control rounded-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-shield-lock me-1"></i>Rôle
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input type="radio" name="role" id="role_user" value="user" class="form-check-input" 
+                                           {% if not edit_user %}checked{% endif %}
+                                           {% if edit_user and profil.role == 'user' %}checked{% endif %}>
+                                    <label class="form-check-label" for="role_user">
+                                        <i class="bi bi-person text-secondary"></i> Utilisateur
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input type="radio" name="role" id="role_staff" value="staff" class="form-check-input"
+                                           {% if edit_user and profil.role == 'staff' %}checked{% endif %}>
+                                    <label class="form-check-label" for="role_staff">
+                                        <i class="bi bi-person-badge text-info"></i> Staff
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input type="radio" name="role" id="role_admin" value="admin" class="form-check-input"
+                                           {% if edit_user and profil.role == 'admin' %}checked{% endif %}>
+                                    <label class="form-check-label" for="role_admin">
+                                        <i class="bi bi-shield-lock-fill text-danger"></i> Administrateur
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary rounded-pill px-4">
-                            <i class="bi bi-save me-2"></i>Créer l'utilisateur
+                    <!-- 🔐 Message pour la création (pas de champs mot de passe) -->
+                    {% if not edit_user %}
+                    
+                    {% else %}
+                       
+                    {% endif %}
+
+                    <!-- Boutons -->
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 py-2">
+                            <i class="bi bi-save me-2"></i>
+                            {% if edit_user %}Mettre à jour{% else %}Créer l'utilisateur{% endif %}
                         </button>
-                        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary rounded-pill px-5 py-2">
                             <i class="bi bi-x-circle me-2"></i>Annuler
                         </a>
                     </div>
@@ -90,4 +138,31 @@
         </div>
     </div>
 </div>
+
+<style>
+    .form-control, .form-select {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.65rem 1rem;
+        transition: all 0.2s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #0f2b4d;
+        box-shadow: 0 0 0 3px rgba(15, 43, 77, 0.1);
+        outline: none;
+    }
+    .form-check-input:checked {
+        background-color: #0f2b4d;
+        border-color: #0f2b4d;
+    }
+    .form-check {
+        padding: 0.5rem 1rem;
+        background: #f8fafc;
+        border-radius: 0.75rem;
+        margin: 0;
+    }
+    .form-check:hover {
+        background: #eef2ff;
+    }
+</style>
 {% endblock %}

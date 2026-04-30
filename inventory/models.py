@@ -97,6 +97,7 @@ class Notification(models.Model):
         ('email_rejected', 'Changement d\'email refusé'),
         ('email_confirmed', 'Email confirmé'),
         ('stock_alert', 'Alerte stock faible'),
+        ('password_change', 'Changement de mot de passe'),
     ]
     
     recipient = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='notifications')

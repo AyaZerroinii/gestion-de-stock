@@ -187,6 +187,8 @@ def force_password_change(request):
             profil.must_change_password = False
             profil.password_changed_at = timezone.now()
             profil.save()
+            from .utils import notify_admins_password_change
+            notify_admins_password_change(request.user)
             
             update_session_auth_hash(request, request.user)
             
@@ -256,6 +258,8 @@ def reset_password(request, token):
             profil.reset_token_expires = None
             profil.must_change_password = False
             profil.save()
+            from .utils import notify_admins_password_change
+            notify_admins_password_change(user)
             
             messages.success(request, "Votre mot de passe a ete reinitialise.")
             return redirect('login')
@@ -312,14 +316,18 @@ def change_password_otp_verify(request):
         
         update_session_auth_hash(request, user)
         
+        # ✅ Notifier l'admin par email (fonction existante)
         from .utils import notify_admin_password_change
         notify_admin_password_change(user)
+        
+        # ✅ Notifier les administrateurs via le système de notifications (dropdown)
+        from .utils import notify_admins_password_change
+        notify_admins_password_change(user)
         
         messages.success(request, "Votre mot de passe a été changé avec succès")
         return redirect('user_profile')
     
     return render(request, 'inventory/change_password_otp_verify.html')
-
 def change_password_with_otp_after_login(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -1079,7 +1087,17 @@ def user_edit_secure(request, pk):
         return redirect('user_list')
     
     return render(request, 'inventory/user_edit_secure.html', {'user': user, 'profil': profil})
-
+@login_required
+@require_POST
+@csrf_exempt
+def delete_system_notification(request, notification_id):
+    """Delete a system notification permanently for the current user."""
+    try:
+        notification = Notification.objects.get(id=notification_id, recipient=request.user.profil)
+        notification.delete()
+        return JsonResponse({'status': 'ok'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'error': 'Notification not found'}, status=404)
 
 @user_passes_test(lambda u: u.is_superuser)
 def delete_user(request, pk):
@@ -1714,14 +1732,18 @@ def change_password_otp_verify(request):
         
         update_session_auth_hash(request, user)
         
+        # ✅ Notifier l'admin par email
         from .utils import notify_admin_password_change
         notify_admin_password_change(user)
+        
+        # ✅ Notifier les administrateurs via le système de notifications (dropdown)
+        from .utils import notify_admins_password_change
+        notify_admins_password_change(user)
         
         messages.success(request, "Votre mot de passe a été changé avec succès")
         return redirect('user_profile')
     
     return render(request, 'inventory/change_password_otp_verify.html')
-
 # ========== RESET PASSWORD VIA EMAIL (Forgot) ==========
 def reset_password_request(request):
     if request.method == 'POST':
@@ -1828,6 +1850,10 @@ def reset_password_otp_verify(request):
             user.profil.must_change_password = False
             user.profil.save()
         
+        # ✅ Notifier les administrateurs via le système de notifications
+        from .utils import notify_admins_password_change
+        notify_admins_password_change(user)
+        
         for key in ['reset_user_id', 'reset_new_password', 'reset_otp', 'reset_otp_expires', 'reset_token']:
             if key in request.session:
                 del request.session[key]
@@ -1836,7 +1862,6 @@ def reset_password_otp_verify(request):
         return redirect('login')
     
     return render(request, 'inventory/reset_password_otp_verify.html')
-
 
 # ========== GENERATE PDF REPORT ==========
 from django.http import HttpResponse

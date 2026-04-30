@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
+from .models import Notification, Utilisateur
 
 def send_email_to_user(user, subject, message):
     """إرسال إيميل لمستخدم محدد"""
@@ -100,6 +101,27 @@ Un nouvel utilisateur a été créé :
 Ceci est un message automatique.
 """
     return send_email_to_admins(subject, message)
+
+def notify_admins_password_change(user):
+    """
+    Create a system notification for all administrators when a user changes their password.
+    """
+    admins = Utilisateur.objects.filter(user__is_superuser=True)
+    if not admins:
+        return
+    
+    message = f"L'utilisateur '{user.username}' a changé son mot de passe."
+    link = f"/users/{user.username}/history/"  # adapt to your URL name if needed
+    
+    for admin in admins:
+        Notification.objects.create(
+            recipient=admin,
+            type='password_change',
+            title='🔐 Changement de mot de passe',
+            message=message,
+            link=link,
+            is_read=False
+        )
 
 def notify_admin_password_change(user):
     """إشعار الأدمن عند تغيير كلمة السر"""

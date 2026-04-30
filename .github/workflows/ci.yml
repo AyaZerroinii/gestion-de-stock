@@ -9,11 +9,16 @@ on:
 env:
   DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
   DEBUG: 'False'
-  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+  DB_NAME: test_db
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_HOST: localhost
+  DB_PORT: 5432
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
 
     services:
       postgres:

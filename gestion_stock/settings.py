@@ -93,6 +93,7 @@ USE_TZ = True
 
 # ========== STATIC FILES ==========
 STATIC_URL = '/static/'
+STATIC_ROOT = os.environ.get('STATIC_ROOT', BASE_DIR / 'staticfiles')
 
 # ========== DEFAULT PRIMARY KEY ==========
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

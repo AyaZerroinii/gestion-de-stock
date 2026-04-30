@@ -19,6 +19,7 @@ from django.utils.dateparse import parse_date
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models.deletion import ProtectedError
 import uuid
 import secrets
 from .utils import send_email_to_user
@@ -853,7 +854,10 @@ def user_create(request):
         first_name = request.POST.get('first_name', '')
         last_name = request.POST.get('last_name', '')
         tel = request.POST.get('tel', '')
-        role = request.POST.get('role', 'user')
+        role = request.POST.get('role', 'staff')
+        if role not in ['staff', 'admin']:
+           messages.error(request, "Rôle non autorisé. Veuillez choisir Staff ou Administrateur.")
+           return redirect('user_create')
         
         # ✅ التحقق من صحة اسم المستخدم
         if not username or len(username) < 3:
@@ -872,17 +876,18 @@ def user_create(request):
         if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
             messages.error(request, "Veuillez entrer une adresse email valide.")
             return redirect('user_create')
-        
-        # ✅ التحقق من صحة رقم الهاتف (أرقام فقط)
         if tel:
-            if not re.match(r'^[0-9\s\+-]+$', tel):
-                messages.error(request, "Le numéro de téléphone ne peut contenir que des chiffres, espaces, + et -.")
-                return redirect('user_create')
-            
-            # إزالة المسافات والرموز للتحقق من الطول
             tel_clean = re.sub(r'[\s\+-]', '', tel)
-            if len(tel_clean) < 10 or len(tel_clean) > 15:
-                messages.error(request, "Le numéro de téléphone doit contenir entre 10 et 15 chiffres.")
+            if not tel_clean.isdigit():
+                messages.error(request, "Le numéro de téléphone ne doit contenir que des chiffres, espaces, + ou -.")
+                return redirect('user_create')
+    
+            if len(tel_clean) != 10:
+                messages.error(request, "Le numéro de téléphone doit contenir exactement 10 chiffres.")
+                return redirect('user_create')
+    
+            if not (tel_clean.startswith('05') or tel_clean.startswith('06') or tel_clean.startswith('07')):
+                messages.error(request, "Le numéro de téléphone doit commencer par 05, 06 ou 07.")
                 return redirect('user_create')
         
         # Vérifier si le nom d'utilisateur existe

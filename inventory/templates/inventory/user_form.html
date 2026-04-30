@@ -79,32 +79,23 @@
                                value="{% if edit_user and profil %}{{ profil.tel }}{% else %}{{ form.tel.value|default:'' }}{% endif %}">
                     </div>
                     
-                    <!-- Rôle -->
+                    <!-- Rôle (Seulement Staff et Admin) -->
                     <div class="mb-4">
                         <label class="form-label fw-semibold">
                             <i class="bi bi-shield-lock me-1"></i>Rôle
                         </label>
                         <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input type="radio" name="role" id="role_user" value="user" class="form-check-input" 
-                                           {% if not edit_user %}checked{% endif %}
-                                           {% if edit_user and profil.role == 'user' %}checked{% endif %}>
-                                    <label class="form-check-label" for="role_user">
-                                        <i class="bi bi-person text-secondary"></i> Utilisateur
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-check">
                                     <input type="radio" name="role" id="role_staff" value="staff" class="form-check-input"
+                                           {% if not edit_user %}checked{% endif %}
                                            {% if edit_user and profil.role == 'staff' %}checked{% endif %}>
                                     <label class="form-check-label" for="role_staff">
                                         <i class="bi bi-person-badge text-info"></i> Staff
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-check">
                                     <input type="radio" name="role" id="role_admin" value="admin" class="form-check-input"
                                            {% if edit_user and profil.role == 'admin' %}checked{% endif %}>
@@ -116,13 +107,6 @@
                         </div>
                     </div>
                     
-                    <!-- 🔐 Message pour la création (pas de champs mot de passe) -->
-                    {% if not edit_user %}
-                    
-                    {% else %}
-                       
-                    {% endif %}
-
                     <!-- Boutons -->
                     <div class="d-flex gap-3 mt-4">
                         <button type="submit" class="btn btn-primary rounded-pill px-5 py-2">

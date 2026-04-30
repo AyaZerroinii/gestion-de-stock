@@ -34,16 +34,16 @@
                 <h2 class="fw-bold text-danger">وصل خروج من المخزن</h2>
             </div>
 
-            <div class="row mb-4">
-                <div class="col-6">
-                    <p><strong>رقم الوصل:</strong> <span class="badge bg-danger">{{ bon.num_s }}</span></p>
-                    <p><strong>التاريخ:</strong> {{ bon.date_s|date:"Y-m-d H:i" }}</p>
-                </div>
-                <div class="col-6">
-                    <p><strong>الزبون:</strong> {{ bon.client.designation }}</p>
-                    <p><strong>المستخدم المسؤول:</strong> {{ bon.utilisateur.username }}</p>
-                </div>
+        <div class="row mb-4">
+            <div class="col-6">
+                <p><strong>رقم الوصل:</strong> {{ bon.num_s }}</p>
+                <p><strong>التاريخ:</strong> {{ bon.date_s|date:"Y-m-d H:i" }}</p>
             </div>
+            <div class="col-6">
+                <p><strong>الزبون:</strong> {{ bon.client.designation }}</p>
+                <p><strong>المستخدم المسؤول:</strong> {{ bon.utilisateur.user.username }}</p>
+            </div>
+        </div>
 
             <table class="table table-bordered">
                 <thead class="table-light">

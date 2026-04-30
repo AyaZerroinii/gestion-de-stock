@@ -34,17 +34,18 @@
                 <h2 class="fw-bold text-primary">وصل إدخال إلى المخزن</h2>
             </div>
 
-            <div class="row mb-4">
-                <div class="col-6">
-                    <p><strong>رقم الوصل:</strong> <span class="badge bg-primary">{{ bon.num_e }}</span></p>
-                    <p><strong>التاريخ:</strong> {{ bon.date_e|date:"Y-m-d H:i" }}</p>
-                </div>
-                <div class="col-6">
-                    <p><strong>المورد:</strong> {{ bon.fournisseur.designation }}</p>
-                    <p><strong>المستخدم المسؤول:</strong> {{ bon.utilisateur.username }}</p>
-                </div>
-            </div>
-
+           <div class="row mb-4">
+    <div class="col-6">
+        <p><strong>رقم الوصل:</strong> {{ bon.num_e }}</p>
+        <p><strong>التاريخ:</strong> {{ bon.date_e|date:"Y-m-d H:i" }}</p>
+    </div>
+    <div class="col-6">
+        <p><strong>المورد:</strong> {{ bon.fournisseur.designation }}</p>
+        <p><strong>المستخدم المسؤول:</strong> {{ bon.utilisateur.user.username }}</p>
+        {# أو use this if bon.utilisateur has get_full_name method #}
+        {# <p><strong>المستخدم المسؤول:</strong> {{ bon.utilisateur.user.get_full_name|default:bon.utilisateur.user.username }}</p> #}
+    </div>
+</div>
             <table class="table table-bordered">
                 <thead class="table-light">
                     <tr>

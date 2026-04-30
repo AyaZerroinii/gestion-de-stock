@@ -1,5 +1,8 @@
 {% extends 'inventory/base.html' %}
 {% block content %}
+
+<!-- In inventory/templates/inventory/app.html - Update the notification section -->
+
 <div class="panel">
     <div class="panel-header">
         <h2>Application Web Gestion de Stock</h2>
@@ -34,10 +37,19 @@
 <script>
 const apiUrl = '/api/produits/';
 
+// Track which notifications have been marked as read in this session
+const readInSession = new Set();
+
 function showMessage(text, type='info') {
     const msg = document.getElementById('message');
     msg.textContent = text;
     msg.className = 'message ' + type;
+    setTimeout(() => {
+        if (msg.textContent === text) {
+            msg.textContent = '';
+            msg.className = 'message';
+        }
+    }, 3000);
 }
 
 async function fetchProducts() {
@@ -50,21 +62,32 @@ async function fetchProducts() {
 
         data.produits.forEach((p) => {
             const tr = document.createElement('tr');
-            const dangerClass = p.qte_stock <= p.stock_alerte ? 'low-stock' : '';
+            const isLowStock = p.qte_stock <= p.stock_alerte;
+            const dangerClass = isLowStock ? 'low-stock' : '';
+            
+            // Only show notification buttons if stock is low AND not marked as read in this session
+            const showNotification = isLowStock && !readInSession.has(p.code_p);
+            
             tr.innerHTML = `
                 <td>${p.code_p}</td>
                 <td>${p.designation}</td>
                 <td class="${dangerClass}">${p.qte_stock}</td>
                 <td>${p.stock_alerte}</td>
                 <td>
-                    <button class="button" onclick="onEdit(${p.code_p}, '${p.designation}', ${p.qte_stock}, ${p.stock_alerte})">Modifier</button>
+                    <button class="button" onclick="onEdit(${p.code_p}, '${p.designation.replace(/'/g, "\\'")}', ${p.qte_stock}, ${p.stock_alerte})">Modifier</button>
                     <button class="button danger" onclick="onDelete(${p.code_p})">Supprimer</button>
+                    ${showNotification ? `<button class="button notification-btn" data-product-id="${p.code_p}" data-product-name="${p.designation.replace(/'/g, "\\'")}" onclick="markAsRead(${p.code_p}, '${p.designation.replace(/'/g, "\\'")}')">✓ Marquer comme lu</button>` : ''}
                 </td>
             `;
             tbody.appendChild(tr);
         });
 
-        showMessage('Liste chargée: ' + data.produits.length + ' produits.', 'success');
+        const lowStockCount = data.produits.filter(p => p.qte_stock <= p.stock_alerte && !readInSession.has(p.code_p)).length;
+        if (lowStockCount > 0) {
+            showMessage(`${lowStockCount} produit(s) en stock faible.`, 'warning');
+        } else {
+            showMessage('Liste chargée: ' + data.produits.length + ' produits.', 'success');
+        }
     } catch (err) {
         showMessage('Erreur API: ' + err.message, 'error');
     }
@@ -75,6 +98,33 @@ function getCsrfToken() {
     const parts = value.split(`; csrftoken=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
     return '';
+}
+
+async function markAsRead(productId, productName) {
+    try {
+        const response = await fetch(`/api/notifications/${productId}/read/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+        });
+        
+        if (response.ok) {
+            // Add to session tracking
+            readInSession.add(productId);
+            
+            // Show success message
+            showMessage(`Notification pour "${productName}" marquée comme lue.`, 'success');
+            
+            // Refresh the table to remove the notification button
+            await fetchProducts();
+        } else {
+            showMessage('Erreur lors du marquage de la notification.', 'error');
+        }
+    } catch (err) {
+        showMessage('Erreur: ' + err.message, 'error');
+    }
 }
 
 async function onCreate() {
@@ -96,7 +146,10 @@ async function onCreate() {
             body: JSON.stringify(body),
         });
 
-        if (!response.ok) throw new Error('API erreur ' + response.status);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'API erreur ' + response.status);
+        }
 
         await fetchProducts();
         document.getElementById('designation').value = '';
@@ -117,6 +170,10 @@ async function onDelete(pk) {
             headers: { 'X-CSRFToken': getCsrfToken() },
         });
         if (!response.ok) throw new Error('API erreur ' + response.status);
+        
+        // Remove from session tracking if exists
+        readInSession.delete(pk);
+        
         await fetchProducts();
         showMessage('Produit supprimé.', 'success');
     } catch (err) {
@@ -144,6 +201,12 @@ async function onEdit(pk, oldDesignation, oldQte, oldAlerte) {
             body: JSON.stringify({ designation, qte_stock, stock_alerte }),
         });
         if (!response.ok) throw new Error('API erreur ' + response.status);
+        
+        // If stock is no longer low, remove from session tracking
+        if (qte_stock > stock_alerte) {
+            readInSession.delete(pk);
+        }
+        
         await fetchProducts();
         showMessage('Produit mis à jour.', 'success');
     } catch (err) {
@@ -153,7 +216,9 @@ async function onEdit(pk, oldDesignation, oldQte, oldAlerte) {
 
 window.onload = function() {
     fetchProducts();
-    document.getElementById('refreshBtn').addEventListener('click', fetchProducts);
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+        fetchProducts();
+    });
     document.getElementById('createBtn').addEventListener('click', onCreate);
 };
 </script>

@@ -13,12 +13,14 @@ def low_stock_notifications(request):
         for produit in low_stock_products:
             try:
                 status = NotificationStatus.objects.get(utilisateur=user_profil, produit=produit)
+                # Reset read flag if product is still low? No, keep user preference
                 is_read = status.read
                 is_deleted = status.deleted
             except NotificationStatus.DoesNotExist:
                 is_read = False
                 is_deleted = False
             
+            # Only show if not deleted
             if not is_deleted:
                 notifications.append({
                     'id': produit.code_p,

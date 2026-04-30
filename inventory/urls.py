@@ -103,4 +103,7 @@ urlpatterns = [
     path('mark-notification-read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
     path('mark-all-notifications-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
     path('update-all-ban-status/', views.update_all_ban_status, name='update_all_ban_status'),
+    # inventory/urls.py (add inside urlpatterns)
+
+path('api/notifications/mark-all-low-stock-read/', views.mark_all_low_stock_read, name='mark_all_low_stock_read'),
 ]

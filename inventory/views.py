@@ -26,7 +26,7 @@ from .utils import send_email_to_user
 from .models import (
     Entreprise, Produit, Utilisateur, Fournisseur, 
     Client, BonEntree, LigneEntree, BonSortie, LigneSortie, 
-    NotificationStatus, Notification  # ✅ أضف Notification هنا
+    NotificationStatus, Notification  
 )
 
 from .forms import AdminUserCreationForm, ProduitForm, ForcePasswordChangeForm, ForgotPasswordForm, ResetPasswordForm, AdminOTPForm
@@ -558,15 +558,27 @@ def produit_create(request):
 @user_passes_test(lambda u: u.is_superuser)
 def produit_edit(request, pk):
     produit = get_object_or_404(Produit, pk=pk)
+    old_alert_threshold = produit.stock_alerte
+    
     if request.method == 'POST':
         form = ProduitForm(request.POST, instance=produit)
         if form.is_valid():
+            was_low_stock = produit.qte_stock <= old_alert_threshold
             form.save()
+            
+            # If alert threshold changed from low to normal, reset notifications
+            is_now_low_stock = produit.qte_stock <= produit.stock_alerte
+            
+            if was_low_stock and not is_now_low_stock:
+                reset_low_stock_notification_status(produit)
+            elif not was_low_stock and not is_now_low_stock:
+                # Ensure notifications are reset if product is not low
+                reset_low_stock_notification_status(produit, force=True)
+            
             return redirect('produit_list')
     else:
         form = ProduitForm(instance=produit)
     return render(request, 'inventory/produit_form.html', {'form': form, 'title': 'Modifier le produit'})
-
 
 @user_passes_test(lambda u: u.is_superuser)
 def produit_delete(request, pk):
@@ -680,12 +692,16 @@ def produit_api_detail(request, pk):
 @csrf_exempt
 @require_POST
 def notification_mark_read(request, product_id):
+    """Mark a low‑stock notification as read for the current user ONLY"""
     try:
+        product_id = int(product_id)
         produit = Produit.objects.get(pk=product_id)
-    except Produit.DoesNotExist:
+    except (Produit.DoesNotExist, ValueError, TypeError):
         return JsonResponse({'error': 'Product not found'}, status=404)
-    
+
     utilisateur = get_user_profile(request.user)
+    
+    # Create or update status for current user only
     status_obj, created = NotificationStatus.objects.get_or_create(
         utilisateur=utilisateur,
         produit=produit,
@@ -694,7 +710,7 @@ def notification_mark_read(request, product_id):
     if not created:
         status_obj.read = True
         status_obj.save()
-    
+
     return JsonResponse({'status': 'ok'})
 
 
@@ -703,12 +719,16 @@ def notification_mark_read(request, product_id):
 @csrf_exempt
 @require_POST
 def notification_mark_deleted(request, product_id):
+    """Mark a low‑stock notification as deleted for the current user ONLY"""
     try:
+        product_id = int(product_id)
         produit = Produit.objects.get(pk=product_id)
-    except Produit.DoesNotExist:
+    except (Produit.DoesNotExist, ValueError, TypeError):
         return JsonResponse({'error': 'Product not found'}, status=404)
-    
+
     utilisateur = get_user_profile(request.user)
+    
+    # Create or update status for current user only
     status_obj, created = NotificationStatus.objects.get_or_create(
         utilisateur=utilisateur,
         produit=produit,
@@ -717,9 +737,8 @@ def notification_mark_deleted(request, product_id):
     if not created:
         status_obj.deleted = True
         status_obj.save()
-    
-    return JsonResponse({'status': 'ok'})
 
+    return JsonResponse({'status': 'ok'})
 
 # ========== CLIENT MANAGEMENT ==========
 @user_passes_test(lambda u: u.is_superuser)
@@ -1199,17 +1218,33 @@ def bon_entree_create(request):
             return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
         
         bon = BonEntree.objects.create(fournisseur=fournisseur, utilisateur=utilisateur_obj, date_e=timezone.now())
+        low_stock_products = []
         
         for produit, qte in lignes_data:
             LigneEntree.objects.create(bon=bon, produit=produit, qte_e=qte)
-            produit.qte_stock += qte
+            
+            # Stock change logic
+            was_low_stock = produit.qte_stock <= produit.stock_alerte
+            new_stock = produit.qte_stock + qte
+            produit.qte_stock = new_stock
             produit.save()
+            
+            # Reset notification if it was low but now is normal
+            if was_low_stock and new_stock > produit.stock_alerte:
+                reset_low_stock_notification_status(produit)
+        
+        # Check for low stock after updates
+        for produit, qte in lignes_data:
+            if produit.qte_stock <= produit.stock_alerte:
+                low_stock_products.append(produit.designation)
+        
+        if low_stock_products:
+            messages.warning(request, f"Stock faible pour : {', '.join(low_stock_products)}")
         
         messages.success(request, f"Bon d'entree #{bon.num_e} cree")
         return redirect('bon_entree_list')
     
     return render(request, 'inventory/bon_entree_form.html', {'fournisseurs': fournisseurs, 'produits': produits})
-
 
 @login_required
 def bon_entree_detail(request, pk):
@@ -1313,8 +1348,14 @@ def bon_sortie_create(request):
         
         for produit, qte in lignes_data:
             LigneSortie.objects.create(bon=bon, produit=produit, qte_s=qte)
-            produit.qte_stock -= qte
+            
+            # Stock change logic
+            old_stock = produit.qte_stock
+            new_stock = produit.qte_stock - qte
+            produit.qte_stock = new_stock
             produit.save()
+            
+            # Check for new low stock condition
             if produit.qte_stock <= produit.stock_alerte:
                 low_stock_products.append(produit.designation)
         
@@ -1325,7 +1366,6 @@ def bon_sortie_create(request):
         return redirect('bon_sortie_detail', pk=bon.pk)
     
     return render(request, 'inventory/bon_sortie_form.html', {'clients': clients, 'produits': produits})
-
 
 @login_required
 def bon_sortie_detail(request, pk):
@@ -2304,6 +2344,45 @@ def mark_all_notifications_read(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 from .models import Notification, Produit, Utilisateur
+@login_required
+@staff_or_superuser_required
+@require_POST
+@csrf_exempt
+def mark_all_low_stock_read(request):
+    """Mark all low-stock notifications as read for the current user"""
+    utilisateur = get_user_profile(request.user)
+    
+    # Get all products that are currently low on stock
+    low_stock_products = Produit.objects.filter(qte_stock__lte=F('stock_alerte'))
+    
+    # Create or update NotificationStatus entries for all these products as read=True
+    updated_count = 0
+    for produit in low_stock_products:
+        status_obj, created = NotificationStatus.objects.get_or_create(
+            utilisateur=utilisateur,
+            produit=produit,
+            defaults={'read': True}
+        )
+        if not created and not status_obj.read:
+            status_obj.read = True
+            status_obj.save()
+            updated_count += 1
+        elif created:
+            updated_count += 1
+    
+    return JsonResponse({'status': 'ok', 'updated': updated_count})
+
+def reset_low_stock_notification_status(product, force=False):
+    """
+    Reset notification status when a product is no longer low on stock.
+    Call this when stock is updated (entrée/sortie) or when stock_alerte changes.
+    """
+    # If product stock is above alert threshold, reset notification status for all users
+    if product.qte_stock > product.stock_alerte or force:
+        # Reset read and deleted flags for this product
+        NotificationStatus.objects.filter(produit=product).update(read=False, deleted=False)
+        return True
+    return False
 
 def check_and_create_low_stock_notifications():
     """Vérifier les produits en stock faible et créer des notifications"""
@@ -2363,6 +2442,16 @@ def notification_mark_read(request, product_id):
         status_obj.save()
 
     return JsonResponse({'status': 'ok'})
+def update_product_stock_and_reset_notification(produit, new_quantity):
+    """Update product stock and reset notification if no longer low"""
+    old_quantity = produit.qte_stock
+    produit.qte_stock = new_quantity
+    produit.save()
+    
+    # If stock went from low to normal, reset notifications
+    if old_quantity <= produit.stock_alerte and new_quantity > produit.stock_alerte:
+        reset_low_stock_notification_status(produit)
+
 
 @user_passes_test(lambda u: u.is_superuser)
 @csrf_exempt

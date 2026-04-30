@@ -143,6 +143,11 @@ class Produit(models.Model):
     
     def __str__(self):
         return f"{self.code_p} - {self.designation}"
+    
+    def reset_notification_status_for_all_users(self):
+        """Reset read/deleted status when product comes back from low stock"""
+        NotificationStatus.objects.filter(produit=self, read=True).update(read=False)
+        NotificationStatus.objects.filter(produit=self, deleted=True).update(deleted=False)
 
 
 class Fournisseur(models.Model):

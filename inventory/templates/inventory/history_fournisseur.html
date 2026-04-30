@@ -25,7 +25,7 @@
                         {{ ligne.produit.designation }} ({{ ligne.qte_e }})<br>
                     {% endfor %}
                 </td>
-                <td>{{ bon.utilisateur.username }}</td>
+                <td>{{ bon.utilisateur.user.username }}</td>  <!-- ✅ fixed -->
                 <td>
                     <a href="{% url 'bon_entree_detail' bon.pk %}" class="btn btn-sm btn-outline-primary">Détail</a>
                 </td>

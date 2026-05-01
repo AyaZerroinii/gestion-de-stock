@@ -137,7 +137,8 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = 'a9e1ac001@smtp-brevo.com'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', '')
+
 
 # Liste des administrateurs
 ADMIN_EMAILS = [email.strip() for email in os.environ.get('ADMIN_EMAILS', 'a9e1ac001@smtp-brevo.com').split(',') if email.strip()]

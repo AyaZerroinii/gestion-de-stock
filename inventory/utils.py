@@ -61,7 +61,8 @@ Instructions :
 3. Saisissez le code OTP pour vérifier votre identité
 4. Choisissez votre nouveau mot de passe
 
-Lien de connexion : http://127.0.0.1:8000/login/
+Lien de connexion : https://gestion-de-stock-pido.onrender.com/login/
+
 
 Attention: Ce mot de passe est temporaire. Vous devrez le changer lors de votre première connexion.
 

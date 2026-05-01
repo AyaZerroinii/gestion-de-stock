@@ -58,8 +58,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'gestion_stock.wsgi.application'
 
 # ========== DATABASE ==========
-DATABASES = {
-    'default': {
+import os
+
+if os.environ.get('RENDER'):
+    # SQLite for Render demo
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+
+    DATABASES = {
+      'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME', 'gestion_stock'),
         'USER': os.environ.get('DB_USER', 'postgres'),

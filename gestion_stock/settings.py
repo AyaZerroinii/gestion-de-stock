@@ -131,14 +131,13 @@ CACHES = {
 
 # ========== EMAIL CONFIGURATION ==========
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER='ayazrrou@gmail.com'
-EMAIL_HOST_PASSWORD='gyry grmd oecq edqc'
-DEFAULT_FROM_EMAIL='ayazrrou@gmail.com'
-ADMIN_EMAILS='ayazrrouni@gmail.com'
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = 'ayazrrou@gmail.com'
 
 # Liste des administrateurs
 ADMIN_EMAILS = [email.strip() for email in os.environ.get('ADMIN_EMAILS', 'ayazrrouni@gmail.com').split(',') if email.strip()]

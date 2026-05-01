@@ -89,6 +89,10 @@ def custom_login(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
+            if user.is_superuser:
+                login(request, user)
+                return redirect('home')
+        
             if hasattr(user, 'profil'):
                 user.profil.reset_failed_attempts()
             

@@ -106,13 +106,16 @@ def custom_login(request):
             request.session['login_otp_expires'] = (timezone.now() + timezone.timedelta(minutes=5)).timestamp()
             
             try:
-                send_mail(
+                import threading
+                email_args = (
                     'Code de verification OTP',
                     f'Bonjour {user.username},\n\nVotre code OTP pour vous connecter est : {otp_code}\n\nCe code expire dans 5 minutes.',
                     settings.DEFAULT_FROM_EMAIL,
                     [user.email],
-                    fail_silently=True,
                 )
+                thread = threading.Thread(target=send_mail, args=email_args, kwargs={'fail_silently': True})
+                thread.daemon = True
+                thread.start()
             except:
                 pass
             

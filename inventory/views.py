@@ -1866,7 +1866,10 @@ def reset_password_otp_verify(request):
 # ========== GENERATE PDF REPORT ==========
 from django.http import HttpResponse
 from django.template.loader import get_template
-from xhtml2pdf import pisa
+try:
+    from xhtml2pdf import pisa
+except ImportError:
+    pisa = None
 import io
 
 def generate_pdf_report(request):

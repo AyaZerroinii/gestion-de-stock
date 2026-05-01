@@ -16,7 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from django.db.models import Sum, Q, F, Count
 from django.utils.dateparse import parse_date
-from django.core.mail import send_mail
+import threading
+import requests
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models.deletion import ProtectedError
@@ -111,13 +112,22 @@ def custom_login(request):
             
             try:
                 import threading
-                email_args = (
-                    'Code de verification OTP',
-                    f'Bonjour {user.username},\n\nVotre code OTP pour vous connecter est : {otp_code}\n\nCe code expire dans 5 minutes.',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                )
-                thread = threading.Thread(target=send_mail, args=email_args, kwargs={'fail_silently': True})
+                import requests as req
+                def send_otp_via_brevo():
+                    req.post(
+                        "https://api.brevo.com/v3/smtp/email",
+                        headers={
+                            "api-key": settings.BREVO_API_KEY,
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "sender": {"name": "GestionDeStock", "email": settings.DEFAULT_FROM_EMAIL},
+                            "to": [{"email": user.email}],
+                            "subject": "Code de verification OTP",
+                            "textContent": f'Bonjour {user.username},\n\nVotre code OTP pour vous connecter est : {otp_code}\n\nCe code expire dans 5 minutes.'
+                        }
+                    )
+                thread = threading.Thread(target=send_otp_via_brevo)
                 thread.daemon = True
                 thread.start()
             except:
@@ -224,16 +234,26 @@ def forgot_password(request):
                     
                     reset_link = request.build_absolute_uri(reverse('reset_password', args=[token]))
                     
-                    try:
-                        send_mail(
-                            'Reinitialisation de votre mot de passe',
-                            f'Bonjour {user.username},\n\nCliquez sur le lien suivant :\n{reset_link}\n\nCe lien expire dans 24 heures.',
-                            settings.DEFAULT_FROM_EMAIL,
-                            [email],
-                            fail_silently=True,
-                        )
-                    except:
-                        pass
+                    # Send email in background thread to not block request
+                    def send_reset_email():
+                        try:
+                            requests.post(
+                                "https://api.brevo.com/v3/smtp/email",
+                                headers={
+                                    "api-key": settings.BREVO_API_KEY,
+                                    "Content-Type": "application/json"
+                                },
+                                json={
+                                    "sender": {"name": "GestionDeStock", "email": settings.DEFAULT_FROM_EMAIL},
+                                    "to": [{"email": email}],
+                                    "subject": "Reinitialisation de votre mot de passe",
+                                    "textContent": f'Bonjour {user.username},\n\nCliquez sur le lien suivant :\n{reset_link}\n\nCe lien expire dans 24 heures.'
+                                }
+                            )
+                        except:
+                            pass
+                    
+                    threading.Thread(target=send_reset_email, daemon=True).start()
                     
                     notify_admin_forgot_password(user)
                     

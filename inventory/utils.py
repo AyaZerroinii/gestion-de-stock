@@ -1,5 +1,4 @@
 # inventory/utils.py
-from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -36,26 +35,36 @@ def send_email_to_user(user, subject, message):
         return False
 
 def send_email_to_admins(subject, message):
-    """إرسال إيميل لجميع الأدمن"""
     admins = User.objects.filter(is_superuser=True)
     admin_emails = [admin.email for admin in admins if admin.email]
     
-    if admin_emails:
-        try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                admin_emails,
-                fail_silently=False,
-            )
+    if not admin_emails:
+        return False
+    
+    try:
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "api-key": settings.BREVO_API_KEY,
+                "Content-Type": "application/json"
+            },
+            json={
+                "sender": {"name": "GestionDeStock", "email": settings.DEFAULT_FROM_EMAIL},
+                "to": [{"email": email} for email in admin_emails],
+                "subject": subject,
+                "textContent": message
+            }
+        )
+        if response.status_code == 201:
             print(f"[SUCCESS] Email envoyé aux admins: {admin_emails}")
             return True
-        except Exception as e:
-            print(f"[ERROR] Erreur email admin: {e}")
+        else:
+            print(f"[ERROR] Brevo API error: {response.text}")
             return False
-    return False
-
+    except Exception as e:
+        print(f"[ERROR] Erreur email admin: {e}")
+        return False
+    
 def send_welcome_email(user, temp_password):
     """إرسال إيميل ترحيبي مع كلمة السر المؤقتة"""
     subject = "[INFO] Votre compte a été créé"

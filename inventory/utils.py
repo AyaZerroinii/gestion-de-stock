@@ -5,21 +5,32 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import Notification, Utilisateur
 
+import requests
+
 def send_email_to_user(user, subject, message):
-    """إرسال إيميل لمستخدم محدد"""
     if not user.email:
         print(f"[WARNING] {user.username} n'a pas d'email")
         return False
     try:
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "api-key": settings.BREVO_API_KEY,
+                "Content-Type": "application/json"
+            },
+            json={
+                "sender": {"name": "GestionDeStock", "email": settings.DEFAULT_FROM_EMAIL},
+                "to": [{"email": user.email}],
+                "subject": subject,
+                "textContent": message
+            }
         )
-        print(f"[SUCCESS] Email envoyé à {user.email}")
-        return True
+        if response.status_code == 201:
+            print(f"[SUCCESS] Email envoyé à {user.email}")
+            return True
+        else:
+            print(f"[ERROR] Brevo API error: {response.text}")
+            return False
     except Exception as e:
         print(f"[ERROR] Erreur email: {e}")
         return False

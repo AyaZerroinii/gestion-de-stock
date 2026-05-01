@@ -137,7 +137,7 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = 'ayazrrou@gmail.com'
+DEFAULT_FROM_EMAIL = 'somoneeno@gmail.com'
 
 # Liste des administrateurs
-ADMIN_EMAILS = [email.strip() for email in os.environ.get('ADMIN_EMAILS', 'ayazrrouni@gmail.com').split(',') if email.strip()]
+ADMIN_EMAILS = [email.strip() for email in os.environ.get('ADMIN_EMAILS', 'somoneeno@gmail.com').split(',') if email.strip()]
